@@ -42,8 +42,8 @@
             --md-sys-color-surface-3: #EEE5F9;
             --md-sys-color-surface-4: #ECE3F7;
             --md-sys-color-surface-5: #E9E0F5;
-
-            /* New colors for the modal */
+            
+            /* Color presets for habits */
             --color-preset-1: #FF6B6B;
             --color-preset-2: #4ECDC4;
             --color-preset-3: #FFD93D;
@@ -63,8 +63,8 @@
             background-color: var(--md-sys-color-background);
             color: var(--md-sys-color-on-background);
             min-height: 100vh;
-            padding: 0;
-            overflow-x: hidden;
+            /* Prevent scrolling when login modal is open */
+            overflow: hidden;
         }
 
         .material-symbols-rounded {
@@ -89,6 +89,11 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            gap: 16px; /* Added gap for new button */
+        }
+
+        .app-bar-left {
+            flex-grow: 1;
         }
 
         .app-title {
@@ -105,6 +110,13 @@
             font-size: 14px;
             opacity: 0.9;
             font-weight: 400;
+        } /* <--- CSS FIX: Added missing closing brace */
+
+        .app-bar-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-shrink: 0;
         }
 
         .sync-status {
@@ -130,12 +142,37 @@
             to { transform: rotate(360deg); }
         }
 
+        /* Sign Out Button */
+        .sign-out-btn {
+            background: rgba(255,255,255,0.2);
+            color: var(--md-sys-color-on-primary);
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .sign-out-btn:hover {
+            background: rgba(255,255,255,0.4);
+            transform: scale(1.05);
+        }
+
+        /* Utility Class */
+        .hidden {
+            display: none !important;
+        }
+
         /* Container */
         .container {
             max-width: 1200px;
             margin: 0 auto;
             padding: 24px 20px;
-        }
+        } /* <--- CSS FIX: Added missing closing brace */
 
         /* Setup Banner */
         .setup-banner {
@@ -524,15 +561,15 @@
             position: relative;
             margin-left: auto;
         }
-
+        
         .habit-menu-btn {
             background: transparent;
             border: none;
             color: var(--md-sys-color-on-surface-variant);
-            cursor: pointer;
             width: 40px;
             height: 40px;
             border-radius: 50%;
+            cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -540,35 +577,23 @@
         }
 
         .habit-menu-btn:hover {
-            background: var(--md-sys-color-surface-variant);
+            background: var(--md-sys-color-surface-3);
         }
 
         .habit-menu-dropdown {
-            display: none;
             position: absolute;
+            top: 50px;
             right: 0;
-            top: 44px;
-            background: var(--md-sys-color-surface-3);
+            background: var(--md-sys-color-surface-2);
             border-radius: 12px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            width: 160px;
             z-index: 10;
             padding: 8px;
-            width: 120px;
-            overflow: hidden;
-            animation: menuPop 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            display: none;
+            animation: fadeIn 0.1s ease-out;
         }
-
-        @keyframes menuPop {
-            from {
-                opacity: 0;
-                transform: scale(0.9);
-            }
-            to {
-                opacity: 1;
-                transform: scale(1);
-            }
-        }
-
+        
         .habit-menu-dropdown.show {
             display: block;
         }
@@ -576,31 +601,32 @@
         .habit-menu-dropdown button {
             background: transparent;
             border: none;
-            padding: 10px 12px;
+            padding: 12px 16px;
             width: 100%;
             text-align: left;
             font-size: 14px;
+            font-weight: 500;
             color: var(--md-sys-color-on-surface);
             cursor: pointer;
             border-radius: 8px;
-            transition: background 0.2s;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 12px;
+            transition: background 0.2s;
         }
-
+        
         .habit-menu-dropdown button:hover {
-            background: var(--md-sys-color-surface-variant);
+            background: var(--md-sys-color-surface-3);
         }
-
+        
         .habit-menu-dropdown button.delete {
             color: var(--md-sys-color-error);
         }
+        
         .habit-menu-dropdown button.delete:hover {
             background: var(--md-sys-color-error-container);
         }
-
-
+        
         /* Export Section */
         .export-section {
             background: var(--md-sys-color-surface-2);
@@ -705,107 +731,210 @@
             font-size: 14px;
             opacity: 0.9;
         }
+
+        /* Login Overlay */
+        .login-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background: var(--md-sys-color-background);
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s, visibility 0.3s;
+        }
         
-        /* Modal Styles */
+        .login-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .login-box {
+            background: var(--md-sys-color-surface-1);
+            border-radius: 28px;
+            padding: 32px 24px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            animation: slideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1) both;
+            border: 1px solid var(--md-sys-color-surface-3);
+        }
+        
+        .login-title {
+            font-size: 28px;
+            font-weight: 500;
+            color: var(--md-sys-color-on-surface);
+            margin-bottom: 8px;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .login-subtitle {
+            font-size: 14px;
+            color: var(--md-sys-color-on-surface-variant);
+            text-align: center;
+            margin-bottom: 24px;
+        }
+        
+        .login-error {
+            font-size: 13px;
+            color: var(--md-sys-color-error);
+            background: var(--md-sys-color-error-container);
+            padding: 12px;
+            border-radius: 12px;
+            margin-bottom: 16px;
+            text-align: center;
+            display: none; /* Hidden by default */
+        }
+
+        .login-error.show {
+            display: block;
+        }
+        
+        .form-toggle {
+            display: flex;
+            background: var(--md-sys-color-surface-3);
+            border-radius: 20px;
+            padding: 4px;
+            margin-bottom: 20px;
+        }
+        
+        .toggle-btn {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            background: transparent;
+            border-radius: 16px;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--md-sys-color-on-surface-variant);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .toggle-btn.active {
+            background: var(--md-sys-color-primary);
+            color: var(--md-sys-color-on-primary);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+        
+        /* Modal Styles (for Add/Edit and Delete) */
         .modal-overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
-            height: 100%;
+            height: 100vh;
             background: rgba(0,0,0,0.5);
             backdrop-filter: blur(5px);
-            z-index: 1001;
-            display: none;
+            z-index: 1000;
+            display: flex;
             align-items: center;
             justify-content: center;
-            animation: fadeIn 0.3s;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.2s, visibility 0.2s;
         }
-
+        
         .modal-overlay.show {
-            display: flex;
+            opacity: 1;
+            visibility: visible;
         }
-
-        .modal-content {
+        
+        .modal-box {
             background: var(--md-sys-color-surface-1);
             border-radius: 28px;
             padding: 24px;
             width: 90%;
-            max-width: 400px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
-            animation: slideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            max-width: 500px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            animation: slideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1) both;
+            border: 1px solid var(--md-sys-color-surface-3);
         }
 
         .modal-title {
-            font-size: 22px;
+            font-size: 24px;
             font-weight: 500;
             color: var(--md-sys-color-on-surface);
-            margin-bottom: 20px;
+            margin-bottom: 24px;
         }
         
+        .modal-body {
+            font-size: 14px;
+            color: var(--md-sys-color-on-surface-variant);
+            line-height: 1.6;
+            margin-bottom: 24px;
+        }
+
         .form-group {
             margin-bottom: 16px;
         }
-
+        
         .form-label {
-            display: block;
             font-size: 12px;
             font-weight: 500;
             color: var(--md-sys-color-on-surface-variant);
             margin-bottom: 8px;
+            display: block;
         }
         
-        .form-input, .form-select {
+        .form-input {
             width: 100%;
             padding: 14px;
             font-size: 16px;
-            border: 1px solid var(--md-sys-color-outline-variant);
-            background: var(--md-sys-color-surface-3);
+            border: 2px solid var(--md-sys-color-outline-variant);
             border-radius: 12px;
+            background: var(--md-sys-color-surface);
             color: var(--md-sys-color-on-surface);
             transition: all 0.2s;
         }
         
-        .form-input:focus, .form-select:focus {
+        .form-input:focus {
             outline: none;
             border-color: var(--md-sys-color-primary);
-            box-shadow: 0 0 0 2px var(--md-sys-color-primary-container);
+            box-shadow: 0 0 0 4px var(--md-sys-color-primary-container);
         }
-        
+
         .color-picker {
             display: flex;
             gap: 12px;
-            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .color-radio {
+            display: none;
         }
         
-        .color-radio {
-            appearance: none;
-            width: 32px;
-            height: 32px;
+        .color-label {
+            width: 36px;
+            height: 36px;
             border-radius: 50%;
             cursor: pointer;
+            border: 3px solid var(--md-sys-color-surface-1);
             transition: all 0.2s;
-            position: relative;
-        }
-        .color-radio:checked {
-            transform: scale(1.1);
-            box-shadow: 0 0 0 3px var(--md-sys-color-surface-1), 0 0 0 6px var(--color-c);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
         
-        #color-1 { background: var(--color-preset-1); --color-c: var(--color-preset-1); }
-        #color-2 { background: var(--color-preset-2); --color-c: var(--color-preset-2); }
-        #color-3 { background: var(--color-preset-3); --color-c: var(--color-preset-3); }
-        #color-4 { background: var(--color-preset-4); --color-c: var(--color-preset-4); }
-        #color-5 { background: var(--color-preset-5); --color-c: var(--color-preset-5); }
-        #color-6 { background: var(--color-preset-6); --color-c: var(--color-preset-6); }
+        .color-radio:checked + .color-label {
+            transform: scale(1.15);
+            box-shadow: 0 0 0 4px var(--md-sys-color-primary);
+        }
         
         .modal-actions {
             display: flex;
-            gap: 12px;
             justify-content: flex-end;
+            gap: 12px;
             margin-top: 24px;
         }
-        
+
         .filled-button {
             background: var(--md-sys-color-primary);
             color: var(--md-sys-color-on-primary);
@@ -826,11 +955,12 @@
         }
         
         .filled-button.delete {
-             background: var(--md-sys-color-error);
+            background: var(--md-sys-color-error);
+            color: var(--md-sys-color-on-error);
         }
+        
         .filled-button.delete:hover {
-            background: var(--md-sys-color-error-container);
-            color: var(--md-sys-color-on-error-container);
+            background: #a11a14;
         }
 
         .outlined-button {
@@ -850,13 +980,17 @@
             background: var(--md-sys-color-primary-container);
             border-color: var(--md-sys-color-primary);
         }
-
+        
         /* Responsive */
         @media (max-width: 768px) {
-            .app-title {
-                font-size: 22px;
+            .date-nav {
+                flex-direction: column;
             }
 
+            .today-button {
+                width: 100%;
+            }
+            
             .stats-grid {
                 grid-template-columns: repeat(2, 1fr);
             }
@@ -865,18 +999,22 @@
                 flex-direction: column;
                 gap: 8px;
             }
-
-            .date-nav {
-                flex-direction: column;
-            }
-
-            .today-button {
-                width: 100%;
-            }
-
+            
             .app-bar-content {
-                flex-direction: column;
-                gap: 12px;
+                flex-direction: row; /* Keep horizontal */
+                align-items: center;
+            }
+
+            .app-bar-left {
+                max-width: calc(100% - 120px); /* Give space for buttons */
+            }
+
+            .app-title {
+                 font-size: 20px;
+                 margin-bottom: 0;
+            }
+            .app-subtitle {
+                display: none; /* Hide subtitle on small screens */
             }
         }
 
@@ -937,131 +1075,139 @@
     <!-- App Bar -->
     <div class="app-bar">
         <div class="app-bar-content">
-            <div>
+            <div class="app-bar-left">
                 <div class="app-title">
                     <span class="material-symbols-rounded">task_alt</span>
                     Habit Tracker
                 </div>
                 <div class="app-subtitle">Build consistency, one day at a time</div>
             </div>
-            <div class="sync-status" id="syncStatus">
-                <span class="material-symbols-rounded">cloud_done</span>
-                <span id="syncText">Synced</span>
+            <div class="app-bar-right">
+                <div class="sync-status" id="syncStatus">
+                    <span class="material-symbols-rounded">cloud_done</span>
+                    <span id="syncText">Synced</span>
+                </div>
+                <button class="sign-out-btn" id="signOutBtn" onclick="window.handleSignOut()" aria-label="Sign Out">
+                    <span class="material-symbols-rounded">logout</span>
+                </button>
             </div>
         </div>
     </div>
 
-    <div class="container">
-        <!-- Setup Banner -->
-        <div class="setup-banner" id="setupBanner">
-            <h3>
-                <span class="material-symbols-rounded">settings</span>
-                Firebase Setup Required
-            </h3>
-            <p><strong>Follow these steps to enable secure cloud sync:</strong></p>
-            <ol>
-                <li>Go to <a href="https://console.firebase.google.com" target="_blank" style="color: white; text-decoration: underline;">Firebase Console</a></li>
-                <li>Create a new project (free)</li>
-                <li>Enable <strong>Anonymous Authentication</strong> in Authentication → Sign-in method</li>
-                <li>Create <strong>Firestore Database</strong> in production mode</li>
-                <li>Set security rules (see setup guide)</li>
-                <li>Add Web App and copy your config into the code</li>
-            </ol>
-            <p style="margin-top: 16px;"><strong>Until setup is complete, your data will save locally only.</strong></p>
-            <button class="filled-button" onclick="dismissSetup()">I'll Set This Up Later</button>
-        </div>
-
-        <!-- Date Card -->
-        <div class="date-card">
-            <div class="date-header">
-                <div class="current-date" id="currentDate"></div>
-                <div class="date-subtext" id="dateSubtext"></div>
-            </div>
-            
-            <!-- Progress Ring -->
-            <div class="progress-ring-container">
-                <svg class="progress-ring" width="120" height="120">
-                    <circle class="progress-ring-bg" cx="60" cy="60" r="52"></circle>
-                    <circle 
-                        class="progress-ring-circle" 
-                        cx="60" 
-                        cy="60" 
-                        r="52"
-                        id="progressCircle"
-                        style="stroke: var(--md-sys-color-primary); stroke-dasharray: 326.73; stroke-dashoffset: 326.73;">
-                    </circle>
-                </svg>
-                <div class="progress-text" id="progressText">0/0</div>
+    <!-- Main App Wrapper (Hidden by default) -->
+    <div id="appWrapper" class="hidden">
+        <div class="container">
+            <!-- Setup Banner -->
+            <div class="setup-banner" id="setupBanner">
+                <h3>
+                    <span class="material-symbols-rounded">settings</span>
+                    Firebase Setup Required
+                </h3>
+                <p><strong>Follow these steps to enable secure cloud sync:</strong></p>
+                <ol>
+                    <li>Go to <a href="https://console.firebase.google.com" target="_blank" style="color: white; text-decoration: underline;">Firebase Console</a></li>
+                    <li>Create a new project (free)</li>
+                    <li>Enable <strong>Email/Password</strong> & <strong>Anonymous</strong> Authentication</li>
+                    <li>Create <strong>Firestore Database</strong> in production mode</li>
+                    <li>Set security rules (see setup guide)</li>
+                    <li>Add Web App and copy your config into the code</li>
+                </ol>
+                <p style="margin-top: 16px;"><strong>NOTE: This app will use local storage only until Firebase is set up.</strong></p>
+                <button class="filled-button" onclick="dismissSetup()">I'll Set This Up Later</button>
             </div>
 
-            <div class="date-nav">
-                <button class="icon-button" onclick="changeDate(-1)" aria-label="Previous day">
-                    <span class="material-symbols-rounded">chevron_left</span>
+            <!-- HTML FIX: Restored Date Card content -->
+            <div class="date-card">
+                <div class="date-header">
+                    <div class="current-date" id="currentDate"></div>
+                    <div class="date-subtext" id="dateSubtext"></div>
+                </div>
+                
+                <!-- Progress Ring -->
+                <div class="progress-ring-container">
+                    <svg class="progress-ring" width="120" height="120">
+                        <circle class="progress-ring-bg" cx="60" cy="60" r="52"></circle>
+                        <circle 
+                            class="progress-ring-circle" 
+                            cx="60" 
+                            cy="60" 
+                            r="52"
+                            id="progressCircle"
+                            style="stroke: var(--md-sys-color-primary); stroke-dasharray: 326.73; stroke-dashoffset: 326.73;">
+                        </circle>
+                    </svg>
+                    <div class="progress-text" id="progressText">0/0</div>
+                </div>
+
+                <div class="date-nav">
+                    <button class="icon-button" onclick="changeDate(-1)" aria-label="Previous day">
+                        <span class="material-symbols-rounded">chevron_left</span>
+                    </button>
+                    <button class="today-button" onclick="goToToday()">
+                        <span class="material-symbols-rounded" style="font-size: 18px; vertical-align: middle;">today</span>
+                        Today
+                    </button>
+                    <button class="icon-button" onclick="changeDate(1)" id="nextDayBtn" aria-label="Next day">
+                        <span class="material-symbols-rounded">chevron_right</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- HTML FIX: Restored Stats Grid content -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">📅</div>
+                    <div class="stat-value" id="weekProgress">0%</div>
+                    <div class="stat-label">This Week</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">✨</div>
+                    <div class="stat-value" id="totalCheckins">0</div>
+                    <div class="stat-label">Total Check-ins</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">🔥</div>
+                    <div class="stat-value" id="bestStreak">0</div>
+                    <div class="stat-label">Best Streak</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">🎯</div>
+                    <div class="stat-value" id="avgCompletion">0%</div>
+                    <div class="stat-label">Avg Rate</div>
+                </div>
+            </div>
+
+            <!-- Habits Section (Now Dynamic) -->
+            <div class="habits-section" id="habitsList">
+                <!-- Habit cards will be injected here by renderHabits() -->
+            </div>
+
+            <!-- HTML FIX: Restored Export Section content -->
+            <div class="export-section">
+                <h3>
+                    <span class="material-symbols-rounded" style="vertical-align: middle;">download</span>
+                    Export Your Data
+                </h3>
+                <p>Download your complete habit history as a CSV file</p>
+                <button class="filled-button" onclick="exportToCSV()">
+                    <span class="material-symbols-rounded" style="font-size: 18px; vertical-align: middle;">file_download</span>
+                    Download CSV
                 </button>
-                <button class="today-button" onclick="goToToday()">
-                    <span class="material-symbols-rounded" style="font-size: 18px; vertical-align: middle;">today</span>
-                    Today
-                </button>
-                <button class="icon-button" onclick="changeDate(1)" id="nextDayBtn" aria-label="Next day">
-                    <span class="material-symbols-rounded">chevron_right</span>
-                </button>
             </div>
         </div>
 
-        <!-- Stats Grid -->
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-icon">📅</div>
-                <div class="stat-value" id="weekProgress">0%</div>
-                <div class="stat-label">This Week</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">✨</div>
-                <div class="stat-value" id="totalCheckins">0</div>
-                <div class="stat-label">Total Check-ins</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">🔥</div>
-                <div class="stat-value" id="bestStreak">0</div>
-                <div class="stat-label">Best Streak</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">🎯</div>
-                <div class="stat-value" id="avgCompletion">0%</div>
-                <div class="stat-label">Avg Rate</div>
-            </div>
+        <!-- FAB (Now for Add Habit) -->
+        <button class="fab" onclick="openHabitModal(null)" aria-label="Add new habit">
+            <span class="material-symbols-rounded">add</span>
+        </button>
+
+        <!-- HTML FIX: Restored Celebration Overlay content -->
+        <div class="celebration" id="celebration">
+            <div class="celebration-emoji">🎉</div>
+            <div class="celebration-text">All habits completed!</div>
+            <div class="celebration-subtext">Keep up the amazing work!</div>
         </div>
-
-        <!-- Habits Section (Now Dynamic) -->
-        <div class="habits-section" id="habitsList">
-            <!-- Habit cards will be injected here by renderHabits() -->
-        </div>
-
-        <!-- Export Section -->
-        <div class="export-section">
-            <h3>
-                <span class="material-symbols-rounded" style="vertical-align: middle;">download</span>
-                Export Your Data
-            </h3>
-            <p>Download your complete habit history as a CSV file</p>
-            <button class="filled-button" onclick="exportToCSV()">
-                <span class="material-symbols-rounded" style="font-size: 18px; vertical-align: middle;">file_download</span>
-                Download CSV
-            </button>
-        </div>
-    </div>
-
-    <!-- FAB (Now for Add Habit) -->
-    <button class="fab" onclick="openHabitModal(null)" aria-label="Add new habit">
-        <span class="material-symbols-rounded">add</span>
-    </button>
-
-    <!-- Celebration Overlay -->
-    <div class="celebration" id="celebration">
-        <div class="celebration-emoji">🎉</div>
-        <div class="celebration-text">All habits completed!</div>
-        <div class="celebration-subtext">Keep up the amazing work!</div>
-    </div>
+    </div> <!-- End of #appWrapper -->
 
     <!-- Snackbar -->
     <div class="snackbar" id="snackbar">
@@ -1069,9 +1215,9 @@
         <span id="snackbarText"></span>
     </div>
 
-    <!-- Add/Edit Habit Modal -->
+    <!-- HTML FIX: Restored Add/Edit Habit Modal content -->
     <div class="modal-overlay" id="habitModal">
-        <div class="modal-content">
+        <div class="modal-box">
             <h3 class="modal-title" id="modalTitle">Add New Habit</h3>
             
             <input type="hidden" id="habitIdInput">
@@ -1085,43 +1231,105 @@
                 <label for="habitIconInput" class="form-label">Icon (Emoji)</label>
                 <input type="text" id="habitIconInput" class="form-input" placeholder="e.g., 📚" maxlength="2">
             </div>
-            
+
             <div class="form-group">
                 <label for="habitScheduleInput" class="form-label">Schedule</label>
-                <select id="habitScheduleInput" class="form-select">
+                <select id="habitScheduleInput" class="form-input">
                     <option value="daily">Daily</option>
                     <option value="weekdays">Weekdays Only</option>
                 </select>
             </div>
-            
+
             <div class="form-group">
                 <label class="form-label">Color</label>
                 <div class="color-picker">
-                    <input type="radio" name="color" id="color-1" class="color-radio" value="#FF6B6B" style="--color-c: var(--color-preset-1);" checked>
-                    <input type="radio" name="color" id="color-2" class="color-radio" value="#4ECDC4" style="--color-c: var(--color-preset-2);">
-                    <input type="radio" name="color" id="color-3" class="color-radio" value="#FFD93D" style="--color-c: var(--color-preset-3);">
-                    <input type="radio" name="color" id="color-4" class="color-radio" value="#B565D8" style="--color-c: var(--color-preset-4);">
-                    <input type="radio" name="color" id="color-5" class="color-radio" value="#6C5CE7" style="--color-c: var(--color-preset-5);">
-                    <input type="radio" name="color" id="color-6" class="color-radio" value="#48DBFB" style="--color-c: var(--color-preset-6);">
+                    <input type="radio" id="color-1" name="habitColor" class="color-radio" value="var(--color-preset-1)" checked>
+                    <label for="color-1" class="color-label" style="background: var(--color-preset-1);"></label>
+                    
+                    <input type="radio" id="color-2" name="habitColor" class="color-radio" value="var(--color-preset-2)">
+                    <label for="color-2" class="color-label" style="background: var(--color-preset-2);"></label>
+                    
+                    <input type="radio" id="color-3" name="habitColor" class="color-radio" value="var(--color-preset-3)">
+                    <label for="color-3" class="color-label" style="background: var(--color-preset-3);"></label>
+                    
+                    <input type="radio" id="color-4" name="habitColor" class="color-radio" value="var(--color-preset-4)">
+                    <label for="color-4" class="color-label" style="background: var(--color-preset-4);"></label>
+                    
+                    <input type="radio" id="color-5" name="habitColor" class="color-radio" value="var(--color-preset-5)">
+                    <label for="color-5" class="color-label" style="background: var(--color-preset-5);"></label>
+                    
+                    <input type="radio" id="color-6" name="habitColor" class="color-radio" value="var(--color-preset-6)">
+                    <label for="color-6" class="color-label" style="background: var(--color-preset-6);"></label>
                 </div>
             </div>
-
+            
             <div class="modal-actions">
                 <button class="outlined-button" onclick="closeHabitModal()">Cancel</button>
-                <button class="filled-button" onclick="saveHabit()">Save</button>
+                <button class="filled-button" onclick="saveHabit()">Save Habit</button>
             </div>
         </div>
     </div>
     
-    <!-- Delete Confirmation Modal -->
+    <!-- HTML FIX: Restored Delete Confirmation Modal content -->
     <div class="modal-overlay" id="deleteModal">
-        <div class="modal-content">
-            <h3 class="modal-title">Confirm Deletion</h3>
-            <p id="deleteModalText" style="margin-bottom: 24px; color: var(--md-sys-color-on-surface-variant);">Are you sure you want to delete this habit?</p>
+        <div class="modal-box">
+            <h3 class="modal-title">Delete Habit</h3>
+            <div class="modal-body" id="deleteModalText">
+                Are you sure you want to delete this habit? This action cannot be undone.
+            </div>
             <div class="modal-actions">
                 <button class="outlined-button" onclick="closeDeleteConfirm()">Cancel</button>
                 <button class="filled-button delete" id="confirmDeleteBtn" onclick="confirmDeleteHabit()">Delete</button>
             </div>
+        </div>
+    </div>
+
+    <!-- Login/Register Modal (Visible by default) -->
+    <div class="login-overlay show" id="loginOverlay">
+        <div class="login-box">
+            <h3 class="login-title">
+                <span class="material-symbols-rounded">task_alt</span>
+                Habit Tracker
+            </h3>
+            <p class="login-subtitle">Sign in to sync your habits</p>
+            
+            <div class="form-toggle">
+                <button id="toggleLogin" class="toggle-btn active" onclick="showLoginTab()">Login</button>
+                <button id="toggleRegister" class="toggle-btn" onclick="showRegisterTab()">Register</button>
+            </div>
+            
+            <div class="login-error" id="authError"></div>
+
+            <!-- Login Form -->
+            <div id="loginForm">
+                <div class="form-group">
+                    <label for="loginEmail" class="form-label">Email</label>
+                    <input type="email" id="loginEmail" class="form-input" placeholder="you@example.com">
+                </div>
+                <div class="form-group">
+                    <label for="loginPassword" class="form-label">Password</label>
+                    <input type="password" id="loginPassword" class="form-input" placeholder="••••••••">
+                </div>
+                <div class="modal-actions" style="justify-content: center;">
+                    <button class="filled-button" style="width: 100%;" onclick="handleLoginClick()">Login</button>
+                </div>
+            </div>
+            
+            <!-- Register Form (Hidden) -->
+            <div id="registerForm" class="hidden">
+                <div class="form-group">
+                    <label for="registerEmail" class="form-label">Email</label>
+                    <input type="email" id="registerEmail" class="form-input" placeholder="you@example.com">
+                </div>
+                <div class="form-group">
+                    <label for="registerPassword" class="form-label">Password (6+ characters)</label>
+                    <input type="password" id="registerPassword" class="form-input" placeholder="••••••••">
+                </div>
+                <div class="modal-actions" style="justify-content: center;">
+                    <button class="filled-button" style="width: 100%;" onclick="handleRegisterClick()">Create Account</button>
+                </div>
+            </div>
+
         </div>
     </div>
 
@@ -1130,10 +1338,15 @@
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
         import { getFirestore, doc, setDoc, getDoc, onSnapshot, collection, query, getDocs, addDoc, updateDoc, deleteDoc, writeBatch } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
-        import { getAuth, signInAnonymously, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+        import { 
+            getAuth, 
+            onAuthStateChanged,
+            createUserWithEmailAndPassword,
+            signInWithEmailAndPassword,
+            signOut
+        } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
         
         // TODO: Replace with your Firebase config
-        // Get this from Firebase Console → Project Settings → Your Apps
         const firebaseConfig = {
             apiKey: "AIzaSyBi8ESQV1hcdr9bG6v-tesiTzscDsGFiyQ",
             authDomain: "habit-tracker-5ad2d.firebaseapp.com",
@@ -1145,7 +1358,7 @@
         };
 
         let app, db, auth;
-        window.firebaseEnabled = false; // <-- FIX: Make global
+        window.firebaseEnabled = false; 
         let currentUser = null;
 
         // Try to initialize Firebase
@@ -1154,36 +1367,60 @@
                 app = initializeApp(firebaseConfig);
                 db = getFirestore(app);
                 auth = getAuth(app);
+                window.firebaseEnabled = true; // Set flag
                 
-                // Sign in anonymously
+                // --- This is now the main controller ---
                 onAuthStateChanged(auth, (user) => {
+                    const appWrapper = document.getElementById('appWrapper');
+                    const loginOverlay = document.getElementById('loginOverlay');
+
                     if (user) {
                         // User is signed in
                         currentUser = user;
-                        window.firebaseEnabled = true; // <-- FIX: Set global variable
                         console.log('Signed in with user ID:', user.uid);
-                        document.getElementById('setupBanner').style.display = 'none';
                         
-                        // Load all data after sign-in
-                        loadAllData();
+                        // Hide login, show app
+                        appWrapper.classList.remove('hidden');
+                        loginOverlay.classList.remove('show');
+                        document.body.style.overflow = 'auto'; // Re-enable scrolling
+
+                        loadAllData(); // Load user's data
                         
                     } else {
-                        // No user, sign in anonymously
-                        signInAnonymously(auth).catch((error) => {
-                            console.error('Anonymous auth error:', error);
-                            document.getElementById('setupBanner').classList.add('show');
-                        });
+                        // User is signed out
+                        currentUser = null;
+                        console.log('User is signed out.');
+
+                        // Show login, hide app
+                        appWrapper.classList.add('hidden');
+                        loginOverlay.classList.add('show');
+                        document.body.style.overflow = 'hidden'; // Disable scrolling
+
+                        // Clear all data from UI
+                        window.habits = [];
+                        window.habitData = {};
+                        if(window.renderHabits) window.renderHabits();
+                        if(window.updateDisplay) window.updateDisplay();
                     }
                 });
                 
                 console.log('Firebase initialized successfully');
             } else {
+                // Firebase not configured
                 console.log('Firebase not configured, using localStorage only');
                 document.getElementById('setupBanner').classList.add('show');
+                // Hide login, show app for local-only mode
+                document.getElementById('appWrapper').classList.remove('hidden');
+                document.getElementById('loginOverlay').classList.remove('show');
+                document.body.style.overflow = 'auto';
             }
         } catch (error) {
              console.error('Firebase initialization error:', error);
              document.getElementById('setupBanner').classList.add('show');
+             // Hide login, show app for local-only mode
+             document.getElementById('appWrapper').classList.remove('hidden');
+             document.getElementById('loginOverlay').classList.remove('show');
+             document.body.style.overflow = 'auto';
         }
         
         async function loadAllData() {
@@ -1194,16 +1431,58 @@
             window.setupRealtimeSync();
         }
 
-        // Expose Firebase functions globally
-        window.saveToFirebase = async function(dateStr, data) {
-            if (!window.firebaseEnabled) { // <-- FIX: Check global variable
-                return;
+        // --- New Auth Functions ---
+        window.handleRegister = async (email, password) => {
+            if (!window.firebaseEnabled) return;
+            try {
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                // onAuthStateChanged will handle the rest
+            } catch (error) {
+                showAuthError(error.message);
             }
+        };
+        
+        window.handleLogin = async (email, password) => {
+            if (!window.firebaseEnabled) return;
+            try {
+                const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                // onAuthStateChanged will handle the rest
+            } catch (error) {
+                showAuthError(error.message);
+            }
+        };
 
+        window.handleSignOut = async () => {
+            if (!window.firebaseEnabled) return;
+            try {
+                await signOut(auth);
+                // onAuthStateChanged will handle the rest
+            } catch (error) {
+                console.error('Sign out error:', error);
+                window.showSnackbar('Error signing out.');
+            }
+        };
+
+        function showAuthError(message) {
+            const errorEl = document.getElementById('authError');
+            // Clean up Firebase error codes
+            message = message.replace('Firebase: ', '').replace(` (auth/weak-password).`, '.');
+            message = message.replace(` (auth/email-already-in-use).`, '.');
+            message = message.replace(` (auth/invalid-credential).`, '.');
+            errorEl.textContent = message;
+            errorEl.classList.add('show');
+        }
+        window.clearAuthError = () => {
+             document.getElementById('authError').classList.remove('show');
+        }
+
+        // --- Firestore Data Functions ---
+        window.saveToFirebase = async function(dateStr, data) {
+            if (!window.firebaseEnabled || !window.getUserId()) return; // <-- FIX
             try {
                 updateSyncStatus('syncing');
-                const userId = getUserId();
-                await setDoc(doc(db, 'habits', userId, 'dates', dateStr), data);
+                const userId = window.getUserId(); // <-- FIX
+                await setDoc(doc(db, 'users', userId, 'dates', dateStr), data); // Changed path
                 updateSyncStatus('synced');
             } catch (error) {
                 console.error('Error saving to Firebase:', error);
@@ -1212,13 +1491,10 @@
         };
 
         window.loadFromFirebase = async function() {
-            if (!window.firebaseEnabled) { // <-- FIX: Check global variable
-                return null;
-            }
-
+            if (!window.firebaseEnabled || !window.getUserId()) return null; // <-- FIX
             try {
-                const userId = getUserId();
-                const datesRef = collection(db, 'habits', userId, 'dates');
+                const userId = window.getUserId(); // <-- FIX
+                const datesRef = collection(db, 'users', userId, 'dates'); // Changed path
                 const q = query(datesRef);
                 const querySnapshot = await getDocs(q);
                 
@@ -1227,9 +1503,8 @@
                     data[doc.id] = doc.data();
                 });
                 
-                // Merge with local data (Firebase data takes precedence)
-                window.habitData = { ...window.habitData, ...data };
-                window.saveData(); // Save merged data to local
+                window.habitData = data; // Overwrite local data with cloud data on login
+                window.saveData(); // Save fresh data to local
                 
                 return data;
             } catch (error) {
@@ -1238,14 +1513,11 @@
             }
         };
 
-        // New functions for loading/saving habits to Firebase
         window.loadHabitsFromFirebase = async () => {
-             if (!window.firebaseEnabled) { // <-- FIX: Check global variable
-                return null;
-            }
+             if (!window.firebaseEnabled || !window.getUserId()) return null; // <-- FIX
             try {
-                const userId = getUserId();
-                const habitsRef = collection(db, 'habits', userId, 'userHabits');
+                const userId = window.getUserId(); // <-- FIX
+                const habitsRef = collection(db, 'users', userId, 'userHabits'); // Changed path
                 const q = query(habitsRef);
                 const querySnapshot = await getDocs(q);
                 
@@ -1261,15 +1533,13 @@
         };
         
         window.addHabitToFirebase = async (habit) => {
-             if (!window.firebaseEnabled) { // <-- FIX: Check global variable
-                return null;
-            }
+             if (!window.firebaseEnabled || !window.getUserId()) return null; // <-- FIX
             try {
-                const userId = getUserId();
-                const habitsRef = collection(db, 'habits', userId, 'userHabits');
-                const { id, ...habitData } = habit; // Don't save local ID to Firebase
-                const docRef = await addDoc(habitsRef, habitData);
-                return docRef.id; // Return the new Firebase-generated ID
+                const userId = window.getUserId(); // <-- FIX
+                const habitsRef = collection(db, 'users', userId, 'userHabits'); // Changed path
+                // const { id, ...habitData } = habit; // This line is not needed, habit is already just data
+                const docRef = await addDoc(habitsRef, habit);
+                return docRef.id; 
             } catch (error) {
                 console.error('Error adding habit to Firebase:', error);
                 return null;
@@ -1277,10 +1547,10 @@
         };
         
         window.updateHabitInFirebase = async (habitId, habitData) => {
-             if (!window.firebaseEnabled) return; // <-- FIX: Check global variable
+             if (!window.firebaseEnabled || !window.getUserId()) return; // <-- FIX
              try {
-                const userId = getUserId();
-                const habitRef = doc(db, 'habits', userId, 'userHabits', habitId);
+                const userId = window.getUserId(); // <-- FIX
+                const habitRef = doc(db, 'users', userId, 'userHabits', habitId); // Changed path
                 await updateDoc(habitRef, habitData);
              } catch(error) {
                 console.error('Error updating habit in Firebase:', error);
@@ -1288,10 +1558,10 @@
         };
         
         window.deleteHabitFromFirebase = async (habitId) => {
-             if (!window.firebaseEnabled) return; // <-- FIX: Check global variable
+             if (!window.firebaseEnabled || !window.getUserId()) return; // <-- FIX
              try {
-                const userId = getUserId();
-                const habitRef = doc(db, 'habits', userId, 'userHabits', habitId);
+                const userId = window.getUserId(); // <-- FIX
+                const habitRef = doc(db, 'users', userId, 'userHabits', habitId); // Changed path
                 await deleteDoc(habitRef);
              } catch(error) {
                 console.error('Error deleting habit from Firebase:', error);
@@ -1299,54 +1569,58 @@
         };
 
         window.setupRealtimeSync = function() {
-            if (!window.firebaseEnabled) { // <-- FIX: Check global variable
-                return;
-            }
+            if (!window.firebaseEnabled || !window.getUserId()) return; // <-- FIX
 
-            const userId = getUserId();
+            const userId = window.getUserId(); // <-- FIX
             
             // Sync for check-in data
-            const datesRef = collection(db, 'habits', userId, 'dates');
+            const datesRef = collection(db, 'users', userId, 'dates'); // Changed path
             onSnapshot(datesRef, (snapshot) => {
+                let hasRemoteChanges = false;
                 snapshot.docChanges().forEach((change) => {
+                    if (change.doc.metadata.hasPendingWrites) return; // Ignore local changes
+                    
                     if (change.type === 'modified' || change.type === 'added') {
-                        // Data changed from another device
                         const dateStr = change.doc.id;
                         const data = change.doc.data();
                         window.habitData[dateStr] = data;
-                        window.saveData(); // Save to local
-                        window.updateDisplay(); // Update UI
+                        hasRemoteChanges = true;
                     }
                 });
+                if (hasRemoteChanges) {
+                    window.saveData(); 
+                    window.updateDisplay();
+                }
             });
             
             // Sync for the habit list itself
-            const habitsRef = collection(db, 'habits', userId, 'userHabits');
+            const habitsRef = collection(db, 'users', userId, 'userHabits'); // Changed path
             onSnapshot(habitsRef, (snapshot) => {
+                let hasRemoteChanges = false;
                 const newHabits = [];
                 snapshot.forEach(doc => {
                     newHabits.push({ id: doc.id, ...doc.data() });
                 });
-                
-                window.habits = newHabits;
-                window.saveHabits(); // Save to local
-                window.renderHabits();
-                window.updateDisplay();
-                // Don't show snackbar, as this can be noisy
+
+                // Simple check to see if lists are different
+                if (newHabits.length !== window.habits.length || JSON.stringify(newHabits) !== JSON.stringify(window.habits)) {
+                     // Check if the change wasn't just a local write
+                    if (snapshot.docChanges().some(change => !change.doc.metadata.hasPendingWrites)) {
+                        window.habits = newHabits;
+                        window.saveHabits(); 
+                        window.renderHabits();
+                        window.updateDisplay();
+                    }
+                }
             });
         };
 
-        function getUserId() {
+        window.getUserId = function() { // <-- FIX: Made function global
             if (currentUser) {
                 return currentUser.uid;
             }
-            // Fallback to localStorage ID if not authenticated yet
-            let userId = localStorage.getItem('habitUserId');
-            if (!userId) {
-                userId = 'user_' + Math.random().toString(36).substr(2, 9);
-                localStorage.setItem('habitUserId', userId);
-            }
-            return userId;
+            // No user, no ID.
+            return null;
         }
 
         function updateSyncStatus(status) {
@@ -1368,23 +1642,23 @@
 
     <script>
         // --- DATA ---
-        let habitData = {}; // Stores check-ins: { "2025-10-20": { "habitId1": true } }
-        let habits = []; // Stores habit definitions: [ { id: "...", name: "...", ... } ]
+        let habitData = {}; 
+        let habits = []; 
         let currentViewDate = new Date();
         
         const defaultHabits = [
-            { name: "Bed before 2am", icon: "🛏️", color: "#FF6B6B", schedule: "daily" },
-            { name: "Walk or Run", icon: "🏃", color: "#4ECDC4", schedule: "daily" },
-            { name: "Wake up at 10", icon: "⏰", color: "#FFD93D", schedule: "daily" },
-            { name: "Apply to 10 jobs", icon: "💼", color: "#B565D8", schedule: "weekdays" },
-            { name: "Limit Instagram", icon: "📱", color: "#6C5CE7", schedule: "daily" }
+            { name: "Bed before 2am", icon: "🛏️", color: "var(--color-preset-1)", schedule: "daily" },
+            { name: "Walk or Run", icon: "🏃", color: "var(--color-preset-2)", schedule: "daily" },
+            { name: "Wake up at 10", icon: "⏰", color: "var(--color-preset-3)", schedule: "daily" },
+            { name: "Apply to 10 jobs", icon: "💼", color: "var(--color-preset-4)", schedule: "weekdays" },
+            { name: "Limit Instagram", icon: "📱", color: "var(--color-preset-5)", schedule: "daily" }
         ];
 
         // --- INITIALIZATION ---
         function init() {
             loadData(); // Load check-in data from local
             
-            // loadHabits is now called after auth
+            // This is the fallback for local-only mode
             if (!window.firebaseEnabled) {
                 (async () => {
                     await loadHabits();
@@ -1402,6 +1676,42 @@
                 });
             });
         }
+
+        // --- LOGIN MODAL HELPERS ---
+        function showLoginTab() {
+            document.getElementById('toggleLogin').classList.add('active');
+            document.getElementById('toggleRegister').classList.remove('active');
+            document.getElementById('loginForm').classList.remove('hidden');
+            document.getElementById('registerForm').classList.add('hidden');
+            window.clearAuthError();
+        }
+        
+        function showRegisterTab() {
+            document.getElementById('toggleLogin').classList.remove('active');
+            document.getElementById('toggleRegister').classList.add('active');
+            document.getElementById('loginForm').classList.add('hidden');
+            document.getElementById('registerForm').classList.remove('hidden');
+            window.clearAuthError();
+        }
+
+        function handleLoginClick() {
+            const email = document.getElementById('loginEmail').value;
+            const pass = document.getElementById('loginPassword').value;
+            if (!email || !pass) {
+                return showAuthError('Please fill in all fields.');
+            }
+            window.handleLogin(email, pass);
+        }
+
+        function handleRegisterClick() {
+            const email = document.getElementById('registerEmail').value;
+            const pass = document.getElementById('registerPassword').value;
+            if (!email || !pass) {
+                 return showAuthError('Please fill in all fields.');
+            }
+            window.handleRegister(email, pass);
+        }
+
 
         function dismissSetup() {
             document.getElementById('setupBanner').style.display = 'none';
@@ -1423,9 +1733,9 @@
         // --- DATA STORAGE (HABIT LIST) ---
         window.loadHabits = async function() {
             let loadedFromFirebase = false;
-            if (window.firebaseEnabled) {
+            if (window.firebaseEnabled && window.getUserId()) { // <-- FIX
                 const firebaseHabits = await window.loadHabitsFromFirebase();
-                if (firebaseHabits && firebaseHabits.length > 0) {
+                if (firebaseHabits) { // Allow empty list from cloud
                     habits = firebaseHabits;
                     loadedFromFirebase = true;
                 }
@@ -1438,6 +1748,7 @@
                 }
             }
 
+            // Only add defaults if list is *truly* empty (new user)
             if (habits.length === 0) {
                 await addDefaultHabits();
             }
@@ -1453,13 +1764,12 @@
             let tempHabits = [];
             
             // Use a batch write if on Firebase
-            if (window.firebaseEnabled) {
-                const userId = getUserId();
+            if (window.firebaseEnabled && window.getUserId()) { // <-- FIX
+                const userId = window.getUserId(); // <-- FIX
                 const batch = writeBatch(db);
                 defaultHabits.forEach(habit => {
-                    const habitRef = doc(collection(db, 'habits', userId, 'userHabits'));
+                    const habitRef = doc(collection(db, 'users', userId, 'userHabits')); // Changed path
                     batch.set(habitRef, habit);
-                    // Add the Firebase-generated ID to our temp local array
                     tempHabits.push({ ...habit, id: habitRef.id }); 
                 });
                 await batch.commit();
@@ -1549,21 +1859,22 @@
                 const index = habits.findIndex(h => h.id === id);
                 if (index > -1) {
                     habits[index] = { ...habits[index], ...habitData };
-                    if (window.firebaseEnabled) {
+                    if (window.firebaseEnabled && window.getUserId()) { // <-- FIX
                         await window.updateHabitInFirebase(id, habitData);
                     }
                 }
             } else {
                 // Add New Habit
                 let newId = 'habit_' + Math.random().toString(36).substr(2, 9);
-                const newHabit = { id: newId, ...habitData };
                 
-                if (window.firebaseEnabled) {
+                if (window.firebaseEnabled && window.getUserId()) { // <-- FIX
+                    // Save to Firebase first to get the real ID
                     const firebaseId = await window.addHabitToFirebase(habitData);
                     if (firebaseId) {
-                        newHabit.id = firebaseId; // Use the real Firebase ID
+                        newId = firebaseId; 
                     }
                 }
+                const newHabit = { id: newId, ...habitData };
                 habits.push(newHabit);
             }
             
@@ -1609,7 +1920,7 @@
             const habitId = document.getElementById('confirmDeleteBtn').dataset.habitId;
             
             // Delete from Firebase
-            if (window.firebaseEnabled) {
+            if (window.firebaseEnabled && window.getUserId()) { // <-- FIX
                 await window.deleteHabitFromFirebase(habitId);
             }
             
@@ -1649,7 +1960,7 @@
             saveData();
             
             // Save to Firebase
-            if (window.firebaseEnabled && window.saveToFirebase) {
+            if (window.firebaseEnabled && window.saveToFirebase && window.getUserId()) { // <-- FIX
                 window.saveToFirebase(dateStr, habitData[dateStr]);
             }
             
@@ -1756,19 +2067,29 @@
             
             // Update date display
             const options = { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' };
-            document.getElementById('currentDate').textContent = currentViewDate.toLocaleDateString('en-US', options);
+            const currentDateEl = document.getElementById('currentDate');
+            const dateSubtextEl = document.getElementById('dateSubtext');
+            
+            if (currentDateEl) {
+                currentDateEl.textContent = currentViewDate.toLocaleDateString('en-US', options);
+            }
             
             // Date subtext
-            if (dateStr === today) {
-                document.getElementById('dateSubtext').textContent = 'Today - Make it count!';
-            } else if (dateStr < today) {
-                document.getElementById('dateSubtext').textContent = 'Past day - Reviewing your progress';
-            } else {
-                document.getElementById('dateSubtext').textContent = 'Future day - Plan ahead!';
+            if (dateSubtextEl) {
+                if (dateStr === today) {
+                    dateSubtextEl.textContent = 'Today - Make it count!';
+                } else if (dateStr < today) {
+                    dateSubtextEl.textContent = 'Past day - Reviewing your progress';
+                } else {
+                    dateSubtextEl.textContent = 'Future day - Plan ahead!';
+                }
             }
             
             // Allow viewing future dates
-            document.getElementById('nextDayBtn').disabled = false;
+            const nextDayBtn = document.getElementById('nextDayBtn');
+            if (nextDayBtn) {
+                nextDayBtn.disabled = false;
+            }
             
             // Update checkboxes and habit cards
             const dayData = habitData[dateStr] || {};
@@ -1809,15 +2130,24 @@
             updateProgressRing(todayComplete, totalHabits);
             
             // Update stats
-            document.getElementById('weekProgress').textContent = calculateWeekProgress() + '%';
-            document.getElementById('totalCheckins').textContent = calculateTotalCheckins();
-            document.getElementById('bestStreak').textContent = calculateBestStreak();
-            document.getElementById('avgCompletion').textContent = calculateAvgCompletion() + '%';
+            const weekProgressEl = document.getElementById('weekProgress');
+            if (weekProgressEl) weekProgressEl.textContent = calculateWeekProgress() + '%';
+            
+            const totalCheckinsEl = document.getElementById('totalCheckins');
+            if (totalCheckinsEl) totalCheckinsEl.textContent = calculateTotalCheckins();
+            
+            const bestStreakEl = document.getElementById('bestStreak');
+            if (bestStreakEl) bestStreakEl.textContent = calculateBestStreak();
+            
+            const avgCompletionEl = document.getElementById('avgCompletion');
+            if (avgCompletionEl) avgCompletionEl.textContent = calculateAvgCompletion() + '%';
         }
 
         function updateProgressRing(completed, total) {
             const circle = document.getElementById('progressCircle');
             const text = document.getElementById('progressText');
+            if (!circle || !text) return; // Add guard clause
+            
             const radius = 52;
             const circumference = 2 * Math.PI * radius;
             
