@@ -1610,6 +1610,16 @@
                 </div>
             </div>
 
+            <!-- Habits Section -->
+            <div class="habits-section" id="habitsList">
+                 <div class="habits-list-empty-state" id="emptyState">
+                    <span class="material-symbols-outlined">add_task</span>
+                    <h3>Your habit list is empty</h3>
+                    <p>Click the <strong>+</strong> button in the corner to add your first habit!</p>
+                </div>
+                <!-- Habits will be rendered here by JavaScript -->
+            </div>
+
             <!-- Stats Grid -->
             <div class="stats-grid">
                 <!-- Added style for stagger animation -->
@@ -1868,16 +1878,6 @@
                         <canvas id="headToHeadChart"></canvas>
                     </div>
                 </div>
-            </div>
-
-            <!-- Habits Section -->
-            <div class="habits-section" id="habitsList">
-                 <div class="habits-list-empty-state" id="emptyState">
-                    <span class="material-symbols-outlined">add_task</span>
-                    <h3>Your habit list is empty</h3>
-                    <p>Click the <strong>+</strong> button in the corner to add your first habit!</p>
-                </div>
-                <!-- Habits will be rendered here by JavaScript -->
             </div>
 
             <!-- Export Section -->
@@ -3559,7 +3559,8 @@
             const ctx = document.getElementById('todayDonutChart');
             if (!ctx) return;
 
-            const completed = habits.filter(h => h.completions && h.completions[todayDate]).length;
+            const todayDateStr = getDateString(new Date());
+            const completed = habits.filter(h => habitData[todayDateStr] && habitData[todayDateStr][h.id]).length;
             const pending = habits.length - completed;
 
             if (todayDonutChart) {
@@ -3614,7 +3615,7 @@
                     for (let day = 1; day <= daysInMonth; day++) {
                         const dateStr = new Date(year, month, day).toISOString().split('T')[0];
                         monthTotal++;
-                        if (habit.completions && habit.completions[dateStr]) {
+                        if (habitData[dateStr] && habitData[dateStr][habit.id]) {
                             monthCompleted++;
                         }
                     }
@@ -3730,7 +3731,7 @@
                 if (habitFilter === 'all') {
                     totalCount = habits.length;
                     habits.forEach(habit => {
-                        if (habit.completions && habit.completions[dateStr]) {
+                        if (habitData[dateStr] && habitData[dateStr][habit.id]) {
                             completedCount++;
                         }
                     });
@@ -3738,7 +3739,7 @@
                     const habit = habits.find(h => h.id === habitFilter);
                     if (habit) {
                         totalCount = 1;
-                        if (habit.completions && habit.completions[dateStr]) {
+                        if (habitData[dateStr] && habitData[dateStr][habit.id]) {
                             completedCount = 1;
                         }
                     }
@@ -3802,7 +3803,7 @@
 
                 let dayCompleted = 0;
                 habits.forEach(habit => {
-                    if (habit.completions && habit.completions[dateStr]) {
+                    if (habitData[dateStr] && habitData[dateStr][habit.id]) {
                         dayCompleted++;
                     }
                 });
@@ -3873,7 +3874,7 @@
                     const date = new Date(today);
                     date.setDate(date.getDate() - i);
                     const dateStr = date.toISOString().split('T')[0];
-                    if (habit.completions && habit.completions[dateStr]) {
+                    if (habitData[dateStr] && habitData[dateStr][habit.id]) {
                         currentStreak++;
                     } else {
                         break;
@@ -4180,7 +4181,7 @@
                     const date = new Date(today);
                     date.setDate(date.getDate() - i);
                     const dateStr = date.toISOString().split('T')[0];
-                    if (habit.completions && habit.completions[dateStr]) {
+                    if (habitData[dateStr] && habitData[dateStr][habit.id]) {
                         currentStreak++;
                     } else {
                         break;
@@ -4257,8 +4258,8 @@
                 const dateStr = date.toISOString().split('T')[0];
 
                 labels.push(date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
-                data1.push(habit1.completions && habit1.completions[dateStr] ? 1 : 0);
-                data2.push(habit2.completions && habit2.completions[dateStr] ? 1 : 0);
+                data1.push(habitData[dateStr] && habitData[dateStr][habit1.id] ? 1 : 0);
+                data2.push(habitData[dateStr] && habitData[dateStr][habit2.id] ? 1 : 0);
             }
 
             if (headToHeadChart) {
