@@ -11,7 +11,10 @@
     
     <!-- 2. ICONS: Switched to Material Symbols Outlined per new principles -->
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
-    
+
+    <!-- 3. CHART.JS: For advanced analytics visualizations -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
     <style>
         /* ---
          * NEW DESIGN SYSTEM (Based on your M3 Expressive Principles)
@@ -1081,6 +1084,414 @@
         .legend-item { display: flex; align-items: center; gap: 6px; }
         .legend-color { width: 12px; height: 12px; border-radius: var(--radius-small); }
 
+        /* ---
+         * ANALYTICS DASHBOARD STYLES
+         * ---
+         */
+
+        /* Analytics Navigation Tabs */
+        .analytics-tabs {
+            background: var(--color-surface-tone-2);
+            border-radius: var(--radius-large);
+            padding: 8px;
+            margin-bottom: 24px;
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            box-shadow: 0 1px 2px rgba(60,64,67,0.3);
+        }
+
+        .analytics-tab {
+            background: transparent;
+            color: var(--color-on-surface-variant);
+            border: none;
+            padding: 12px 20px;
+            border-radius: var(--radius-medium);
+            font: var(--font-label);
+            font-weight: var(--font-weight-medium);
+            cursor: pointer;
+            transition: all var(--motion-fast);
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .analytics-tab:hover {
+            background: var(--color-surface-tone-3);
+        }
+
+        .analytics-tab.active {
+            background: var(--color-primary);
+            color: var(--color-on-primary);
+        }
+
+        .analytics-tab .material-symbols-outlined {
+            font-size: 20px;
+        }
+
+        /* Analytics Content Sections */
+        .analytics-content {
+            display: none;
+        }
+
+        .analytics-content.active {
+            display: block;
+            animation: fadeIn var(--motion-medium) forwards;
+        }
+
+        /* Chart Containers */
+        .chart-card {
+            background: var(--color-surface-tone-2);
+            border-radius: var(--radius-large);
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 1px 2px rgba(60,64,67,0.3);
+        }
+
+        .chart-card h3 {
+            font: var(--font-title);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .chart-card h3 .material-symbols-outlined {
+            color: var(--color-primary);
+            font-size: 24px;
+        }
+
+        .chart-wrapper {
+            position: relative;
+            height: 300px;
+            margin-top: 16px;
+        }
+
+        .chart-wrapper.small {
+            height: 200px;
+        }
+
+        .chart-wrapper.large {
+            height: 400px;
+        }
+
+        /* Analytics Stats Mini Grid */
+        .analytics-mini-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .mini-stat-card {
+            background: var(--color-surface-tone-2);
+            border-radius: var(--radius-medium);
+            padding: 16px;
+            text-align: center;
+        }
+
+        .mini-stat-value {
+            font: var(--font-title);
+            color: var(--color-primary);
+            margin-bottom: 4px;
+        }
+
+        .mini-stat-label {
+            font: var(--font-label);
+            font-size: 12px;
+            color: var(--color-on-surface-variant);
+            text-transform: uppercase;
+        }
+
+        /* Heatmap Filters */
+        .heatmap-filters {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .filter-group label {
+            font: var(--font-label);
+            color: var(--color-on-surface-variant);
+            font-weight: var(--font-weight-medium);
+        }
+
+        .filter-select {
+            padding: 8px 12px;
+            font: var(--font-label);
+            border: 1px solid var(--color-outline);
+            border-radius: var(--radius-medium);
+            background: var(--color-surface);
+            color: var(--color-on-surface);
+            cursor: pointer;
+            transition: all var(--motion-fast);
+        }
+
+        .filter-select:focus {
+            outline: none;
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 2px var(--color-primary-container);
+        }
+
+        /* Enhanced Heatmap Grid */
+        .enhanced-heatmap-grid {
+            display: grid;
+            grid-template-columns: 40px repeat(auto-fill, 14px);
+            grid-auto-rows: 14px;
+            grid-gap: 3px;
+            justify-content: start;
+            margin-top: 16px;
+            font: var(--font-label);
+            font-size: 10px;
+        }
+
+        .heatmap-day-label {
+            text-align: right;
+            padding-right: 8px;
+            color: var(--color-on-surface-variant);
+            font: var(--font-label);
+            font-size: 10px;
+            line-height: 14px;
+        }
+
+        .heatmap-month-label {
+            color: var(--color-on-surface-variant);
+            font: var(--font-label);
+            font-size: 10px;
+            text-align: center;
+            margin-bottom: 4px;
+        }
+
+        .enhanced-heatmap-day {
+            width: 14px;
+            height: 14px;
+            border-radius: var(--radius-small);
+            background: var(--color-surface-tone-3);
+            transition: all var(--motion-fast);
+            cursor: pointer;
+            position: relative;
+        }
+
+        .enhanced-heatmap-day:hover {
+            transform: scale(1.3);
+            z-index: 10;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .enhanced-heatmap-day.intensity-1 {
+            opacity: 0.25;
+        }
+
+        .enhanced-heatmap-day.intensity-2 {
+            opacity: 0.5;
+        }
+
+        .enhanced-heatmap-day.intensity-3 {
+            opacity: 0.75;
+        }
+
+        .enhanced-heatmap-day.intensity-4 {
+            opacity: 1;
+        }
+
+        .enhanced-heatmap-day.filled {
+            background: var(--color-primary);
+        }
+
+        /* Heatmap Tooltip */
+        .heatmap-tooltip {
+            position: absolute;
+            background: var(--color-surface);
+            color: var(--color-on-surface);
+            padding: 8px 12px;
+            border-radius: var(--radius-medium);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            font: var(--font-label);
+            font-size: 12px;
+            z-index: 1000;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity var(--motion-fast);
+            border: 1px solid var(--color-outline);
+        }
+
+        .heatmap-tooltip.show {
+            opacity: 1;
+        }
+
+        /* Comparison Table */
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 16px;
+            font: var(--font-label);
+        }
+
+        .comparison-table th {
+            background: var(--color-surface-tone-3);
+            padding: 12px;
+            text-align: left;
+            font-weight: var(--font-weight-medium);
+            border-bottom: 2px solid var(--color-outline);
+        }
+
+        .comparison-table td {
+            padding: 12px;
+            border-bottom: 1px solid var(--color-outline);
+        }
+
+        .comparison-table tr:hover {
+            background: var(--color-surface-tone-2);
+        }
+
+        .comparison-table .habit-icon-cell {
+            font-size: 20px;
+            width: 40px;
+        }
+
+        .comparison-progress-bar {
+            height: 6px;
+            background: var(--color-outline);
+            border-radius: var(--radius-full);
+            overflow: hidden;
+            margin-top: 4px;
+        }
+
+        .comparison-progress-fill {
+            height: 100%;
+            background: var(--color-primary);
+            border-radius: var(--radius-full);
+            transition: width var(--motion-slow);
+        }
+
+        /* Insights Cards */
+        .insights-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .insight-card {
+            background: var(--color-surface-tone-2);
+            border-radius: var(--radius-large);
+            padding: 20px;
+            box-shadow: 0 1px 2px rgba(60,64,67,0.3);
+        }
+
+        .insight-card h4 {
+            font: var(--font-body);
+            font-weight: var(--font-weight-medium);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .insight-card h4 .material-symbols-outlined {
+            color: var(--color-primary);
+            font-size: 20px;
+        }
+
+        .insight-list {
+            list-style: none;
+        }
+
+        .insight-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--color-outline);
+        }
+
+        .insight-item:last-child {
+            border-bottom: none;
+        }
+
+        .insight-item-icon {
+            font-size: 24px;
+        }
+
+        .insight-item-content {
+            flex: 1;
+        }
+
+        .insight-item-name {
+            font-weight: var(--font-weight-medium);
+        }
+
+        .insight-item-stat {
+            font: var(--font-label);
+            color: var(--color-on-surface-variant);
+            font-size: 12px;
+        }
+
+        .insight-item-badge {
+            background: var(--color-primary);
+            color: var(--color-on-primary);
+            padding: 4px 8px;
+            border-radius: var(--radius-full);
+            font: var(--font-label);
+            font-size: 11px;
+            font-weight: var(--font-weight-medium);
+        }
+
+        /* Pattern Recognition */
+        .pattern-card {
+            background: var(--color-surface-tone-2);
+            border-radius: var(--radius-large);
+            padding: 20px;
+            margin-bottom: 16px;
+            border-left: 4px solid var(--color-primary);
+        }
+
+        .pattern-title {
+            font: var(--font-body);
+            font-weight: var(--font-weight-medium);
+            margin-bottom: 8px;
+        }
+
+        .pattern-description {
+            font: var(--font-label);
+            color: var(--color-on-surface-variant);
+            line-height: 1.5;
+        }
+
+        .pattern-stat {
+            font-weight: var(--font-weight-medium);
+            color: var(--color-primary);
+        }
+
+        /* Responsive adjustments for analytics */
+        @media (max-width: 768px) {
+            .analytics-tabs {
+                overflow-x: scroll;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .chart-wrapper {
+                height: 250px;
+            }
+
+            .comparison-table {
+                font-size: 12px;
+            }
+
+            .comparison-table th,
+            .comparison-table td {
+                padding: 8px;
+            }
+        }
+
     </style>
 </head>
 <body>
@@ -1230,6 +1641,242 @@
                     </div>
                     <div class="stat-value" id="avgCompletion">0%</div>
                     <div class="stat-label">Avg Rate</div>
+                </div>
+            </div>
+
+            <!-- Analytics Dashboard -->
+            <div class="analytics-tabs">
+                <button class="analytics-tab active" onclick="switchAnalyticsTab('overview')">
+                    <span class="material-symbols-outlined">dashboard</span>
+                    Overview
+                </button>
+                <button class="analytics-tab" onclick="switchAnalyticsTab('heatmap')">
+                    <span class="material-symbols-outlined">grid_on</span>
+                    Heatmap
+                </button>
+                <button class="analytics-tab" onclick="switchAnalyticsTab('trends')">
+                    <span class="material-symbols-outlined">trending_up</span>
+                    Trends
+                </button>
+                <button class="analytics-tab" onclick="switchAnalyticsTab('insights')">
+                    <span class="material-symbols-outlined">lightbulb</span>
+                    Insights
+                </button>
+                <button class="analytics-tab" onclick="switchAnalyticsTab('compare')">
+                    <span class="material-symbols-outlined">compare_arrows</span>
+                    Compare
+                </button>
+            </div>
+
+            <!-- Analytics Content Sections -->
+
+            <!-- Overview Tab -->
+            <div class="analytics-content active" id="overview-content">
+                <div class="analytics-mini-stats">
+                    <div class="mini-stat-card">
+                        <div class="mini-stat-value" id="miniTotalHabits">0</div>
+                        <div class="mini-stat-label">Active Habits</div>
+                    </div>
+                    <div class="mini-stat-card">
+                        <div class="mini-stat-value" id="miniTodayCompletion">0%</div>
+                        <div class="mini-stat-label">Today</div>
+                    </div>
+                    <div class="mini-stat-card">
+                        <div class="mini-stat-value" id="miniWeekCompletion">0%</div>
+                        <div class="mini-stat-label">This Week</div>
+                    </div>
+                    <div class="mini-stat-card">
+                        <div class="mini-stat-value" id="miniMonthCompletion">0%</div>
+                        <div class="mini-stat-label">This Month</div>
+                    </div>
+                    <div class="mini-stat-card">
+                        <div class="mini-stat-value" id="miniLongestStreak">0</div>
+                        <div class="mini-stat-label">Longest Streak</div>
+                    </div>
+                    <div class="mini-stat-card">
+                        <div class="mini-stat-value" id="miniCurrentStreak">0</div>
+                        <div class="mini-stat-label">Current Streak</div>
+                    </div>
+                </div>
+
+                <div class="chart-card">
+                    <h3>
+                        <span class="material-symbols-outlined">show_chart</span>
+                        7-Day Trend
+                    </h3>
+                    <div class="chart-wrapper">
+                        <canvas id="sevenDayTrendChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="chart-card">
+                    <h3>
+                        <span class="material-symbols-outlined">donut_small</span>
+                        Today's Progress
+                    </h3>
+                    <div class="chart-wrapper small">
+                        <canvas id="todayDonutChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="chart-card">
+                    <h3>
+                        <span class="material-symbols-outlined">bar_chart</span>
+                        Monthly Performance (Last 6 Months)
+                    </h3>
+                    <div class="chart-wrapper">
+                        <canvas id="monthlyPerformanceChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Enhanced Heatmap Tab -->
+            <div class="analytics-content" id="heatmap-content">
+                <div class="heatmap-filters">
+                    <div class="filter-group">
+                        <label>Period:</label>
+                        <select id="heatmapPeriodFilter" class="filter-select" onchange="updateEnhancedHeatmap()">
+                            <option value="3">3 Months</option>
+                            <option value="6" selected>6 Months</option>
+                            <option value="12">1 Year</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Habit:</label>
+                        <select id="heatmapHabitFilter" class="filter-select" onchange="updateEnhancedHeatmap()">
+                            <option value="all">All Habits</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="chart-card">
+                    <div id="enhancedHeatmapContainer"></div>
+                    <div class="heatmap-legend">
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: var(--color-surface-tone-3); opacity: 0.25;"></div>
+                            <span>0-25%</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: var(--color-primary); opacity: 0.5;"></div>
+                            <span>26-50%</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: var(--color-primary); opacity: 0.75;"></div>
+                            <span>51-75%</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: var(--color-primary); opacity: 1;"></div>
+                            <span>76-100%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Trends Tab -->
+            <div class="analytics-content" id="trends-content">
+                <div class="chart-card">
+                    <h3>
+                        <span class="material-symbols-outlined">timeline</span>
+                        30-Day Completion Trend
+                    </h3>
+                    <div class="chart-wrapper">
+                        <canvas id="thirtyDayTrendChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="chart-card">
+                    <h3>
+                        <span class="material-symbols-outlined">local_fire_department</span>
+                        Streak Timeline
+                    </h3>
+                    <div class="chart-wrapper large">
+                        <canvas id="streakTimelineChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Insights Tab -->
+            <div class="analytics-content" id="insights-content">
+                <div class="insights-grid">
+                    <div class="insight-card">
+                        <h4>
+                            <span class="material-symbols-outlined">emoji_events</span>
+                            Top Performers
+                        </h4>
+                        <ul class="insight-list" id="topPerformersList">
+                            <!-- Generated by JS -->
+                        </ul>
+                    </div>
+
+                    <div class="insight-card">
+                        <h4>
+                            <span class="material-symbols-outlined">priority_high</span>
+                            Needs Attention
+                        </h4>
+                        <ul class="insight-list" id="needsAttentionList">
+                            <!-- Generated by JS -->
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="chart-card">
+                    <h3>
+                        <span class="material-symbols-outlined">calendar_view_week</span>
+                        Best Days of the Week
+                    </h3>
+                    <div class="chart-wrapper">
+                        <canvas id="bestDaysChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="pattern-card">
+                    <div class="pattern-title">📊 Pattern Recognition</div>
+                    <div class="pattern-description" id="patternBestDay">
+                        <!-- Generated by JS -->
+                    </div>
+                </div>
+
+                <div class="pattern-card">
+                    <div class="pattern-title">🎯 Consistency Analysis</div>
+                    <div class="pattern-description" id="patternConsistency">
+                        <!-- Generated by JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Compare Tab -->
+            <div class="analytics-content" id="compare-content">
+                <div class="chart-card">
+                    <h3>
+                        <span class="material-symbols-outlined">table_chart</span>
+                        Habit Comparison
+                    </h3>
+                    <table class="comparison-table" id="comparisonTable">
+                        <thead>
+                            <tr>
+                                <th></th>
+                                <th>Habit</th>
+                                <th>Current Streak</th>
+                                <th>Best Streak</th>
+                                <th>This Week</th>
+                                <th>This Month</th>
+                                <th>All Time</th>
+                            </tr>
+                        </thead>
+                        <tbody id="comparisonTableBody">
+                            <!-- Generated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="chart-card">
+                    <h3>
+                        <span class="material-symbols-outlined">stacked_line_chart</span>
+                        Head-to-Head (Last 14 Days)
+                    </h3>
+                    <div class="chart-wrapper large">
+                        <canvas id="headToHeadChart"></canvas>
+                    </div>
                 </div>
             </div>
 
@@ -2588,8 +3235,1131 @@
             goToToday(); // Sets initial date and calls updateDisplay
         }
         
+        // ==========================================
+        // ANALYTICS FUNCTIONS
+        // ==========================================
+
+        // Chart instances (global to allow updates)
+        let sevenDayTrendChart = null;
+        let todayDonutChart = null;
+        let monthlyPerformanceChart = null;
+        let thirtyDayTrendChart = null;
+        let streakTimelineChart = null;
+        let bestDaysChart = null;
+        let headToHeadChart = null;
+
+        // Current analytics tab
+        let currentAnalyticsTab = 'overview';
+
+        /**
+         * Switch between analytics tabs
+         */
+        function switchAnalyticsTab(tabName) {
+            currentAnalyticsTab = tabName;
+
+            // Update tab buttons
+            document.querySelectorAll('.analytics-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            event.target.closest('.analytics-tab').classList.add('active');
+
+            // Update content sections
+            document.querySelectorAll('.analytics-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.getElementById(`${tabName}-content`).classList.add('active');
+
+            // Refresh data for the selected tab
+            updateAnalyticsTab(tabName);
+        }
+
+        /**
+         * Update analytics for a specific tab
+         */
+        function updateAnalyticsTab(tabName) {
+            switch(tabName) {
+                case 'overview':
+                    updateOverviewTab();
+                    break;
+                case 'heatmap':
+                    updateEnhancedHeatmap();
+                    break;
+                case 'trends':
+                    updateTrendsTab();
+                    break;
+                case 'insights':
+                    updateInsightsTab();
+                    break;
+                case 'compare':
+                    updateCompareTab();
+                    break;
+            }
+        }
+
+        /**
+         * Calculate best streak for a habit (all time)
+         */
+        function calculateBestStreakAllTime(habitId) {
+            const habit = habits.find(h => h.id === habitId);
+            if (!habit) return 0;
+
+            let maxStreak = 0;
+            let currentStreak = 0;
+
+            // Get all dates from oldest data to today
+            const startDate = getOldestDataDate();
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            for (let d = new Date(startDate); d <= today; d.setDate(d.getDate() + 1)) {
+                const dateStr = d.toISOString().split('T')[0];
+                const dayData = habitData[dateStr] || {};
+
+                if (dayData[habitId]) {
+                    currentStreak++;
+                    maxStreak = Math.max(maxStreak, currentStreak);
+                } else {
+                    currentStreak = 0;
+                }
+            }
+
+            return maxStreak;
+        }
+
+        /**
+         * Calculate current month progress percentage
+         */
+        function calculateMonthProgress() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = now.getMonth();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const today = now.getDate();
+
+            let totalPossible = 0;
+            let totalCompleted = 0;
+
+            habits.forEach(habit => {
+                for (let day = 1; day <= today; day++) {
+                    const dateStr = new Date(year, month, day).toISOString().split('T')[0];
+                    totalPossible++;
+                    if (habitData[dateStr] && habitData[dateStr][habit.id]) {
+                        totalCompleted++;
+                    }
+                }
+            });
+
+            return totalPossible > 0 ? Math.round((totalCompleted / totalPossible) * 100) : 0;
+        }
+
+        /**
+         * Calculate consistency score (0-100) based on completion patterns
+         */
+        function calculateConsistencyScore() {
+            if (habits.length === 0) return 0;
+
+            const last30Days = [];
+            const today = new Date();
+
+            for (let i = 0; i < 30; i++) {
+                const date = new Date(today);
+                date.setDate(date.getDate() - i);
+                last30Days.push(date.toISOString().split('T')[0]);
+            }
+
+            let totalScore = 0;
+
+            habits.forEach(habit => {
+                let completedDays = 0;
+                last30Days.forEach(dateStr => {
+                    if (habitData[dateStr] && habitData[dateStr][habit.id]) {
+                        completedDays++;
+                    }
+                });
+                totalScore += (completedDays / 30) * 100;
+            });
+
+            return Math.round(totalScore / habits.length);
+        }
+
+        /**
+         * Get day of week analysis
+         */
+        function getDayOfWeekData() {
+            const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            const dayCounts = [0, 0, 0, 0, 0, 0, 0];
+            const dayTotals = [0, 0, 0, 0, 0, 0, 0];
+
+            const last90Days = [];
+            const today = new Date();
+
+            for (let i = 0; i < 90; i++) {
+                const date = new Date(today);
+                date.setDate(date.getDate() - i);
+                last90Days.push(date);
+            }
+
+            habits.forEach(habit => {
+                last90Days.forEach(date => {
+                    const dayOfWeek = date.getDay();
+                    const dateStr = date.toISOString().split('T')[0];
+                    dayTotals[dayOfWeek]++;
+                    if (habitData[dateStr] && habitData[dateStr][habit.id]) {
+                        dayCounts[dayOfWeek]++;
+                    }
+                });
+            });
+
+            const percentages = dayCounts.map((count, index) =>
+                dayTotals[index] > 0 ? Math.round((count / dayTotals[index]) * 100) : 0
+            );
+
+            return { dayNames, percentages };
+        }
+
+        /**
+         * Calculate completion rate for a habit over specified days
+         */
+        function calculatePeriodRate(habitId, days) {
+            const habit = habits.find(h => h.id === habitId);
+            if (!habit) return 0;
+
+            let completed = 0;
+            const today = new Date();
+
+            for (let i = 0; i < days; i++) {
+                const date = new Date(today);
+                date.setDate(date.getDate() - i);
+                const dateStr = date.toISOString().split('T')[0];
+                if (habitData[dateStr] && habitData[dateStr][habit.id]) {
+                    completed++;
+                }
+            }
+
+            return Math.round((completed / days) * 100);
+        }
+
+        /**
+         * Update Overview Tab
+         */
+        function updateOverviewTab() {
+            // Mini stats
+            const activeHabits = habits.length;
+            const todayDateStr = getDateString(new Date());
+            const todayCompleted = habits.filter(h => habitData[todayDateStr] && habitData[todayDateStr][h.id]).length;
+            const todayRate = activeHabits > 0 ? Math.round((todayCompleted / activeHabits) * 100) : 0;
+            const currentStreak = calculateCurrentStreak();
+            const monthProgress = calculateMonthProgress();
+            const consistencyScore = calculateConsistencyScore();
+
+            document.getElementById('miniTotalHabits').textContent = activeHabits;
+            document.getElementById('miniTodayCompleted').textContent = todayCompleted;
+            document.getElementById('miniTodayRate').textContent = `${todayRate}%`;
+            document.getElementById('miniCurrentStreak').textContent = currentStreak;
+            document.getElementById('miniMonthProgress').textContent = `${monthProgress}%`;
+            document.getElementById('miniConsistency').textContent = `${consistencyScore}%`;
+
+            // Initialize charts
+            initSevenDayTrendChart();
+            initTodayDonutChart();
+            initMonthlyPerformanceChart();
+        }
+
+        /**
+         * Calculate current streak (consecutive days with at least one habit completed)
+         */
+        function calculateCurrentStreak() {
+            if (habits.length === 0) return 0;
+
+            let streak = 0;
+            const today = new Date();
+
+            for (let i = 0; i < 365; i++) {
+                const date = new Date(today);
+                date.setDate(date.getDate() - i);
+                const dateStr = date.toISOString().split('T')[0];
+
+                let dayHasCompletion = false;
+                for (const habit of habits) {
+                    if (habitData[dateStr] && habitData[dateStr][habit.id]) {
+                        dayHasCompletion = true;
+                        break;
+                    }
+                }
+
+                if (dayHasCompletion) {
+                    streak++;
+                } else {
+                    break;
+                }
+            }
+
+            return streak;
+        }
+
+        /**
+         * Initialize 7-Day Trend Chart
+         */
+        function initSevenDayTrendChart() {
+            const ctx = document.getElementById('sevenDayTrendChart');
+            if (!ctx) return;
+
+            const labels = [];
+            const data = [];
+            const today = new Date();
+
+            for (let i = 6; i >= 0; i--) {
+                const date = new Date(today);
+                date.setDate(date.getDate() - i);
+                const dateStr = date.toISOString().split('T')[0];
+                labels.push(date.toLocaleDateString('en-US', { weekday: 'short' }));
+
+                let dayCompleted = 0;
+                habits.forEach(habit => {
+                    if (habitData[dateStr] && habitData[dateStr][habit.id]) {
+                        dayCompleted++;
+                    }
+                });
+
+                data.push(dayCompleted);
+            }
+
+            if (sevenDayTrendChart) {
+                sevenDayTrendChart.destroy();
+            }
+
+            sevenDayTrendChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Habits Completed',
+                        data: data,
+                        borderColor: 'rgb(103, 80, 164)',
+                        backgroundColor: 'rgba(103, 80, 164, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 5,
+                        pointBackgroundColor: 'rgb(103, 80, 164)',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { stepSize: 1 }
+                        }
+                    }
+                }
+            });
+        }
+
+        /**
+         * Initialize Today's Completion Donut Chart
+         */
+        function initTodayDonutChart() {
+            const ctx = document.getElementById('todayDonutChart');
+            if (!ctx) return;
+
+            const completed = habitsArray.filter(h => h.completions && h.completions[todayDate]).length;
+            const pending = habitsArray.length - completed;
+
+            if (todayDonutChart) {
+                todayDonutChart.destroy();
+            }
+
+            todayDonutChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Completed', 'Pending'],
+                    datasets: [{
+                        data: [completed, pending],
+                        backgroundColor: ['rgb(103, 80, 164)', 'rgba(103, 80, 164, 0.2)'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        }
+
+        /**
+         * Initialize Monthly Performance Chart (6 months)
+         */
+        function initMonthlyPerformanceChart() {
+            const ctx = document.getElementById('monthlyPerformanceChart');
+            if (!ctx) return;
+
+            const labels = [];
+            const data = [];
+            const today = new Date();
+
+            for (let i = 5; i >= 0; i--) {
+                const date = new Date(today.getFullYear(), today.getMonth() - i, 1);
+                labels.push(date.toLocaleDateString('en-US', { month: 'short' }));
+
+                const year = date.getFullYear();
+                const month = date.getMonth();
+                const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+                let monthTotal = 0;
+                let monthCompleted = 0;
+
+                habitsArray.forEach(habit => {
+                    for (let day = 1; day <= daysInMonth; day++) {
+                        const dateStr = new Date(year, month, day).toISOString().split('T')[0];
+                        monthTotal++;
+                        if (habit.completions && habit.completions[dateStr]) {
+                            monthCompleted++;
+                        }
+                    }
+                });
+
+                const percentage = monthTotal > 0 ? Math.round((monthCompleted / monthTotal) * 100) : 0;
+                data.push(percentage);
+            }
+
+            if (monthlyPerformanceChart) {
+                monthlyPerformanceChart.destroy();
+            }
+
+            monthlyPerformanceChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Completion %',
+                        data: data,
+                        backgroundColor: 'rgb(103, 80, 164)',
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            ticks: {
+                                callback: function(value) {
+                                    return value + '%';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        /**
+         * Update Enhanced Heatmap
+         */
+        function updateEnhancedHeatmap() {
+            const periodFilter = document.getElementById('heatmapPeriodFilter').value;
+            const habitFilter = document.getElementById('heatmapHabitFilter').value;
+            const grid = document.getElementById('enhancedHeatmapGrid');
+
+            if (!grid) return;
+
+            // Update habit filter dropdown
+            const habitSelect = document.getElementById('heatmapHabitFilter');
+            habitSelect.innerHTML = '<option value="all">All Habits</option>';
+            habitsArray.forEach(habit => {
+                const option = document.createElement('option');
+                option.value = habit.id;
+                option.textContent = habit.name;
+                habitSelect.appendChild(option);
+            });
+
+            // Calculate date range
+            const months = parseInt(periodFilter);
+            const today = new Date();
+            const startDate = new Date(today);
+            startDate.setMonth(startDate.getMonth() - months);
+
+            // Generate heatmap
+            grid.innerHTML = '';
+
+            // Month labels
+            const monthLabels = document.createElement('div');
+            monthLabels.className = 'heatmap-month-labels';
+
+            for (let m = 0; m < months; m++) {
+                const date = new Date(today);
+                date.setMonth(date.getMonth() - (months - m - 1));
+                const label = document.createElement('div');
+                label.textContent = date.toLocaleDateString('en-US', { month: 'short' });
+                monthLabels.appendChild(label);
+            }
+
+            grid.appendChild(monthLabels);
+
+            // Day labels
+            const dayLabels = document.createElement('div');
+            dayLabels.className = 'heatmap-day-labels';
+            ['S', 'M', 'T', 'W', 'T', 'F', 'S'].forEach(day => {
+                const label = document.createElement('div');
+                label.textContent = day;
+                dayLabels.appendChild(label);
+            });
+            grid.appendChild(dayLabels);
+
+            // Days grid
+            const daysGrid = document.createElement('div');
+            daysGrid.className = 'heatmap-days-grid';
+
+            const totalDays = Math.floor((today - startDate) / (1000 * 60 * 60 * 24));
+
+            for (let i = totalDays; i >= 0; i--) {
+                const date = new Date(today);
+                date.setDate(date.getDate() - i);
+                const dateStr = date.toISOString().split('T')[0];
+
+                let completedCount = 0;
+                let totalCount = 0;
+
+                if (habitFilter === 'all') {
+                    totalCount = habitsArray.length;
+                    habitsArray.forEach(habit => {
+                        if (habit.completions && habit.completions[dateStr]) {
+                            completedCount++;
+                        }
+                    });
+                } else {
+                    const habit = habitsArray.find(h => h.id === habitFilter);
+                    if (habit) {
+                        totalCount = 1;
+                        if (habit.completions && habit.completions[dateStr]) {
+                            completedCount = 1;
+                        }
+                    }
+                }
+
+                const percentage = totalCount > 0 ? (completedCount / totalCount) * 100 : 0;
+
+                const dayEl = document.createElement('div');
+                dayEl.className = 'enhanced-heatmap-day';
+
+                if (percentage === 0) {
+                    dayEl.style.background = 'var(--color-surface-tone-3)';
+                } else if (percentage <= 25) {
+                    dayEl.style.background = 'rgba(103, 80, 164, 0.25)';
+                } else if (percentage <= 50) {
+                    dayEl.style.background = 'rgba(103, 80, 164, 0.5)';
+                } else if (percentage <= 75) {
+                    dayEl.style.background = 'rgba(103, 80, 164, 0.75)';
+                } else {
+                    dayEl.style.background = 'rgb(103, 80, 164)';
+                }
+
+                // Tooltip
+                dayEl.title = `${date.toLocaleDateString()}: ${completedCount}/${totalCount} (${Math.round(percentage)}%)`;
+
+                daysGrid.appendChild(dayEl);
+            }
+
+            grid.appendChild(daysGrid);
+        }
+
+        /**
+         * Update Trends Tab
+         */
+        function updateTrendsTab() {
+            initThirtyDayTrendChart();
+            initStreakTimelineChart();
+        }
+
+        /**
+         * Initialize 30-Day Completion Trend Chart
+         */
+        function initThirtyDayTrendChart() {
+            const ctx = document.getElementById('thirtyDayTrendChart');
+            if (!ctx) return;
+
+            const labels = [];
+            const data = [];
+            const today = new Date();
+
+            for (let i = 29; i >= 0; i--) {
+                const date = new Date(today);
+                date.setDate(date.getDate() - i);
+                const dateStr = date.toISOString().split('T')[0];
+
+                if (i % 5 === 0) {
+                    labels.push(date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
+                } else {
+                    labels.push('');
+                }
+
+                let dayCompleted = 0;
+                habitsArray.forEach(habit => {
+                    if (habit.completions && habit.completions[dateStr]) {
+                        dayCompleted++;
+                    }
+                });
+
+                const percentage = habitsArray.length > 0 ? Math.round((dayCompleted / habitsArray.length) * 100) : 0;
+                data.push(percentage);
+            }
+
+            if (thirtyDayTrendChart) {
+                thirtyDayTrendChart.destroy();
+            }
+
+            thirtyDayTrendChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Completion %',
+                        data: data,
+                        borderColor: 'rgb(103, 80, 164)',
+                        backgroundColor: 'rgba(103, 80, 164, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 3,
+                        pointBackgroundColor: 'rgb(103, 80, 164)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            ticks: {
+                                callback: function(value) {
+                                    return value + '%';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        /**
+         * Initialize Streak Timeline Chart
+         */
+        function initStreakTimelineChart() {
+            const ctx = document.getElementById('streakTimelineChart');
+            if (!ctx) return;
+
+            const labels = [];
+            const currentStreaks = [];
+            const bestStreaks = [];
+
+            habitsArray.slice(0, 8).forEach(habit => {
+                labels.push(habit.name.length > 15 ? habit.name.substring(0, 15) + '...' : habit.name);
+
+                // Calculate current streak
+                let currentStreak = 0;
+                const today = new Date();
+                for (let i = 0; i < 365; i++) {
+                    const date = new Date(today);
+                    date.setDate(date.getDate() - i);
+                    const dateStr = date.toISOString().split('T')[0];
+                    if (habit.completions && habit.completions[dateStr]) {
+                        currentStreak++;
+                    } else {
+                        break;
+                    }
+                }
+                currentStreaks.push(currentStreak);
+
+                // Calculate best streak
+                const bestStreak = calculateBestStreakAllTime(habit.id);
+                bestStreaks.push(bestStreak);
+            });
+
+            if (streakTimelineChart) {
+                streakTimelineChart.destroy();
+            }
+
+            streakTimelineChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Current Streak',
+                            data: currentStreaks,
+                            backgroundColor: 'rgb(103, 80, 164)',
+                            borderRadius: 6
+                        },
+                        {
+                            label: 'Best Streak',
+                            data: bestStreaks,
+                            backgroundColor: 'rgba(103, 80, 164, 0.4)',
+                            borderRadius: 6
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { stepSize: 1 }
+                        }
+                    }
+                }
+            });
+        }
+
+        /**
+         * Update Insights Tab
+         */
+        function updateInsightsTab() {
+            generateTopPerformers();
+            generateNeedsAttention();
+            initBestDaysChart();
+            generatePatternRecognition();
+        }
+
+        /**
+         * Generate Top Performers
+         */
+        function generateTopPerformers() {
+            const container = document.getElementById('topPerformersContainer');
+            if (!container) return;
+
+            container.innerHTML = '';
+
+            if (habitsArray.length === 0) {
+                container.innerHTML = '<p style="color: var(--color-on-surface-variant); text-align: center;">No habits tracked yet</p>';
+                return;
+            }
+
+            // Calculate 30-day completion rates
+            const habitScores = habitsArray.map(habit => {
+                const rate = calculatePeriodRate(habit.id, 30);
+                return { habit, rate };
+            });
+
+            // Sort by rate
+            habitScores.sort((a, b) => b.rate - a.rate);
+
+            // Top 3
+            habitScores.slice(0, 3).forEach((item, index) => {
+                const card = document.createElement('div');
+                card.className = 'insight-card';
+                card.innerHTML = `
+                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+                        <span class="material-symbols-outlined" style="font-size: 32px; color: ${index === 0 ? '#FFD700' : index === 1 ? '#C0C0C0' : '#CD7F32'};">
+                            ${index === 0 ? 'workspace_premium' : 'emoji_events'}
+                        </span>
+                        <div style="flex: 1;">
+                            <div style="font-weight: 600; font-size: 16px;">${item.habit.name}</div>
+                            <div style="color: var(--color-on-surface-variant); font-size: 14px;">30-day completion: ${item.rate}%</div>
+                        </div>
+                    </div>
+                    <div style="background: var(--color-surface-tone-3); height: 8px; border-radius: 4px; overflow: hidden;">
+                        <div style="background: rgb(103, 80, 164); height: 100%; width: ${item.rate}%; transition: width 0.3s;"></div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        /**
+         * Generate Needs Attention List
+         */
+        function generateNeedsAttention() {
+            const container = document.getElementById('needsAttentionContainer');
+            if (!container) return;
+
+            container.innerHTML = '';
+
+            if (habitsArray.length === 0) {
+                container.innerHTML = '<p style="color: var(--color-on-surface-variant); text-align: center;">No habits tracked yet</p>';
+                return;
+            }
+
+            // Calculate 7-day completion rates
+            const habitScores = habitsArray.map(habit => {
+                const rate = calculatePeriodRate(habit.id, 7);
+                return { habit, rate };
+            });
+
+            // Sort by rate (ascending)
+            habitScores.sort((a, b) => a.rate - b.rate);
+
+            // Bottom 3
+            habitScores.slice(0, 3).forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'insight-card';
+                card.innerHTML = `
+                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+                        <span class="material-symbols-outlined" style="font-size: 32px; color: var(--color-error);">
+                            error
+                        </span>
+                        <div style="flex: 1;">
+                            <div style="font-weight: 600; font-size: 16px;">${item.habit.name}</div>
+                            <div style="color: var(--color-on-surface-variant); font-size: 14px;">Only ${item.rate}% completion this week</div>
+                        </div>
+                    </div>
+                    <div style="background: var(--color-surface-tone-3); height: 8px; border-radius: 4px; overflow: hidden;">
+                        <div style="background: var(--color-error); height: 100%; width: ${item.rate}%; transition: width 0.3s;"></div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        /**
+         * Initialize Best Days Chart
+         */
+        function initBestDaysChart() {
+            const ctx = document.getElementById('bestDaysChart');
+            if (!ctx) return;
+
+            const { dayNames, percentages } = getDayOfWeekData();
+
+            if (bestDaysChart) {
+                bestDaysChart.destroy();
+            }
+
+            bestDaysChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: dayNames,
+                    datasets: [{
+                        label: 'Completion %',
+                        data: percentages,
+                        backgroundColor: 'rgb(103, 80, 164)',
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            ticks: {
+                                callback: function(value) {
+                                    return value + '%';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        /**
+         * Generate Pattern Recognition
+         */
+        function generatePatternRecognition() {
+            const container = document.getElementById('patternRecognitionContainer');
+            if (!container) return;
+
+            container.innerHTML = '';
+
+            if (habitsArray.length === 0) {
+                container.innerHTML = '<p style="color: var(--color-on-surface-variant); text-align: center;">No habits tracked yet</p>';
+                return;
+            }
+
+            const { dayNames, percentages } = getDayOfWeekData();
+
+            // Find best and worst days
+            const maxIndex = percentages.indexOf(Math.max(...percentages));
+            const minIndex = percentages.indexOf(Math.min(...percentages));
+
+            // Best day pattern
+            const bestCard = document.createElement('div');
+            bestCard.className = 'insight-card';
+            bestCard.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <span class="material-symbols-outlined" style="font-size: 32px; color: rgb(103, 80, 164);">
+                        trending_up
+                    </span>
+                    <div>
+                        <div style="font-weight: 600; font-size: 16px;">Best Day</div>
+                        <div style="color: var(--color-on-surface-variant); font-size: 14px;">
+                            ${dayNames[maxIndex]} - ${percentages[maxIndex]}% completion rate
+                        </div>
+                    </div>
+                </div>
+            `;
+            container.appendChild(bestCard);
+
+            // Worst day pattern
+            const worstCard = document.createElement('div');
+            worstCard.className = 'insight-card';
+            worstCard.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <span class="material-symbols-outlined" style="font-size: 32px; color: var(--color-error);">
+                        trending_down
+                    </span>
+                    <div>
+                        <div style="font-weight: 600; font-size: 16px;">Needs Improvement</div>
+                        <div style="color: var(--color-on-surface-variant); font-size: 14px;">
+                            ${dayNames[minIndex]} - ${percentages[minIndex]}% completion rate
+                        </div>
+                    </div>
+                </div>
+            `;
+            container.appendChild(worstCard);
+
+            // Consistency pattern
+            const consistencyScore = calculateConsistencyScore();
+            const consistencyCard = document.createElement('div');
+            consistencyCard.className = 'insight-card';
+            const consistencyLevel = consistencyScore >= 80 ? 'Excellent' : consistencyScore >= 60 ? 'Good' : consistencyScore >= 40 ? 'Fair' : 'Needs Work';
+            const consistencyColor = consistencyScore >= 80 ? 'rgb(103, 80, 164)' : consistencyScore >= 60 ? '#4CAF50' : consistencyScore >= 40 ? '#FF9800' : 'var(--color-error)';
+
+            consistencyCard.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <span class="material-symbols-outlined" style="font-size: 32px; color: ${consistencyColor};">
+                        insights
+                    </span>
+                    <div>
+                        <div style="font-weight: 600; font-size: 16px;">Consistency Level</div>
+                        <div style="color: var(--color-on-surface-variant); font-size: 14px;">
+                            ${consistencyLevel} - ${consistencyScore}% over last 30 days
+                        </div>
+                    </div>
+                </div>
+            `;
+            container.appendChild(consistencyCard);
+        }
+
+        /**
+         * Update Compare Tab
+         */
+        function updateCompareTab() {
+            populateComparisonTable();
+            initHeadToHeadChart();
+        }
+
+        /**
+         * Populate Comparison Table
+         */
+        function populateComparisonTable() {
+            const tbody = document.querySelector('#comparisonTable tbody');
+            if (!tbody) return;
+
+            tbody.innerHTML = '';
+
+            habitsArray.forEach(habit => {
+                const rate7 = calculatePeriodRate(habit.id, 7);
+                const rate30 = calculatePeriodRate(habit.id, 30);
+                const bestStreak = calculateBestStreakAllTime(habit.id);
+
+                // Current streak
+                let currentStreak = 0;
+                const today = new Date();
+                for (let i = 0; i < 365; i++) {
+                    const date = new Date(today);
+                    date.setDate(date.getDate() - i);
+                    const dateStr = date.toISOString().split('T')[0];
+                    if (habit.completions && habit.completions[dateStr]) {
+                        currentStreak++;
+                    } else {
+                        break;
+                    }
+                }
+
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td style="font-weight: 600;">${habit.name}</td>
+                    <td>${rate7}%</td>
+                    <td>${rate30}%</td>
+                    <td>${currentStreak}</td>
+                    <td>${bestStreak}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        /**
+         * Initialize Head-to-Head Comparison Chart
+         */
+        function initHeadToHeadChart() {
+            const ctx = document.getElementById('headToHeadChart');
+            if (!ctx) return;
+
+            const select1 = document.getElementById('compareHabit1');
+            const select2 = document.getElementById('compareHabit2');
+
+            // Populate selects
+            select1.innerHTML = '';
+            select2.innerHTML = '';
+
+            habitsArray.forEach((habit, index) => {
+                const option1 = document.createElement('option');
+                option1.value = habit.id;
+                option1.textContent = habit.name;
+                if (index === 0) option1.selected = true;
+                select1.appendChild(option1);
+
+                const option2 = document.createElement('option');
+                option2.value = habit.id;
+                option2.textContent = habit.name;
+                if (index === 1 || (index === 0 && habitsArray.length === 1)) option2.selected = true;
+                select2.appendChild(option2);
+            });
+
+            // Draw chart
+            drawHeadToHeadChart();
+        }
+
+        /**
+         * Draw Head-to-Head Chart
+         */
+        function drawHeadToHeadChart() {
+            const ctx = document.getElementById('headToHeadChart');
+            if (!ctx) return;
+
+            const select1 = document.getElementById('compareHabit1');
+            const select2 = document.getElementById('compareHabit2');
+
+            const habit1 = habitsArray.find(h => h.id === select1.value);
+            const habit2 = habitsArray.find(h => h.id === select2.value);
+
+            if (!habit1 || !habit2) return;
+
+            const labels = [];
+            const data1 = [];
+            const data2 = [];
+            const today = new Date();
+
+            for (let i = 13; i >= 0; i--) {
+                const date = new Date(today);
+                date.setDate(date.getDate() - i);
+                const dateStr = date.toISOString().split('T')[0];
+
+                labels.push(date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
+                data1.push(habit1.completions && habit1.completions[dateStr] ? 1 : 0);
+                data2.push(habit2.completions && habit2.completions[dateStr] ? 1 : 0);
+            }
+
+            if (headToHeadChart) {
+                headToHeadChart.destroy();
+            }
+
+            headToHeadChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: habit1.name,
+                            data: data1,
+                            borderColor: 'rgb(103, 80, 164)',
+                            backgroundColor: 'rgba(103, 80, 164, 0.1)',
+                            borderWidth: 3,
+                            fill: true,
+                            tension: 0.4,
+                            pointRadius: 5,
+                            pointBackgroundColor: 'rgb(103, 80, 164)'
+                        },
+                        {
+                            label: habit2.name,
+                            data: data2,
+                            borderColor: 'rgb(233, 30, 99)',
+                            backgroundColor: 'rgba(233, 30, 99, 0.1)',
+                            borderWidth: 3,
+                            fill: true,
+                            tension: 0.4,
+                            pointRadius: 5,
+                            pointBackgroundColor: 'rgb(233, 30, 99)'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 1,
+                            ticks: {
+                                stepSize: 1,
+                                callback: function(value) {
+                                    return value === 1 ? 'Done' : 'Not Done';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        /**
+         * Update all analytics
+         */
+        function updateAllAnalytics() {
+            if (currentAnalyticsTab) {
+                updateAnalyticsTab(currentAnalyticsTab);
+            }
+        }
+
+        // Add event listeners for filters
+        document.addEventListener('DOMContentLoaded', function() {
+            const heatmapPeriodFilter = document.getElementById('heatmapPeriodFilter');
+            const heatmapHabitFilter = document.getElementById('heatmapHabitFilter');
+            const compareHabit1 = document.getElementById('compareHabit1');
+            const compareHabit2 = document.getElementById('compareHabit2');
+
+            if (heatmapPeriodFilter) {
+                heatmapPeriodFilter.addEventListener('change', updateEnhancedHeatmap);
+            }
+            if (heatmapHabitFilter) {
+                heatmapHabitFilter.addEventListener('change', updateEnhancedHeatmap);
+            }
+            if (compareHabit1) {
+                compareHabit1.addEventListener('change', drawHeadToHeadChart);
+            }
+            if (compareHabit2) {
+                compareHabit2.addEventListener('change', drawHeadToHeadChart);
+            }
+        });
+
         init();
-        
+
     </script>
 </body>
 </html>
