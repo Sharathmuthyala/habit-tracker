@@ -42,6 +42,14 @@
             --md-sys-color-surface-3: #EEE5F9;
             --md-sys-color-surface-4: #ECE3F7;
             --md-sys-color-surface-5: #E9E0F5;
+
+            /* New colors for the modal */
+            --color-preset-1: #FF6B6B;
+            --color-preset-2: #4ECDC4;
+            --color-preset-3: #FFD93D;
+            --color-preset-4: #B565D8;
+            --color-preset-5: #6C5CE7;
+            --color-preset-6: #48DBFB;
         }
 
         * {
@@ -350,6 +358,8 @@
             padding: 8px;
             margin-bottom: 24px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            /* This will now be populated by JS */
+            min-height: 100px;
         }
 
         .habit-card {
@@ -508,81 +518,88 @@
             align-items: center;
             gap: 4px;
         }
-
-        /* Import Banner */
-        .import-banner {
-            background: linear-gradient(135deg, var(--md-sys-color-tertiary-container) 0%, var(--md-sys-color-secondary-container) 100%);
-            border-radius: 20px;
-            padding: 24px;
-            margin-bottom: 24px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-            display: none;
-            animation: slideIn 0.5s ease-out;
+        
+        /* New Habit Menu */
+        .habit-menu {
+            position: relative;
+            margin-left: auto;
         }
 
-        .import-banner.show {
+        .habit-menu-btn {
+            background: transparent;
+            border: none;
+            color: var(--md-sys-color-on-surface-variant);
+            cursor: pointer;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+
+        .habit-menu-btn:hover {
+            background: var(--md-sys-color-surface-variant);
+        }
+
+        .habit-menu-dropdown {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 44px;
+            background: var(--md-sys-color-surface-3);
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 10;
+            padding: 8px;
+            width: 120px;
+            overflow: hidden;
+            animation: menuPop 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes menuPop {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .habit-menu-dropdown.show {
             display: block;
         }
 
-        .import-banner h3 {
-            font-size: 20px;
-            font-weight: 500;
-            margin-bottom: 12px;
-            color: var(--md-sys-color-on-tertiary-container);
+        .habit-menu-dropdown button {
+            background: transparent;
+            border: none;
+            padding: 10px 12px;
+            width: 100%;
+            text-align: left;
+            font-size: 14px;
+            color: var(--md-sys-color-on-surface);
+            cursor: pointer;
+            border-radius: 8px;
+            transition: background 0.2s;
             display: flex;
             align-items: center;
             gap: 8px;
         }
 
-        .import-banner p {
-            font-size: 14px;
-            margin-bottom: 16px;
-            color: var(--md-sys-color-on-tertiary-container);
-            opacity: 0.9;
+        .habit-menu-dropdown button:hover {
+            background: var(--md-sys-color-surface-variant);
         }
 
-        .import-actions {
-            display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
+        .habit-menu-dropdown button.delete {
+            color: var(--md-sys-color-error);
+        }
+        .habit-menu-dropdown button.delete:hover {
+            background: var(--md-sys-color-error-container);
         }
 
-        .filled-button {
-            background: var(--md-sys-color-primary);
-            color: var(--md-sys-color-on-primary);
-            border: none;
-            padding: 12px 24px;
-            border-radius: 20px;
-            font-size: 14px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-            letter-spacing: 0.5px;
-        }
-
-        .filled-button:hover {
-            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-            transform: translateY(-1px);
-        }
-
-        .outlined-button {
-            background: transparent;
-            color: var(--md-sys-color-primary);
-            border: 1px solid var(--md-sys-color-outline);
-            padding: 12px 24px;
-            border-radius: 20px;
-            font-size: 14px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-            letter-spacing: 0.5px;
-        }
-
-        .outlined-button:hover {
-            background: var(--md-sys-color-primary-container);
-            border-color: var(--md-sys-color-primary);
-        }
 
         /* Export Section */
         .export-section {
@@ -687,6 +704,151 @@
         .celebration-subtext {
             font-size: 14px;
             opacity: 0.9;
+        }
+        
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(5px);
+            z-index: 1001;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s;
+        }
+
+        .modal-overlay.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--md-sys-color-surface-1);
+            border-radius: 28px;
+            padding: 24px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+            animation: slideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .modal-title {
+            font-size: 22px;
+            font-weight: 500;
+            color: var(--md-sys-color-on-surface);
+            margin-bottom: 20px;
+        }
+        
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--md-sys-color-on-surface-variant);
+            margin-bottom: 8px;
+        }
+        
+        .form-input, .form-select {
+            width: 100%;
+            padding: 14px;
+            font-size: 16px;
+            border: 1px solid var(--md-sys-color-outline-variant);
+            background: var(--md-sys-color-surface-3);
+            border-radius: 12px;
+            color: var(--md-sys-color-on-surface);
+            transition: all 0.2s;
+        }
+        
+        .form-input:focus, .form-select:focus {
+            outline: none;
+            border-color: var(--md-sys-color-primary);
+            box-shadow: 0 0 0 2px var(--md-sys-color-primary-container);
+        }
+        
+        .color-picker {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+        }
+        
+        .color-radio {
+            appearance: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+        .color-radio:checked {
+            transform: scale(1.1);
+            box-shadow: 0 0 0 3px var(--md-sys-color-surface-1), 0 0 0 6px var(--color-c);
+        }
+        
+        #color-1 { background: var(--color-preset-1); --color-c: var(--color-preset-1); }
+        #color-2 { background: var(--color-preset-2); --color-c: var(--color-preset-2); }
+        #color-3 { background: var(--color-preset-3); --color-c: var(--color-preset-3); }
+        #color-4 { background: var(--color-preset-4); --color-c: var(--color-preset-4); }
+        #color-5 { background: var(--color-preset-5); --color-c: var(--color-preset-5); }
+        #color-6 { background: var(--color-preset-6); --color-c: var(--color-preset-6); }
+        
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            margin-top: 24px;
+        }
+        
+        .filled-button {
+            background: var(--md-sys-color-primary);
+            color: var(--md-sys-color-on-primary);
+            border: none;
+            padding: 12px 24px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            letter-spacing: 0.5px;
+        }
+
+        .filled-button:hover {
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            transform: translateY(-1px);
+        }
+        
+        .filled-button.delete {
+             background: var(--md-sys-color-error);
+        }
+        .filled-button.delete:hover {
+            background: var(--md-sys-color-error-container);
+            color: var(--md-sys-color-on-error-container);
+        }
+
+        .outlined-button {
+            background: transparent;
+            color: var(--md-sys-color-primary);
+            border: 1px solid var(--md-sys-color-outline);
+            padding: 12px 24px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            letter-spacing: 0.5px;
+        }
+
+        .outlined-button:hover {
+            background: var(--md-sys-color-primary-container);
+            border-color: var(--md-sys-color-primary);
         }
 
         /* Responsive */
@@ -809,23 +971,6 @@
             <button class="filled-button" onclick="dismissSetup()">I'll Set This Up Later</button>
         </div>
 
-        <!-- Import Banner -->
-        <div class="import-banner" id="importBanner">
-            <h3>
-                <span class="material-symbols-rounded">cloud_download</span>
-                Welcome back!
-            </h3>
-            <p>Import your previous tracking data from Atoms app to continue your journey seamlessly.</p>
-            <div class="import-actions">
-                <button class="filled-button" onclick="importAtomsData()">
-                    Import My Data
-                </button>
-                <button class="outlined-button" onclick="startFresh()">
-                    Start Fresh
-                </button>
-            </div>
-        </div>
-
         <!-- Date Card -->
         <div class="date-card">
             <div class="date-header">
@@ -846,7 +991,7 @@
                         style="stroke: var(--md-sys-color-primary); stroke-dasharray: 326.73; stroke-dashoffset: 326.73;">
                     </circle>
                 </svg>
-                <div class="progress-text" id="progressText">0/5</div>
+                <div class="progress-text" id="progressText">0/0</div>
             </div>
 
             <div class="date-nav">
@@ -887,97 +1032,9 @@
             </div>
         </div>
 
-        <!-- Habits Section -->
-        <div class="habits-section">
-            <div class="habit-card" style="--habit-color: #FF6B6B;" onclick="toggleHabit('bed', event)">
-                <div class="habit-checkbox-wrapper">
-                    <input type="checkbox" class="habit-checkbox" id="habit-bed" onclick="event.stopPropagation()">
-                </div>
-                <div class="habit-icon">🛏️</div>
-                <div class="habit-content">
-                    <div class="habit-name">Bed before 2am</div>
-                    <div class="habit-schedule">Daily at 3:00 AM</div>
-                    <div class="habit-stats-inline">
-                        <div class="streak-badge" id="streak-bed">
-                            <span class="material-symbols-rounded" style="font-size: 16px;">local_fire_department</span>
-                            <span>0 days</span>
-                        </div>
-                        <div class="habit-stat-chip" id="rate-bed">0% complete</div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="habit-card" style="--habit-color: #4ECDC4;" onclick="toggleHabit('walk', event)">
-                <div class="habit-checkbox-wrapper">
-                    <input type="checkbox" class="habit-checkbox" id="habit-walk" onclick="event.stopPropagation()">
-                </div>
-                <div class="habit-icon">🏃</div>
-                <div class="habit-content">
-                    <div class="habit-name">Walk or Run</div>
-                    <div class="habit-schedule">Daily at 9:30 AM</div>
-                    <div class="habit-stats-inline">
-                        <div class="streak-badge" id="streak-walk">
-                            <span class="material-symbols-rounded" style="font-size: 16px;">local_fire_department</span>
-                            <span>0 days</span>
-                        </div>
-                        <div class="habit-stat-chip" id="rate-walk">0% complete</div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="habit-card" style="--habit-color: #FFD93D;" onclick="toggleHabit('wake', event)">
-                <div class="habit-checkbox-wrapper">
-                    <input type="checkbox" class="habit-checkbox" id="habit-wake" onclick="event.stopPropagation()">
-                </div>
-                <div class="habit-icon">⏰</div>
-                <div class="habit-content">
-                    <div class="habit-name">Wake up at 10</div>
-                    <div class="habit-schedule">Daily at 10:00 AM</div>
-                    <div class="habit-stats-inline">
-                        <div class="streak-badge" id="streak-wake">
-                            <span class="material-symbols-rounded" style="font-size: 16px;">local_fire_department</span>
-                            <span>0 days</span>
-                        </div>
-                        <div class="habit-stat-chip" id="rate-wake">0% complete</div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="habit-card" style="--habit-color: #B565D8;" onclick="toggleHabit('jobs', event)">
-                <div class="habit-checkbox-wrapper">
-                    <input type="checkbox" class="habit-checkbox" id="habit-jobs" onclick="event.stopPropagation()">
-                </div>
-                <div class="habit-icon">💼</div>
-                <div class="habit-content">
-                    <div class="habit-name">Apply to 10 jobs</div>
-                    <div class="habit-schedule">Weekdays at 11:30 AM</div>
-                    <div class="habit-stats-inline">
-                        <div class="streak-badge" id="streak-jobs">
-                            <span class="material-symbols-rounded" style="font-size: 16px;">local_fire_department</span>
-                            <span>0 days</span>
-                        </div>
-                        <div class="habit-stat-chip" id="rate-jobs">0% complete</div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="habit-card" style="--habit-color: #6C5CE7;" onclick="toggleHabit('instagram', event)">
-                <div class="habit-checkbox-wrapper">
-                    <input type="checkbox" class="habit-checkbox" id="habit-instagram" onclick="event.stopPropagation()">
-                </div>
-                <div class="habit-icon">📱</div>
-                <div class="habit-content">
-                    <div class="habit-name">Limit Instagram</div>
-                    <div class="habit-schedule">Daily at 11:30 PM</div>
-                    <div class="habit-stats-inline">
-                        <div class="streak-badge" id="streak-instagram">
-                            <span class="material-symbols-rounded" style="font-size: 16px;">local_fire_department</span>
-                            <span>0 days</span>
-                        </div>
-                        <div class="habit-stat-chip" id="rate-instagram">0% complete</div>
-                    </div>
-                </div>
-            </div>
+        <!-- Habits Section (Now Dynamic) -->
+        <div class="habits-section" id="habitsList">
+            <!-- Habit cards will be injected here by renderHabits() -->
         </div>
 
         <!-- Export Section -->
@@ -994,9 +1051,9 @@
         </div>
     </div>
 
-    <!-- FAB -->
-    <button class="fab" onclick="goToToday()" aria-label="Go to today">
-        <span class="material-symbols-rounded">today</span>
+    <!-- FAB (Now for Add Habit) -->
+    <button class="fab" onclick="openHabitModal(null)" aria-label="Add new habit">
+        <span class="material-symbols-rounded">add</span>
     </button>
 
     <!-- Celebration Overlay -->
@@ -1012,27 +1069,83 @@
         <span id="snackbarText"></span>
     </div>
 
+    <!-- Add/Edit Habit Modal -->
+    <div class="modal-overlay" id="habitModal">
+        <div class="modal-content">
+            <h3 class="modal-title" id="modalTitle">Add New Habit</h3>
+            
+            <input type="hidden" id="habitIdInput">
+            
+            <div class="form-group">
+                <label for="habitNameInput" class="form-label">Habit Name</label>
+                <input type="text" id="habitNameInput" class="form-input" placeholder="e.g., Read for 20 minutes">
+            </div>
+            
+            <div class="form-group">
+                <label for="habitIconInput" class="form-label">Icon (Emoji)</label>
+                <input type="text" id="habitIconInput" class="form-input" placeholder="e.g., 📚" maxlength="2">
+            </div>
+            
+            <div class="form-group">
+                <label for="habitScheduleInput" class="form-label">Schedule</label>
+                <select id="habitScheduleInput" class="form-select">
+                    <option value="daily">Daily</option>
+                    <option value="weekdays">Weekdays Only</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Color</label>
+                <div class="color-picker">
+                    <input type="radio" name="color" id="color-1" class="color-radio" value="#FF6B6B" style="--color-c: var(--color-preset-1);" checked>
+                    <input type="radio" name="color" id="color-2" class="color-radio" value="#4ECDC4" style="--color-c: var(--color-preset-2);">
+                    <input type="radio" name="color" id="color-3" class="color-radio" value="#FFD93D" style="--color-c: var(--color-preset-3);">
+                    <input type="radio" name="color" id="color-4" class="color-radio" value="#B565D8" style="--color-c: var(--color-preset-4);">
+                    <input type="radio" name="color" id="color-5" class="color-radio" value="#6C5CE7" style="--color-c: var(--color-preset-5);">
+                    <input type="radio" name="color" id="color-6" class="color-radio" value="#48DBFB" style="--color-c: var(--color-preset-6);">
+                </div>
+            </div>
+
+            <div class="modal-actions">
+                <button class="outlined-button" onclick="closeHabitModal()">Cancel</button>
+                <button class="filled-button" onclick="saveHabit()">Save</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Delete Confirmation Modal -->
+    <div class="modal-overlay" id="deleteModal">
+        <div class="modal-content">
+            <h3 class="modal-title">Confirm Deletion</h3>
+            <p id="deleteModalText" style="margin-bottom: 24px; color: var(--md-sys-color-on-surface-variant);">Are you sure you want to delete this habit?</p>
+            <div class="modal-actions">
+                <button class="outlined-button" onclick="closeDeleteConfirm()">Cancel</button>
+                <button class="filled-button delete" id="confirmDeleteBtn" onclick="confirmDeleteHabit()">Delete</button>
+            </div>
+        </div>
+    </div>
+
+
     <!-- Firebase SDK -->
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-        import { getFirestore, doc, setDoc, getDoc, onSnapshot, collection, query, getDocs } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+        import { getFirestore, doc, setDoc, getDoc, onSnapshot, collection, query, getDocs, addDoc, updateDoc, deleteDoc, writeBatch } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
         import { getAuth, signInAnonymously, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
         
-
         // TODO: Replace with your Firebase config
         // Get this from Firebase Console → Project Settings → Your Apps
         const firebaseConfig = {
-        apiKey: "AIzaSyBi8ESQV1hcdr9bG6v-tesiTzscDsGFiyQ",
-        authDomain: "habit-tracker-5ad2d.firebaseapp.com",
-        projectId: "habit-tracker-5ad2d",
-        storageBucket: "habit-tracker-5ad2d.firebasestorage.app",
-        messagingSenderId: "704810863965",
-        appId: "1:704810863965:web:d63facc167c7de928f2cb4",
-        measurementId: "G-SXFYLD0D1C"
+            apiKey: "AIzaSyBi8ESQV1hcdr9bG6v-tesiTzscDsGFiyQ",
+            authDomain: "habit-tracker-5ad2d.firebaseapp.com",
+            projectId: "habit-tracker-5ad2d",
+            storageBucket: "habit-tracker-5ad2d.firebasestorage.app",
+            messagingSenderId: "704810863965",
+            appId: "1:704810863965:web:d63facc167c7de928f2cb4",
+            measurementId: "G-SXFYLD0D1C"
         };
 
         let app, db, auth;
-        let firebaseEnabled = false;
+        window.firebaseEnabled = false; // <-- FIX: Make global
         let currentUser = null;
 
         // Try to initialize Firebase
@@ -1047,21 +1160,13 @@
                     if (user) {
                         // User is signed in
                         currentUser = user;
-                        firebaseEnabled = true;
+                        window.firebaseEnabled = true; // <-- FIX: Set global variable
                         console.log('Signed in with user ID:', user.uid);
                         document.getElementById('setupBanner').style.display = 'none';
                         
-                        // Load data after sign-in
-                        loadFromFirebase().then(firebaseData => {
-                            if (firebaseData && Object.keys(firebaseData).length > 0) {
-                                window.habitData = firebaseData;
-                                window.saveData();
-                                window.updateDisplay();
-                                window.showSnackbar('Data synced from cloud! ☁️');
-                            }
-                        });
+                        // Load all data after sign-in
+                        loadAllData();
                         
-                        window.setupRealtimeSync();
                     } else {
                         // No user, sign in anonymously
                         signInAnonymously(auth).catch((error) => {
@@ -1076,10 +1181,22 @@
                 console.log('Firebase not configured, using localStorage only');
                 document.getElementById('setupBanner').classList.add('show');
             }
+        } catch (error) {
+             console.error('Firebase initialization error:', error);
+             document.getElementById('setupBanner').classList.add('show');
+        }
+        
+        async function loadAllData() {
+            await window.loadHabits(); // Load habits list first
+            await window.loadFromFirebase(); // Load check-in data
+            window.renderHabits();
+            window.updateDisplay();
+            window.setupRealtimeSync();
+        }
 
         // Expose Firebase functions globally
         window.saveToFirebase = async function(dateStr, data) {
-            if (!firebaseEnabled) {
+            if (!window.firebaseEnabled) { // <-- FIX: Check global variable
                 return;
             }
 
@@ -1095,7 +1212,7 @@
         };
 
         window.loadFromFirebase = async function() {
-            if (!firebaseEnabled) {
+            if (!window.firebaseEnabled) { // <-- FIX: Check global variable
                 return null;
             }
 
@@ -1110,6 +1227,10 @@
                     data[doc.id] = doc.data();
                 });
                 
+                // Merge with local data (Firebase data takes precedence)
+                window.habitData = { ...window.habitData, ...data };
+                window.saveData(); // Save merged data to local
+                
                 return data;
             } catch (error) {
                 console.error('Error loading from Firebase:', error);
@@ -1117,24 +1238,101 @@
             }
         };
 
+        // New functions for loading/saving habits to Firebase
+        window.loadHabitsFromFirebase = async () => {
+             if (!window.firebaseEnabled) { // <-- FIX: Check global variable
+                return null;
+            }
+            try {
+                const userId = getUserId();
+                const habitsRef = collection(db, 'habits', userId, 'userHabits');
+                const q = query(habitsRef);
+                const querySnapshot = await getDocs(q);
+                
+                const habits = [];
+                querySnapshot.forEach((doc) => {
+                    habits.push({ id: doc.id, ...doc.data() });
+                });
+                return habits;
+            } catch (error) {
+                console.error('Error loading habits from Firebase:', error);
+                return null;
+            }
+        };
+        
+        window.addHabitToFirebase = async (habit) => {
+             if (!window.firebaseEnabled) { // <-- FIX: Check global variable
+                return null;
+            }
+            try {
+                const userId = getUserId();
+                const habitsRef = collection(db, 'habits', userId, 'userHabits');
+                const { id, ...habitData } = habit; // Don't save local ID to Firebase
+                const docRef = await addDoc(habitsRef, habitData);
+                return docRef.id; // Return the new Firebase-generated ID
+            } catch (error) {
+                console.error('Error adding habit to Firebase:', error);
+                return null;
+            }
+        };
+        
+        window.updateHabitInFirebase = async (habitId, habitData) => {
+             if (!window.firebaseEnabled) return; // <-- FIX: Check global variable
+             try {
+                const userId = getUserId();
+                const habitRef = doc(db, 'habits', userId, 'userHabits', habitId);
+                await updateDoc(habitRef, habitData);
+             } catch(error) {
+                console.error('Error updating habit in Firebase:', error);
+             }
+        };
+        
+        window.deleteHabitFromFirebase = async (habitId) => {
+             if (!window.firebaseEnabled) return; // <-- FIX: Check global variable
+             try {
+                const userId = getUserId();
+                const habitRef = doc(db, 'habits', userId, 'userHabits', habitId);
+                await deleteDoc(habitRef);
+             } catch(error) {
+                console.error('Error deleting habit from Firebase:', error);
+             }
+        };
+
         window.setupRealtimeSync = function() {
-            if (!firebaseEnabled) {
+            if (!window.firebaseEnabled) { // <-- FIX: Check global variable
                 return;
             }
 
             const userId = getUserId();
-            const datesRef = collection(db, 'habits', userId, 'dates');
             
+            // Sync for check-in data
+            const datesRef = collection(db, 'habits', userId, 'dates');
             onSnapshot(datesRef, (snapshot) => {
                 snapshot.docChanges().forEach((change) => {
-                    if (change.type === 'modified') {
+                    if (change.type === 'modified' || change.type === 'added') {
                         // Data changed from another device
                         const dateStr = change.doc.id;
                         const data = change.doc.data();
                         window.habitData[dateStr] = data;
-                        window.updateDisplay();
+                        window.saveData(); // Save to local
+                        window.updateDisplay(); // Update UI
                     }
                 });
+            });
+            
+            // Sync for the habit list itself
+            const habitsRef = collection(db, 'habits', userId, 'userHabits');
+            onSnapshot(habitsRef, (snapshot) => {
+                const newHabits = [];
+                snapshot.forEach(doc => {
+                    newHabits.push({ id: doc.id, ...doc.data() });
+                });
+                
+                window.habits = newHabits;
+                window.saveHabits(); // Save to local
+                window.renderHabits();
+                window.updateDisplay();
+                // Don't show snackbar, as this can be noisy
             });
         };
 
@@ -1166,47 +1364,43 @@
                 syncText.textContent = 'Sync Error';
             }
         }
-
-        // Initialize on load - Firebase auth will handle data loading
-        // No additional initialization needed here
     </script>
 
     <script>
-        // Data structure
-        let habitData = {};
+        // --- DATA ---
+        let habitData = {}; // Stores check-ins: { "2025-10-20": { "habitId1": true } }
+        let habits = []; // Stores habit definitions: [ { id: "...", name: "...", ... } ]
         let currentViewDate = new Date();
         
-        const habits = {
-            bed: { name: "Bed before 2am", weekdaysOnly: false },
-            walk: { name: "Walk or Run", weekdaysOnly: false },
-            wake: { name: "Wake up at 10", weekdaysOnly: false },
-            jobs: { name: "Apply to 10 jobs", weekdaysOnly: true },
-            instagram: { name: "Limit Instagram", weekdaysOnly: false }
-        };
+        const defaultHabits = [
+            { name: "Bed before 2am", icon: "🛏️", color: "#FF6B6B", schedule: "daily" },
+            { name: "Walk or Run", icon: "🏃", color: "#4ECDC4", schedule: "daily" },
+            { name: "Wake up at 10", icon: "⏰", color: "#FFD93D", schedule: "daily" },
+            { name: "Apply to 10 jobs", icon: "💼", color: "#B565D8", schedule: "weekdays" },
+            { name: "Limit Instagram", icon: "📱", color: "#6C5CE7", schedule: "daily" }
+        ];
 
-        // Atoms app imported data
-        const atomsData = {
-            bed: ["2025-10-13", "2025-10-14", "2025-10-15", "2025-10-18", "2025-10-19", 
-                  "2025-10-25", "2025-10-26", "2025-11-04", "2025-11-06"],
-            walk: ["2025-11-05", "2025-11-06"],
-            wake: ["2025-10-13", "2025-10-14", "2025-10-15", "2025-10-19", "2025-10-25", 
-                   "2025-10-26", "2025-10-27", "2025-11-03", "2025-11-04"],
-            jobs: ["2025-10-13", "2025-10-14", "2025-10-17", "2025-11-04", "2025-11-06"],
-            instagram: ["2025-10-13", "2025-10-14", "2025-10-16", "2025-10-17", "2025-10-18",
-                        "2025-10-19", "2025-10-20", "2025-10-21", "2025-10-22", "2025-10-23",
-                        "2025-10-24", "2025-10-25", "2025-10-26", "2025-10-27", "2025-10-28",
-                        "2025-10-29", "2025-10-30", "2025-11-03", "2025-11-04", "2025-11-06"]
-        };
-
-        // Initialize
+        // --- INITIALIZATION ---
         function init() {
-            loadData();
+            loadData(); // Load check-in data from local
             
-            if (!localStorage.getItem('habitDataImported')) {
-                document.getElementById('importBanner').classList.add('show');
+            // loadHabits is now called after auth
+            if (!window.firebaseEnabled) {
+                (async () => {
+                    await loadHabits();
+                    renderHabits();
+                    updateDisplay();
+                })();
             }
             
-            updateDisplay();
+            // Close menus when clicking outside
+            document.addEventListener('click', function(event) {
+                document.querySelectorAll('.habit-menu-dropdown.show').forEach(menu => {
+                    if (!menu.parentElement.contains(event.target)) {
+                        menu.classList.remove('show');
+                    }
+                });
+            });
         }
 
         function dismissSetup() {
@@ -1214,38 +1408,7 @@
             localStorage.setItem('setupDismissed', 'true');
         }
 
-        function importAtomsData() {
-            for (const [habit, dates] of Object.entries(atomsData)) {
-                dates.forEach(dateStr => {
-                    if (!habitData[dateStr]) {
-                        habitData[dateStr] = {};
-                    }
-                    habitData[dateStr][habit] = true;
-                });
-            }
-            
-            localStorage.setItem('habitDataImported', 'true');
-            saveData();
-            
-            // Save to Firebase
-            for (const [dateStr, data] of Object.entries(habitData)) {
-                if (window.saveToFirebase) {
-                    window.saveToFirebase(dateStr, data);
-                }
-            }
-            
-            document.getElementById('importBanner').classList.remove('show');
-            showSnackbar('Data imported successfully! 🎉');
-            updateDisplay();
-        }
-
-        function startFresh() {
-            localStorage.setItem('habitDataImported', 'true');
-            document.getElementById('importBanner').classList.remove('show');
-            showSnackbar('Starting fresh! Let\'s build great habits! 💪');
-            updateDisplay();
-        }
-
+        // --- DATA STORAGE (CHECK-INS) ---
         function loadData() {
             const saved = localStorage.getItem('habitTrackerData');
             if (saved) {
@@ -1256,6 +1419,62 @@
         function saveData() {
             localStorage.setItem('habitTrackerData', JSON.stringify(habitData));
         }
+        
+        // --- DATA STORAGE (HABIT LIST) ---
+        window.loadHabits = async function() {
+            let loadedFromFirebase = false;
+            if (window.firebaseEnabled) {
+                const firebaseHabits = await window.loadHabitsFromFirebase();
+                if (firebaseHabits && firebaseHabits.length > 0) {
+                    habits = firebaseHabits;
+                    loadedFromFirebase = true;
+                }
+            }
+            
+            if (!loadedFromFirebase) {
+                 const savedHabits = localStorage.getItem('habitTrackerHabits');
+                if (savedHabits) {
+                    habits = JSON.parse(savedHabits);
+                }
+            }
+
+            if (habits.length === 0) {
+                await addDefaultHabits();
+            }
+            
+            saveHabits(); // Save to local storage
+        }
+        
+        window.saveHabits = function() {
+            localStorage.setItem('habitTrackerHabits', JSON.stringify(habits));
+        }
+        
+        async function addDefaultHabits() {
+            let tempHabits = [];
+            
+            // Use a batch write if on Firebase
+            if (window.firebaseEnabled) {
+                const userId = getUserId();
+                const batch = writeBatch(db);
+                defaultHabits.forEach(habit => {
+                    const habitRef = doc(collection(db, 'habits', userId, 'userHabits'));
+                    batch.set(habitRef, habit);
+                    // Add the Firebase-generated ID to our temp local array
+                    tempHabits.push({ ...habit, id: habitRef.id }); 
+                });
+                await batch.commit();
+                habits = tempHabits;
+                
+            } else {
+                // Not on Firebase, just create local IDs
+                habits = defaultHabits.map(habit => ({
+                    ...habit,
+                    id: 'habit_' + Math.random().toString(36).substr(2, 9)
+                }));
+            }
+            
+            saveHabits();
+        }
 
         function getDateString(date) {
             const year = date.getFullYear();
@@ -1263,6 +1482,150 @@
             const day = String(date.getDate()).padStart(2, '0');
             return `${year}-${month}-${day}`;
         }
+        
+        // --- HABIT MODAL (ADD/EDIT) ---
+        
+        function openHabitModal(habitId) {
+            const modal = document.getElementById('habitModal');
+            const title = document.getElementById('modalTitle');
+            const idInput = document.getElementById('habitIdInput');
+            const nameInput = document.getElementById('habitNameInput');
+            const iconInput = document.getElementById('habitIconInput');
+            const scheduleInput = document.getElementById('habitScheduleInput');
+            
+            // Reset color pickers
+            document.getElementById('color-1').checked = true;
+
+            if (habitId) {
+                // Edit Mode
+                const habit = habits.find(h => h.id === habitId);
+                if (!habit) return;
+                
+                title.textContent = 'Edit Habit';
+                idInput.value = habit.id;
+                nameInput.value = habit.name;
+                iconInput.value = habit.icon;
+                scheduleInput.value = habit.schedule;
+                
+                // Select the correct color
+                const colorRadio = document.querySelector(`.color-radio[value="${habit.color}"]`);
+                if (colorRadio) {
+                    colorRadio.checked = true;
+                }
+                
+            } else {
+                // Add Mode
+                title.textContent = 'Add New Habit';
+                idInput.value = '';
+                nameInput.value = '';
+                iconInput.value = '';
+                scheduleInput.value = 'daily';
+                document.getElementById('color-1').checked = true;
+            }
+            
+            modal.classList.add('show');
+        }
+        
+        function closeHabitModal() {
+            document.getElementById('habitModal').classList.remove('show');
+        }
+        
+        async function saveHabit() {
+            const id = document.getElementById('habitIdInput').value;
+            const name = document.getElementById('habitNameInput').value.trim();
+            const icon = document.getElementById('habitIconInput').value.trim();
+            const schedule = document.getElementById('habitScheduleInput').value;
+            const color = document.querySelector('.color-radio:checked').value;
+            
+            if (!name) {
+                showSnackbar('Please enter a habit name.');
+                return;
+            }
+            
+            const habitData = { name, icon, schedule, color };
+
+            if (id) {
+                // Update Existing Habit
+                const index = habits.findIndex(h => h.id === id);
+                if (index > -1) {
+                    habits[index] = { ...habits[index], ...habitData };
+                    if (window.firebaseEnabled) {
+                        await window.updateHabitInFirebase(id, habitData);
+                    }
+                }
+            } else {
+                // Add New Habit
+                let newId = 'habit_' + Math.random().toString(36).substr(2, 9);
+                const newHabit = { id: newId, ...habitData };
+                
+                if (window.firebaseEnabled) {
+                    const firebaseId = await window.addHabitToFirebase(habitData);
+                    if (firebaseId) {
+                        newHabit.id = firebaseId; // Use the real Firebase ID
+                    }
+                }
+                habits.push(newHabit);
+            }
+            
+            saveHabits();
+            renderHabits();
+            updateDisplay();
+            closeHabitModal();
+            showSnackbar(id ? 'Habit updated! ✨' : 'Habit added! 🎉');
+        }
+        
+        // --- HABIT MENU & DELETE ---
+        
+        function openHabitMenu(event, habitId) {
+            event.stopPropagation(); // Stop click from bubbling to habit-card
+            
+            // Close all other menus
+            document.querySelectorAll('.habit-menu-dropdown.show').forEach(menu => {
+                 if (menu.id !== `menu-${habitId}`) {
+                    menu.classList.remove('show');
+                 }
+            });
+            
+            const menu = document.getElementById(`menu-${habitId}`);
+            menu.classList.toggle('show');
+        }
+
+        function openDeleteConfirm(habitId, habitName) {
+            const modal = document.getElementById('deleteModal');
+            const text = document.getElementById('deleteModalText');
+            const btn = document.getElementById('confirmDeleteBtn');
+            
+            text.innerHTML = `Are you sure you want to delete <strong>${habitName}</strong>? This action cannot be undone.`;
+            btn.dataset.habitId = habitId; // Store the id on the button
+            
+            modal.classList.add('show');
+        }
+
+        function closeDeleteConfirm() {
+            document.getElementById('deleteModal').classList.remove('show');
+        }
+
+        async function confirmDeleteHabit() {
+            const habitId = document.getElementById('confirmDeleteBtn').dataset.habitId;
+            
+            // Delete from Firebase
+            if (window.firebaseEnabled) {
+                await window.deleteHabitFromFirebase(habitId);
+            }
+            
+            // Delete from local array
+            habits = habits.filter(h => h.id !== habitId);
+            
+            // TODO: In future, also delete check-in data from `habitData`
+            
+            saveHabits();
+            renderHabits();
+            updateDisplay();
+            closeDeleteConfirm();
+            showSnackbar('Habit deleted.');
+        }
+
+        // --- CORE LOGIC & RENDERING ---
 
         function toggleHabit(habitId, event) {
             if (event.target.type === 'checkbox') return;
@@ -1286,7 +1649,7 @@
             saveData();
             
             // Save to Firebase
-            if (window.saveToFirebase) {
+            if (window.firebaseEnabled && window.saveToFirebase) {
                 window.saveToFirebase(dateStr, habitData[dateStr]);
             }
             
@@ -1298,15 +1661,15 @@
             const dateStr = getDateString(currentViewDate);
             const today = getDateString(new Date());
             
-            if (dateStr !== today) return;
+            if (dateStr !== today || habits.length === 0) return;
             
             const dayData = habitData[dateStr] || {};
-            const allComplete = Object.keys(habits).every(habitId => {
-                if (habitId === 'jobs') {
+            const allComplete = habits.every(habit => {
+                if (habit.schedule === 'weekdays') {
                     const isWeekday = currentViewDate.getDay() >= 1 && currentViewDate.getDay() <= 5;
-                    return !isWeekday || dayData[habitId];
+                    return !isWeekday || dayData[habit.id];
                 }
-                return dayData[habitId];
+                return dayData[habit.id];
             });
             
             if (allComplete) {
@@ -1322,7 +1685,7 @@
             }, 3000);
         }
 
-        function showSnackbar(message) {
+        window.showSnackbar = function(message) {
             const snackbar = document.getElementById('snackbar');
             document.getElementById('snackbarText').textContent = message;
             snackbar.classList.add('show');
@@ -1330,8 +1693,64 @@
                 snackbar.classList.remove('show');
             }, 3000);
         }
+        
+        window.renderHabits = function() {
+            const list = document.getElementById('habitsList');
+            if (!list) return;
+            
+            list.innerHTML = ''; // Clear existing list
+            
+            habits.forEach(habit => {
+                const scheduleText = habit.schedule === 'weekdays' ? 'Weekdays' : 'Daily';
+                
+                const card = document.createElement('div');
+                card.className = 'habit-card';
+                card.style = `--habit-color: ${habit.color};`;
+                card.onclick = (e) => toggleHabit(habit.id, e);
+                
+                card.innerHTML = `
+                    <div class="habit-checkbox-wrapper">
+                        <input type="checkbox" class="habit-checkbox" id="habit-${habit.id}" onclick="event.stopPropagation()">
+                    </div>
+                    <div class="habit-icon">${habit.icon || '🎯'}</div>
+                    <div class="habit-content">
+                        <div class="habit-name">${habit.name}</div>
+                        <div class="habit-schedule">${scheduleText}</div>
+                        <div class="habit-stats-inline">
+                            <div class="streak-badge" id="streak-${habit.id}">
+                                <span class="material-symbols-rounded" style="font-size: 16px;">local_fire_department</span>
+                                <span>0 days</span>
+                            </div>
+                            <div class="habit-stat-chip" id="rate-${habit.id}">0% complete</div>
+                        </div>
+                    </div>
+                    <div class="habit-menu">
+                        <button class="habit-menu-btn" onclick="openHabitMenu(event, '${habit.id}')">
+                            <span class="material-symbols-rounded">more_vert</span>
+                        </button>
+                        <div class="habit-menu-dropdown" id="menu-${habit.id}">
+                            <button onclick="event.stopPropagation(); openHabitModal('${habit.id}')">
+                                <span class="material-symbols-rounded" style="font-size: 18px;">edit</span>
+                                Edit
+                            </button>
+                            <button class="delete" onclick="event.stopPropagation(); openDeleteConfirm('${habit.id}', '${habit.name.replace(/'/g, "\\'")}')">
+                                <span class="material-symbols-rounded" style="font-size: 18px;">delete</span>
+                                Delete
+                            </button>
+                        </div>
+                    </div>
+                `;
+                
+                list.appendChild(card);
+                
+                // Add change listener to checkbox *after* creating it
+                document.getElementById(`habit-${habit.id}`).addEventListener('change', function() {
+                    updateHabitData(habit.id);
+                });
+            });
+        }
 
-        function updateDisplay() {
+        window.updateDisplay = function() {
             const dateStr = getDateString(currentViewDate);
             const today = getDateString(new Date());
             
@@ -1356,13 +1775,16 @@
             let todayComplete = 0;
             let totalHabits = 0;
             
-            Object.keys(habits).forEach(habitId => {
+            habits.forEach(habit => {
+                const habitId = habit.id;
                 const checkbox = document.getElementById(`habit-${habitId}`);
+                if (!checkbox) return; // Habit card might not be rendered yet
+                
                 const habitCard = checkbox.closest('.habit-card');
                 const isWeekday = currentViewDate.getDay() >= 1 && currentViewDate.getDay() <= 5;
                 
                 // Handle weekday-only habits
-                if (habitId === 'jobs' && !isWeekday) {
+                if (habit.schedule === 'weekdays' && !isWeekday) {
                     checkbox.disabled = true;
                     checkbox.checked = false;
                     habitCard.style.opacity = '0.5';
@@ -1411,12 +1833,20 @@
             const rate = calculateCompletionRate(habitId);
             
             const streakElement = document.getElementById(`streak-${habitId}`);
-            streakElement.querySelector('span:last-child').textContent = `${streak} days`;
+            if (streakElement) {
+                streakElement.querySelector('span:last-child').textContent = `${streak} days`;
+            }
             
-            document.getElementById(`rate-${habitId}`).textContent = `${rate}% complete`;
+            const rateElement = document.getElementById(`rate-${habitId}`);
+            if (rateElement) {
+                rateElement.textContent = `${rate}% complete`;
+            }
         }
 
         function calculateStreak(habitId) {
+            const habit = habits.find(h => h.id === habitId);
+            if (!habit) return 0;
+
             let streak = 0;
             let checkDate = new Date();
             
@@ -1424,23 +1854,45 @@
                 const dateStr = getDateString(checkDate);
                 const dayData = habitData[dateStr] || {};
                 
-                if (dayData[habitId]) {
+                // Check if habit was applicable
+                const isWeekday = checkDate.getDay() >= 1 && checkDate.getDay() <= 5;
+                const wasApplicable = (habit.schedule !== 'weekdays' || isWeekday);
+                
+                if (wasApplicable && dayData[habitId]) {
                     streak++;
-                    checkDate.setDate(checkDate.getDate() - 1);
+                } else if (!wasApplicable) {
+                    // Skip this day, don't break streak
                 } else if (getDateString(checkDate) === getDateString(new Date())) {
-                    checkDate.setDate(checkDate.getDate() - 1);
+                    // Today, not completed, don't count but don't break
                 } else {
+                    // Past day, was applicable, but not done
                     break;
                 }
                 
-                if (streak > 365) break;
+                checkDate.setDate(checkDate.getDate() - 1);
+                if (streak > 3650) break; // Safety break
             }
             
             return streak;
         }
 
         function calculateCompletionRate(habitId) {
-            const startDate = new Date('2025-10-09');
+            const habit = habits.find(h => h.id === habitId);
+            if (!habit) return 0;
+            
+            // Find the first check-in day to start counting from
+            let startDate = null;
+            const sortedDates = Object.keys(habitData).sort();
+            for(const dateStr of sortedDates) {
+                if(habitData[dateStr][habitId] !== undefined) {
+                    startDate = new Date(dateStr);
+                    break;
+                }
+            }
+            
+            // If no data, rate is 0
+            if (!startDate) return 0;
+
             const today = new Date();
             let totalDays = 0;
             let completedDays = 0;
@@ -1449,7 +1901,7 @@
             while (checkDate <= today) {
                 const isWeekday = checkDate.getDay() >= 1 && checkDate.getDay() <= 5;
                 
-                if (!habits[habitId].weekdaysOnly || isWeekday) {
+                if (habit.schedule !== 'weekdays' || isWeekday) {
                     totalDays++;
                     const dateStr = getDateString(checkDate);
                     const dayData = habitData[dateStr] || {};
@@ -1481,11 +1933,11 @@
                 const dateStr = getDateString(checkDate);
                 const dayData = habitData[dateStr] || {};
                 
-                Object.keys(habits).forEach(habitId => {
+                habits.forEach(habit => {
                     const isWeekday = checkDate.getDay() >= 1 && checkDate.getDay() <= 5;
-                    if (!habits[habitId].weekdaysOnly || isWeekday) {
+                    if (habit.schedule !== 'weekdays' || isWeekday) {
                         totalPossible++;
-                        if (dayData[habitId]) {
+                        if (dayData[habit.id]) {
                             totalCompleted++;
                         }
                     }
@@ -1507,8 +1959,8 @@
 
         function calculateBestStreak() {
             let bestStreak = 0;
-            Object.keys(habits).forEach(habitId => {
-                const streak = calculateStreak(habitId);
+            habits.forEach(habit => {
+                const streak = calculateStreak(habit.id);
                 if (streak > bestStreak) {
                     bestStreak = streak;
                 }
@@ -1517,16 +1969,15 @@
         }
 
         function calculateAvgCompletion() {
-            let total = 0;
-            let count = 0;
+            if (habits.length === 0) return 0;
             
-            Object.keys(habits).forEach(habitId => {
-                const rate = calculateCompletionRate(habitId);
+            let total = 0;
+            habits.forEach(habit => {
+                const rate = calculateCompletionRate(habit.id);
                 total += rate;
-                count++;
             });
             
-            return count > 0 ? Math.round(total / count) : 0;
+            return Math.round(total / habits.length);
         }
 
         function changeDate(days) {
@@ -1541,10 +1992,25 @@
         }
 
         function exportToCSV() {
-            let csv = 'Date,Bed before 2am,Walk/Run,Wake up at 10,Apply to 10 jobs,Limit Instagram\n';
+            if (habits.length === 0) {
+                showSnackbar('No habits to export.');
+                return;
+            }
+
+            // Dynamic headers
+            let csv = 'Date,';
+            csv += habits.map(h => `"${h.name}"`).join(',') + '\n';
             
-            const startDate = new Date('2025-10-09');
-            const endDate = new Date();
+            // Find start and end dates from data
+            const dates = Object.keys(habitData);
+            if (dates.length === 0) {
+                 showSnackbar('No data to export.');
+                return;
+            }
+            
+            dates.sort();
+            const startDate = new Date(dates[0]);
+            const endDate = new Date(); // Go up to today
             
             let checkDate = new Date(startDate);
             while (checkDate <= endDate) {
@@ -1552,11 +2018,10 @@
                 const dayData = habitData[dateStr] || {};
                 
                 csv += `${dateStr},`;
-                csv += `${dayData.bed ? 'Yes' : 'No'},`;
-                csv += `${dayData.walk ? 'Yes' : 'No'},`;
-                csv += `${dayData.wake ? 'Yes' : 'No'},`;
-                csv += `${dayData.jobs ? 'Yes' : 'No'},`;
-                csv += `${dayData.instagram ? 'Yes' : 'No'}\n`;
+                
+                csv += habits.map(h => {
+                    return dayData[h.id] ? 'Yes' : 'No';
+                }).join(',') + '\n';
                 
                 checkDate.setDate(checkDate.getDate() + 1);
             }
@@ -1571,13 +2036,6 @@
             
             showSnackbar('CSV downloaded successfully! 💾');
         }
-
-        // Add event listeners to checkboxes
-        Object.keys(habits).forEach(habitId => {
-            document.getElementById(`habit-${habitId}`).addEventListener('change', function() {
-                updateHabitData(habitId);
-            });
-        });
 
         // Initialize on page load
         init();
