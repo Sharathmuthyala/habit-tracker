@@ -1,4 +1,6 @@
+<!-- Back-up Code(With UI and UX) -->
 <!DOCTYPE html>
+<!-- Add data-theme="dark" for default dark mode, or JS will handle it -->
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -20,12 +22,17 @@
         :root {
             /* Primary Palette */
             --color-primary: #1A73E8;
-            --color-primary-hover: #1765CC; /* Added from principle 1 */
+            --color-primary-hover: #1765CC; 
+            --color-primary-container: rgba(26, 115, 232, 0.08); /* For flash */
             --color-on-primary: #FFFFFF;
 
             /* Secondary (Neutral) Palette */
             --color-secondary: #5F6368;
             --color-on-secondary: #FFFFFF;
+
+            /* REFINEMENT: Principle 6 - Accent Color */
+            --color-accent-gold: #FBBC04;
+            --color-on-accent-gold: #202124;
 
             /* Status Colors */
             --color-error: #EA4335;
@@ -48,6 +55,7 @@
 
             /* Outline */
             --color-outline: #DADCE0;
+            --color-outline-faint: rgba(60, 64, 67, 0.1); /* For dots */
             
             /* 2. Simplified Shape System */
             --radius-small: 4px;
@@ -73,9 +81,11 @@
         }
 
         /* Dark Theme (from Principle 1) */
-        [data-theme="dark"] {
+        /* Applied via body.dark-mode instead of data-theme */
+        body.dark-mode {
             --color-primary: #8AB4F8;
             --color-primary-hover: #a3c5f8;
+            --color-primary-container: rgba(138, 180, 248, 0.1); /* For flash */
             --color-on-primary: #202124;
             
             --color-secondary: #E8EAED;
@@ -91,6 +101,7 @@
             --color-surface-elevated: #2A2B2F;
 
             --color-outline: #5F6368;
+            --color-outline-faint: rgba(232, 234, 237, 0.1); /* For dots */
         }
 
         /* ---
@@ -154,6 +165,10 @@
         .state-layer-on-primary:hover::after { background: rgba(255, 255, 255, 0.1); }
         .state-layer-on-primary:active::after { background: rgba(255, 255, 255, 0.15); }
         
+        /* State layer for dark mode toggle */
+        body.dark-mode .state-layer-on-primary:hover::after { background: rgba(138, 180, 248, 0.1); } /* #8AB4F8 */
+        body.dark-mode .state-layer-on-primary:active::after { background: rgba(138, 180, 248, 0.15); }
+
         /* ---
          * BASE STYLES
          * ---
@@ -173,6 +188,11 @@
             min-height: 100vh;
             padding: 0;
             overflow-x: hidden;
+            transition: background-color var(--motion-fast), color var(--motion-fast);
+            
+            /* REFINEMENT: Principle 1 & 5 - Add subtle dot pattern */
+            background-image: radial-gradient(var(--color-outline-faint) 0.5px, transparent 0.5px);
+            background-size: 8px 8px;
         }
 
         /* 7. Optimized Icon System */
@@ -225,7 +245,7 @@
             padding: 20px;
             opacity: 0;
             visibility: hidden;
-            transition: opacity var(--motion-medium), visibility var(--motion-medium);
+            transition: opacity var(--motion-medium), visibility var(--motion-medium), background-color var(--motion-fast);
         }
 
         .auth-overlay.show {
@@ -243,6 +263,7 @@
             box-shadow: 0 4px 8px rgba(60,64,67,0.25); /* elevation-3 */
             text-align: center;
             animation: fadeIn var(--motion-medium) forwards;
+            transition: background-color var(--motion-fast);
         }
 
         .auth-title {
@@ -289,7 +310,7 @@
             border-radius: var(--radius-medium); /* 8px */
             background: var(--color-surface-tone-2);
             color: var(--color-on-surface);
-            transition: border-color var(--motion-fast), box-shadow var(--motion-fast);
+            transition: border-color var(--motion-fast), box-shadow var(--motion-fast), background-color var(--motion-fast), color var(--motion-fast);
         }
 
         .input-field:focus {
@@ -343,6 +364,12 @@
             position: sticky;
             top: 0;
             z-index: 100;
+            transition: box-shadow var(--motion-fast);
+        }
+        
+        /* NEW: Dynamic app bar shadow on scroll */
+        .app-bar.scrolled {
+            box-shadow: 0 2px 6px rgba(60, 64, 67, 0.25); /* elevation-2 */
         }
 
         .app-bar-content {
@@ -377,22 +404,26 @@
         .app-bar-actions {
             display: flex;
             align-items: center;
-            gap: 16px;
+            gap: 8px; /* Reduced gap */
         }
 
         .sync-status {
             display: flex;
             align-items: center;
+            justify-content: center; /* Center the icon */
             gap: 8px;
-            padding: 8px 16px;
+            padding: 8px; /* Reduced padding for icon-only */
             background: rgba(255,255,255,0.2);
             border-radius: var(--radius-full);
             font: var(--font-label);
             backdrop-filter: blur(10px);
+            width: 40px; /* Fixed size for circle */
+            height: 40px;
         }
         .sync-status .material-symbols-outlined {
             color: var(--color-on-primary);
-            font-size: 18px;
+            font-size: 20px; /* Slightly smaller icon */
+            margin: 0; /* Remove potential margins */
         }
 
         .sync-status.syncing .material-symbols-outlined {
@@ -408,7 +439,7 @@
             border: none;
             font-weight: var(--font-weight-medium);
             letter-spacing: 0.5px;
-            transition: transform var(--motion-fast), box-shadow var(--motion-fast);
+            transition: transform var(--motion-fast), box-shadow var(--motion-fast), background-color var(--motion-fast), color var(--motion-fast), border-color var(--motion-fast);
             -webkit-tap-highlight-color: transparent;
         }
         .filled-button:active, .outlined-button:active, .today-button:active, .text-button:active, .icon-button:active {
@@ -447,6 +478,9 @@
             border-radius: var(--radius-full); /* Rounded */
             font: var(--font-label);
         }
+        .outlined-button:hover {
+            background: rgba(26, 115, 232, 0.08); /* state-layer-primary hover */
+        }
 
         .icon-button {
             background: var(--color-surface-tone-2);
@@ -462,6 +496,7 @@
         .icon-button .material-symbols-outlined {
             color: var(--color-on-surface-variant);
             font-size: 24px;
+            transition: color var(--motion-fast);
         }
         .icon-button:hover {
             background: var(--color-surface-tone-3);
@@ -481,6 +516,29 @@
             padding: 10px 12px;
             border-radius: var(--radius-full);
         }
+        
+        /* Dark mode toggle button style */
+        .theme-toggle-button {
+            background: none;
+            border: none;
+            color: var(--color-on-primary);
+            width: 40px;
+            height: 40px;
+            border-radius: var(--radius-full);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .theme-toggle-button .material-symbols-outlined {
+            color: var(--color-on-primary);
+            font-size: 20px;
+        }
+        body.dark-mode .theme-toggle-button .material-symbols-outlined {
+             color: var(--color-primary); /* #8AB4F8 */
+        }
+        /* Hide one icon based on theme */
+        body:not(.dark-mode) #icon-dark-mode { display: none; }
+        body.dark-mode #icon-light-mode { display: none; }
 
         /* --- Container & Cards --- */
         .container {
@@ -504,7 +562,8 @@
         .setup-banner a { color: var(--color-primary); }
 
         .date-card {
-            background: var(--color-surface);
+            /* REFINEMENT: Principle #1 - Use prominent background tint */
+            background: var(--color-surface-tone-2);
             border-radius: var(--radius-large); /* 12px */
             padding: 24px;
             margin-bottom: 24px;
@@ -514,12 +573,18 @@
 
         .date-header { text-align: center; margin-bottom: 20px; }
         .current-date { font: var(--font-headline); }
-        .date-subtext { font: var(--font-label); color: var(--color-on-surface-variant); }
+        .date-subtext {
+            font: var(--font-label);
+            color: var(--color-on-surface-variant);
+            min-height: 20px; /* Reserve space for microcopy */
+            transition: all var(--motion-fast);
+        }
         .date-nav { display: flex; justify-content: center; gap: 12px; align-items: center; }
 
         /* Stats Grid */
         .stats-grid {
             display: grid;
+            /* REFINEMENT: Principle #1 - Use 8dp grid system (16px gap) */
             grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
             gap: 16px;
             margin-bottom: 24px;
@@ -527,7 +592,8 @@
 
         .stat-card {
             background: var(--color-surface-tone-2);
-            border-radius: var(--radius-large); /* 12px */
+            /* REFINEMENT: Principle #1 - Use 16-24dp radius */
+            border-radius: var(--radius-extra); /* 16px */
             padding: 20px;
             text-align: center;
             transition: all var(--motion-fast);
@@ -539,6 +605,17 @@
             box-shadow: 0 2px 6px rgba(60,64,67,0.25); /* elevation-2 */
         }
         .stat-icon { font-size: 32px; margin-bottom: 8px; }
+        .stat-icon .material-symbols-outlined {
+            font-size: 32px;
+            font-variation-settings: 'FILL' 1;
+        }
+        
+        /* REFINEMENT: Principle #4 - Color-coded icons */
+        #weekProgressIcon .material-symbols-outlined { color: var(--color-primary); }
+        #totalCheckinsIcon .material-symbols-outlined { color: var(--color-accent-gold); }
+        #bestStreakIcon .material-symbols-outlined { color: var(--color-error); }
+        #avgCompletionIcon .material-symbols-outlined { color: var(--color-success); }
+        
         .stat-value { font: var(--font-headline); margin-bottom: 4px; }
         .stat-label { font: var(--font-label); color: var(--color-on-surface-variant); text-transform: uppercase; }
 
@@ -575,6 +652,22 @@
             overflow: hidden;
             box-shadow: 0 1px 2px rgba(60,64,67,0.2);
         }
+        /* REFINEMENT: Principle 7 - Flash animation */
+        .habit-card.flash {
+            animation: flash-accent var(--motion-slow);
+        }
+        @keyframes flash-accent {
+            0% { background-color: var(--color-primary-container); }
+            100% { background-color: var(--color-surface); }
+        }
+        body.dark-mode .habit-card.flash {
+            animation: flash-accent-dark var(--motion-slow);
+        }
+        @keyframes flash-accent-dark {
+            0% { background-color: var(--color-primary-container); }
+            100% { background-color: var(--color-surface); }
+        }
+        
         .habit-card:hover {
             box-shadow: 0 2px 6px rgba(60,64,67,0.25); /* elevation-2 */
             transform: translateY(-1px);
@@ -616,14 +709,58 @@
             left: 50%;
             top: 50%;
             transform: translate(-50%, -50%);
+            /* REFINEMENT: Principle #5 - Check animation */
+            animation: checkPop 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        /* REFINEMENT: Principle #5 - Keyframes for check */
+        @keyframes checkPop {
+            0% { transform: translate(-50%, -50%) scale(0); }
+            50% { transform: translate(-50%, -50%) scale(1.2); }
+            100% { transform: translate(-50%, -50%) scale(1); }
         }
         .habit-checkbox:hover { border-color: var(--color-primary); }
         .habit-checkbox:disabled { opacity: 0.4; cursor: not-allowed; }
 
         .habit-icon { font-size: 32px; flex-shrink: 0; pointer-events: none; }
-        .habit-content { flex: 1; min-width: 0; pointer-events: none; }
+        .habit-content {
+            flex: 1;
+            min-width: 0;
+            pointer-events: none;
+            padding-bottom: 12px; /* Space for progress bar */
+        }
         .habit-name { font: var(--font-body); font-size: 18px; font-weight: var(--font-weight-medium); }
         .habit-schedule { font: var(--font-label); color: var(--color-on-surface-variant); }
+        /* REFINEMENT: Principle 4 - "Why" text */
+        .habit-why {
+            font: var(--font-label);
+            color: var(--color-primary);
+            font-style: italic;
+            font-size: 13px;
+            margin-top: 4px;
+            opacity: 0.9;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        /* REFINEMENT: Principle 3 - Progress Bar */
+        .habit-progress-bar-container {
+            position: absolute;
+            bottom: 8px;
+            left: 20px;
+            right: 20px;
+            height: 6px;
+            background: var(--color-outline);
+            border-radius: var(--radius-full);
+            overflow: hidden;
+        }
+        .habit-progress-bar {
+            height: 100%;
+            width: 0%; /* Set by JS */
+            background: var(--color-primary);
+            border-radius: var(--radius-full);
+            transition: width var(--motion-slow);
+        }
         
         .habit-menu { z-index: 2; }
         .habit-menu .icon-button { background: transparent; box-shadow: none; }
@@ -677,11 +814,34 @@
         }
         .export-section h3 { font: var(--font-title); }
         .export-section p { font: var(--font-label); color: var(--color-on-surface-variant); margin-bottom: 16px; }
+        /* REFINEMENT: Principle #6 - Privacy note */
+        .export-privacy-note {
+            font: var(--font-label);
+            font-size: 12px;
+            color: var(--color-on-surface-variant);
+            margin-top: 16px;
+        }
 
         /* Progress Ring */
-        .progress-ring-container { position: relative; width: 120px; height: 120px; margin: 20px auto; }
+        .progress-ring-container {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            margin: 20px auto;
+        }
+        /* REFINEMENT: Principle 1 - Pop animation */
+        .progress-ring-container.pop {
+            animation: pop 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        @keyframes pop {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
         .progress-ring { transform: rotate(-90deg); }
         .progress-ring-circle {
+            /* REFINEMENT: Principle #3 - Animate progress ring */
             transition: stroke-dashoffset var(--motion-slow);
             fill: none;
             stroke-width: 8;
@@ -716,6 +876,7 @@
             display: block;
             animation: celebrationPop var(--motion-slow);
         }
+        /* REFINEMENT: Principle #8 - Celebration animation */
         @keyframes celebrationPop {
             0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
             100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
@@ -723,6 +884,33 @@
         .celebration-emoji { font-size: 64px; margin-bottom: 16px; }
         .celebration-text { font: var(--font-title); }
         .celebration-subtext { font: var(--font-label); color: var(--color-on-surface-variant); }
+        
+        /* REFINEMENT: Principle 7 - Confetti */
+        .confetti-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1001;
+            pointer-events: none;
+            overflow: hidden;
+        }
+        .confetti {
+            position: absolute;
+            top: -10px;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            opacity: 0.8;
+            animation: fall 3s linear forwards;
+        }
+        @keyframes fall {
+            to {
+                transform: translateY(100vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
 
         /* Responsive */
         @media (max-width: 768px) {
@@ -810,7 +998,7 @@
             box-shadow: 0 8px 32px rgba(0,0,0,0.2);
             opacity: 0;
             transform: scale(0.9);
-            transition: opacity var(--motion-medium), transform var(--motion-medium);
+            transition: opacity var(--motion-medium), transform var(--motion-medium), background-color var(--motion-fast);
         }
         .modal-overlay.show .modal { opacity: 1; transform: scale(1); }
         .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
@@ -861,6 +1049,9 @@
             background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' height='24px' viewBox='0 0 24 24' width='24px' fill='%235F6368'%3E%3Cpath d='M0 0h24v24H0z' fill='none'/%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
             background-repeat: no-repeat;
             background-position: right 16px center;
+        }
+        body.dark-mode .form-select {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' height='24px' viewBox='0 0 24 24' width='24px' fill='%23DADCE0'%3E%3Cpath d='M0 0h24v24H0z' fill='none'/%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
         }
         
         /* Heatmap Modal */
@@ -927,7 +1118,7 @@
     <!-- Main App Content -->
     <div class="app-container" id="appContainer">
         <!-- App Bar -->
-        <div class="app-bar">
+        <div class="app-bar" id="appBar">
             <div class="app-bar-content">
                 <div>
                     <div class="app-title">
@@ -937,11 +1128,17 @@
                     <div class="app-subtitle">Build consistency, one day at a time</div>
                 </div>
                 <div class="app-bar-actions">
-                    <div class="sync-status" id="syncStatus">
+                    <!-- REFINEMENT: Principle #2 - Replace "Synced" with icon -->
+                    <div class="sync-status" id="syncStatus" title="Sync Status">
                         <span class="material-symbols-outlined">cloud_done</span>
-                        <span id="syncText">Synced</span>
                     </div>
-                    <!-- Added state-layer class -->
+                    
+                    <!-- REFINEMENT: Principle #7 - Add Dark Mode Toggle -->
+                    <button class="theme-toggle-button state-layer-on-primary" onclick="toggleDarkMode()" aria-label="Toggle dark mode">
+                        <span class="material-symbols-outlined" id="icon-light-mode">light_mode</span>
+                        <span class="material-symbols-outlined" id="icon-dark-mode">dark_mode</span>
+                    </button>
+                    
                     <button class="text-button state-layer-on-primary" onclick="handleSignOut()">Sign Out</button>
                 </div>
             </div>
@@ -1006,22 +1203,31 @@
             <div class="stats-grid">
                 <!-- Added style for stagger animation -->
                 <div class="stat-card" style="--index: 1;">
-                    <div class="stat-icon">📅</div>
+                    <!-- REFINEMENT: Principle #2 & 4 - Semantic/Colored Icons -->
+                    <div class="stat-icon" id="weekProgressIcon">
+                        <span class="material-symbols-outlined">calendar_month</span>
+                    </div>
                     <div class="stat-value" id="weekProgress">0%</div>
                     <div class="stat-label">This Week</div>
                 </div>
                 <div class="stat-card" style="--index: 2;">
-                    <div class="stat-icon">✨</div>
+                    <div class="stat-icon" id="totalCheckinsIcon">
+                        <span class="material-symbols-outlined">task_alt</span>
+                    </div>
                     <div class="stat-value" id="totalCheckins">0</div>
                     <div class="stat-label">Total Check-ins</div>
                 </div>
                 <div class="stat-card" style="--index: 3;">
-                    <div class="stat-icon">🔥</div>
+                    <div class="stat-icon" id="bestStreakIcon">
+                        <span class="material-symbols-outlined">local_fire_department</span>
+                    </div>
                     <div class="stat-value" id="bestStreak">0</div>
                     <div class="stat-label">Best Streak</div>
                 </div>
                 <div class="stat-card" style="--index: 4;">
-                    <div class="stat-icon">🎯</div>
+                    <div class="stat-icon" id="avgCompletionIcon">
+                        <span class="material-symbols-outlined">leaderboard</span>
+                    </div>
                     <div class="stat-value" id="avgCompletion">0%</div>
                     <div class="stat-label">Avg Rate</div>
                 </div>
@@ -1040,7 +1246,8 @@
             <!-- Export Section -->
             <div class="export-section">
                 <h3>
-                    <span class="material-symbols-outlined" style="vertical-align: middle;">download</span>
+                    <!-- REFINEMENT: Principle #6 - Change icon -->
+                    <span class="material-symbols-outlined" style="vertical-align: middle;">cloud_download</span>
                     Export Your Data
                 </h3>
                 <p>Download your complete habit history as a CSV file</p>
@@ -1048,6 +1255,8 @@
                     <span class="material-symbols-outlined" style="font-size: 18px; vertical-align: middle;">file_download</span>
                     Download CSV
                 </button>
+                <!-- REFINEMENT: Principle #6 - Add privacy note -->
+                <p class="export-privacy-note">Your data stays private—exported only to your device.</p>
             </div>
         </div>
     </div>
@@ -1063,6 +1272,9 @@
         <div class="celebration-text">All habits completed!</div>
         <div class="celebration-subtext">Keep up the amazing work!</div>
     </div>
+    
+    <!-- REFINEMENT: Principle 7 - Confetti Container -->
+    <div class="confetti-container" id="confettiContainer"></div>
 
     <!-- Snackbar -->
     <div class="snackbar" id="snackbar">
@@ -1082,14 +1294,24 @@
             <div class="modal-body">
                 <form id="habitForm">
                     <input type="hidden" id="habitIdInput">
+                    
+                    <!-- REFINEMENT: Principle 4 - "I will..." -->
                     <div class="form-group">
-                        <label for="habitName" class="form-label">Habit Name</label>
-                        <input type="text" id="habitName" class="form-input" placeholder="e.g., Read 10 pages">
+                        <label for="habitName" class="form-label">I will...</label>
+                        <input type="text" id="habitName" class="form-input" placeholder="e.g., Read 10 pages" required>
                     </div>
+                    
                     <div class="form-group">
                         <label for="habitIcon" class="form-label">Icon (Emoji)</label>
-                        <input type="text" id="habitIcon" class="form-input" placeholder="e.g., 📚">
+                        <input type="text" id="habitIcon" class="form-input" placeholder="e.g., 📚" required>
                     </div>
+                    
+                    <!-- REFINEMENT: Principle 4 - "so I become..." -->
+                    <div class="form-group">
+                        <label for="habitWhy" class="form-label">...so I can (Your 'Why' - Optional)</label>
+                        <input type="text" id="habitWhy" class="form-input" placeholder="e.g., learn a new skill">
+                    </div>
+                    
                     <div class="form-group">
                         <label for="habitSchedule" class="form-label">Schedule</label>
                         <select id="habitSchedule" class="form-select">
@@ -1161,7 +1383,7 @@
                 apiKey: "AIzaSyBi8ESQV1hcdr9bG6v-tesiTzscDsGFiyQ",
                 authDomain: "habit-tracker-5ad2d.firebaseapp.com",
                 projectId: "habit-tracker-5ad2d",
-                storageBucket: "habit-tracker-5ad2d.firebasestorage.app",
+                 storageBucket: "habit-tracker-5ad2d.firebasestorage.app",
                 messagingSenderId: "704810863965",
                 appId: "1:704810863965:web:d63facc167c7de928f2cb4",
                 measurementId: "G-SXFYLD0D1C"
@@ -1332,14 +1554,25 @@
         let currentViewDate = new Date();
         
         const habitSuggestions = [
-            { name: "Read 10 pages", icon: "📚" },
-            { name: "Go for a walk", icon: "🚶" },
-            { name: "Drink 8 glasses of water", icon: "💧" },
-            { name: "Meditate for 5 minutes", icon: "🧘" },
-            { name: "Write in a journal", icon: "✍️" },
-            { name: "No social media before 9 AM", icon: "📱" },
-            { name: "Practice a new skill", icon: "💡" },
+            { name: "Read 10 pages", icon: "📚", why: "become more knowledgeable" },
+            { name: "Go for a walk", icon: "🚶", why: "improve my health" },
+            { name: "Drink 8 glasses of water", icon: "💧", why: "stay hydrated" },
+            { name: "Meditate for 5 minutes", icon: "🧘", why: "clear my mind" },
+            { name: "Write in a journal", icon: "✍️", why: "practice gratitude" },
+            { name: "No social media before 9 AM", icon: "📱", why: "start the day focused" },
+            { name: "Practice a new skill", icon: "💡", why: "grow my abilities" },
         ];
+        
+        // REFINEMENT: Principle #8 - Motivational Quotes
+        const motivationalQuotes = [
+            "The secret of getting ahead is getting started.",
+            "Don't break the chain.",
+            "A little progress each day adds up to big results.",
+            "Consistency is what transforms average into excellence.",
+            "You don't have to be great to start, but you have to start to be great.",
+            "Motivation is what gets you started. Habit is what keeps you going."
+        ];
+        let todayQuote = motivationalQuotes[Math.floor(Math.random() * motivationalQuotes.length)];
         
         // Colors from your principles
         const habitColors = [
@@ -1385,22 +1618,21 @@
         
         function updateSyncStatus(status) {
             const syncStatus = document.getElementById('syncStatus');
-            const syncText = document.getElementById('syncText');
-            if (!syncStatus || !syncText) return;
+            if (!syncStatus) return;
             const icon = syncStatus.querySelector('.material-symbols-outlined');
             
             if (status === 'syncing') {
                 syncStatus.classList.add('syncing');
                 icon.textContent = 'sync';
-                syncText.textContent = 'Syncing...';
+                syncStatus.title = 'Syncing...';
             } else if (status === 'synced') {
                 syncStatus.classList.remove('syncing');
                 icon.textContent = 'cloud_done';
-                syncText.textContent = 'Synced';
+                syncStatus.title = 'Synced';
             } else if (status === 'error') {
                 syncStatus.classList.remove('syncing');
                 icon.textContent = 'cloud_off';
-                syncText.textContent = 'Sync Error';
+                syncStatus.title = 'Sync Error';
             }
         }
         
@@ -1630,6 +1862,7 @@
                     document.getElementById('habitName').value = habit.name;
                     document.getElementById('habitIcon').value = habit.icon;
                     document.getElementById('habitSchedule').value = habit.schedule;
+                    document.getElementById('habitWhy').value = habit.why || '';
                     
                     // Select color
                     const swatch = document.querySelector(`.color-swatch[data-color="${habit.color}"]`);
@@ -1645,6 +1878,7 @@
                 const suggestion = habitSuggestions[Math.floor(Math.random() * habitSuggestions.length)];
                 document.getElementById('habitName').value = suggestion.name;
                 document.getElementById('habitIcon').value = suggestion.icon;
+                document.getElementById('habitWhy').value = suggestion.why || '';
                 
                 // Select first color by default
                 document.querySelector('.color-swatch').classList.add('selected');
@@ -1665,6 +1899,7 @@
             const name = document.getElementById('habitName').value;
             const icon = document.getElementById('habitIcon').value;
             const schedule = document.getElementById('habitSchedule').value;
+            const why = document.getElementById('habitWhy').value; // Get the "why"
             const selectedColor = document.querySelector('.color-swatch.selected');
             
             if (!name || !icon || !selectedColor) {
@@ -1679,6 +1914,7 @@
                 icon,
                 schedule,
                 color,
+                why: why || '', // Save the "why"
                 createdAt: window.fb.serverTimestamp() // Add/update server timestamp
             };
             
@@ -1751,8 +1987,11 @@
                 const card = document.createElement('div');
                 card.className = 'habit-card';
                 card.style = `--habit-color: ${habit.color};`;
+                card.id = `card-${habit.id}`; // Add ID for flash animation
                 
                 card.onclick = (e) => openHeatmapModal(e, habit.id, habit.name, habit.color);
+                
+                let whyHtml = habit.why ? `<div class="habit-why">...so I can ${habit.why}</div>` : '';
                 
                 card.innerHTML = `
                     <div class="habit-checkbox-wrapper">
@@ -1762,6 +2001,7 @@
                     <div class="habit-content">
                         <div class="habit-name">${habit.name}</div>
                         <div class="habit-schedule">${scheduleText}</div>
+                        ${whyHtml}
                     </div>
                     <div class="habit-menu dropdown">
                         <button class="icon-button state-layer-secondary" onclick="toggleDropdown(event, '${habit.id}')">
@@ -1778,6 +2018,10 @@
                             </button>
                         </div>
                     </div>
+                    <!-- REFINEMENT: Principle 3 - Progress Bar -->
+                    <div class="habit-progress-bar-container">
+                        <div class="habit-progress-bar" id="progress-${habit.id}" style="background-color: ${habit.color};"></div>
+                    </div>
                 `;
                 
                 list.appendChild(card);
@@ -1788,6 +2032,9 @@
                     updateHabitData(this.dataset.habitId);
                 });
             });
+            
+            // After rendering, update progress bars
+            updateAllProgressBars();
         }
         
         window.toggleDropdown = function(event, habitId) {
@@ -1830,6 +2077,22 @@
             
             // Save locally
             window.saveHabitDataLocal();
+            
+            // --- REFINEMENTS: Principle 1 & 7 ---
+            // 1. Pop the progress ring
+            const ring = document.querySelector('.progress-ring-container');
+            if (ring) {
+                ring.classList.add('pop');
+                ring.addEventListener('animationend', () => ring.classList.remove('pop'), { once: true });
+            }
+            
+            // 2. Flash the habit card
+            const card = document.getElementById(`card-${habitId}`);
+            if (card && checkbox.checked) { // Only flash on completion
+                card.classList.add('flash');
+                card.addEventListener('animationend', () => card.classList.remove('flash'), { once: true });
+            }
+            // --- End Refinements ---
             
             // Save to Firebase
             const userId = getUserId();
@@ -1875,9 +2138,35 @@
         function showCelebration() {
             const celebration = document.getElementById('celebration');
             celebration.classList.add('show');
+            
+            // REFINEMENT: Principle 7 - Run Confetti
+            runCelebrationConfetti();
+            
             setTimeout(() => {
                 celebration.classList.remove('show');
             }, 3000);
+        }
+        
+        // REFINEMENT: Principle 7 - Confetti Function
+        function runCelebrationConfetti() {
+            const container = document.getElementById('confettiContainer');
+            container.innerHTML = ''; // Clear old confetti
+            const confettiCount = 50;
+            
+            for (let i = 0; i < confettiCount; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.left = `${Math.random() * 100}vw`;
+                confetti.style.backgroundColor = habitColors[Math.floor(Math.random() * habitColors.length)];
+                confetti.style.animationDuration = `${2 + Math.random() * 2}s`;
+                confetti.style.animationDelay = `${Math.random() * 0.5}s`;
+                container.appendChild(confetti);
+            }
+            
+            // Clear confetti elements after animation
+            setTimeout(() => {
+                container.innerHTML = '';
+            }, 5000);
         }
 
         window.updateDisplay = function() {
@@ -1887,15 +2176,6 @@
             // Update date display
             const options = { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' };
             document.getElementById('currentDate').textContent = currentViewDate.toLocaleDateString('en-US', options);
-            
-            // Date subtext
-            if (dateStr === today) {
-                document.getElementById('dateSubtext').textContent = 'Today - Make it count!';
-            } else if (dateStr < today) {
-                document.getElementById('dateSubtext').textContent = 'Past day - Reviewing your progress';
-            } else {
-                document.getElementById('dateSubtext').textContent = 'Future day - Plan ahead!';
-            }
             
             // Disable next day button for future dates
             document.getElementById('nextDayBtn').disabled = dateStr >= today;
@@ -1933,6 +2213,27 @@
                 }
             });
             
+            // --- REFINEMENT: Principle #3 - Microcopy Feedback ---
+            const subtextEl = document.getElementById('dateSubtext');
+            if (dateStr === today) {
+                if (totalHabitsToday === 0) {
+                    subtextEl.textContent = "Add a habit to get started!";
+                } else if (todayComplete === 0) {
+                    subtextEl.textContent = todayQuote; // Show quote
+                } else if (todayComplete === 1 && totalHabitsToday > 1) {
+                    subtextEl.textContent = "You're off to a great start!";
+                } else if (todayComplete > 1 && todayComplete < totalHabitsToday) {
+                    subtextEl.textContent = "Keep up the great work!";
+                } else if (todayComplete === totalHabitsToday) {
+                    subtextEl.textContent = "All done! You crushed it today! 🎉";
+                }
+            } else if (dateStr < today) {
+                subtextEl.textContent = 'Past day - Reviewing your progress';
+            } else {
+                subtextEl.textContent = 'Future day - Plan ahead!';
+            }
+            // --- End Refinement ---
+            
             // Update progress ring
             updateProgressRing(todayComplete, totalHabitsToday);
             
@@ -1941,6 +2242,20 @@
             document.getElementById('totalCheckins').textContent = calculateTotalCheckins();
             document.getElementById('bestStreak').textContent = calculateBestStreak();
             document.getElementById('avgCompletion').textContent = calculateAvgCompletion() + '%';
+            
+            // REFINEMENT: Principle 3 - Update all progress bars
+            updateAllProgressBars();
+        }
+        
+        // REFINEMENT: Principle 3 - Function to update all bars
+        function updateAllProgressBars() {
+            habits.forEach(habit => {
+                const rate = calculateCompletionRate(habit.id);
+                const progressBar = document.getElementById(`progress-${habit.id}`);
+                if (progressBar) {
+                    progressBar.style.width = `${rate}%`;
+                }
+            });
         }
 
         function updateProgressRing(completed, total) {
@@ -2231,10 +2546,44 @@
             });
         }
         
+        // REFINEMENT: Principle #2 - Dynamic App Bar
+        window.addEventListener('scroll', () => {
+            const appBar = document.getElementById('appBar');
+            if (!appBar) return;
+            if (window.scrollY > 10) {
+                appBar.classList.add('scrolled');
+            } else {
+                appBar.classList.remove('scrolled');
+            }
+        });
+        
+        // REFINEMENT: Principle #7 - Dark Mode Toggle
+        window.toggleDarkMode = function() {
+            const body = document.body;
+            body.classList.toggle('dark-mode');
+            
+            // Save preference
+            if (body.classList.contains('dark-mode')) {
+                localStorage.setItem('theme', 'dark');
+            } else {
+                localStorage.setItem('theme', 'light');
+            }
+        }
+        
+        function applyInitialTheme() {
+            const savedTheme = localStorage.getItem('theme');
+            // Check for saved theme OR system preference
+            if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.body.classList.add('dark-mode');
+            } else {
+                document.body.classList.remove('dark-mode');
+            }
+        }
+        
         // Initialize on page load
         function init() {
             // Auth is handled by onAuthStateChanged
-            // We just need to set up the UI
+            applyInitialTheme();
             populateColorPicker();
             goToToday(); // Sets initial date and calls updateDisplay
         }
