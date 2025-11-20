@@ -2179,6 +2179,220 @@
                 padding: 8px;
             }
         }
+
+        /* ==========================================
+           ATOMS-STYLE ENHANCEMENTS
+           ========================================== */
+
+        /* Card Fill Animation - preserves existing card functionality */
+        .habit-card.filling::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 0%;
+            height: 100%;
+            background: var(--fill-color, var(--color-primary));
+            transition: width 400ms cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 0;
+            pointer-events: none;
+            animation: cardFillAnimation 400ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        @keyframes cardFillAnimation {
+            0% {
+                width: 0%;
+            }
+
+            100% {
+                width: 100%;
+            }
+        }
+
+        /* Celebration Modal */
+        .celebration-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 300ms ease-out;
+            opacity: 1;
+        }
+
+        .celebration-modal.closing {
+            animation: fadeOut 200ms ease-out forwards;
+        }
+
+        .celebration-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #1a1a1a;
+            background-image: radial-gradient(circle,
+                    rgba(255, 255, 255, 0.05) 1px,
+                    transparent 1px);
+            background-size: 20px 20px;
+        }
+
+        .celebration-content {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            color: white;
+            padding: 40px 24px;
+            max-width: 400px;
+            width: 100%;
+        }
+
+        .celebration-title {
+            font-size: 28px;
+            font-weight: 600;
+            margin: 0 0 32px 0;
+            color: white;
+        }
+
+        .celebration-ring-container {
+            position: relative;
+            width: 200px;
+            height: 200px;
+            margin: 0 auto 40px;
+        }
+
+        .celebration-ring-svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .celebration-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .celebration-icon {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+            transform: scale(0);
+        }
+
+        @keyframes celebrationIconPop {
+            0% {
+                transform: scale(0);
+            }
+
+            50% {
+                transform: scale(1.1);
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        .celebration-emoji {
+            font-size: 48px;
+            margin-bottom: 4px;
+        }
+
+        .celebration-number {
+            font-size: 24px;
+            font-weight: 700;
+            color: white;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .celebration-milestone {
+            margin-bottom: 32px;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        @keyframes celebrationSlideUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .celebration-milestone h3 {
+            font-size: 24px;
+            font-weight: 600;
+            margin: 0 0 8px 0;
+            color: white;
+        }
+
+        .celebration-milestone p {
+            font-size: 16px;
+            color: rgba(255, 255, 255, 0.8);
+            margin: 0;
+        }
+
+        .celebration-milestone strong {
+            color: var(--color-primary);
+            font-weight: 600;
+        }
+
+        .celebration-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .celebration-btn-primary,
+        .celebration-btn-secondary {
+            padding: 16px 32px;
+            border: none;
+            border-radius: var(--radius-medium);
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all var(--motion-fast);
+        }
+
+        .celebration-btn-primary {
+            background: var(--color-primary);
+            color: var(--color-on-primary);
+        }
+
+        .celebration-btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .celebration-btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeOut {
+            to {
+                opacity: 0;
+            }
+        }
     </style>
 </head>
 
@@ -2704,6 +2918,10 @@
         </div>
     </div>
 
+
+    <!-- Atoms-style Enhancement Scripts -->
+    <script src="assets/js/haptics.js"></script>
+    <script src="assets/js/celebrations.js"></script>
 
     <script type="module" src="assets/js/firebase-config.js"></script>
     <script type="module" src="assets/js/app.js"></script>

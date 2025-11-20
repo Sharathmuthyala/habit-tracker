@@ -893,31 +893,119 @@ window.addEventListener('click', function (event) {
 
 
 // PHASE 2.2: Handle full card tap interaction
-window.handleHabitTap = function (habitId) {
+window.handleHabitTap = async function (habitId) {
     const card = document.getElementById(`card-${habitId}`);
     const checkbox = document.getElementById(`habit-${habitId}`);
+    const habit = habits.find(h => h.id === habitId);
 
-    // Press animation
-    card.style.transform = 'scale(0.98)';
-    setTimeout(() => card.style.transform = 'scale(1)', 150);
+    if (!habit || !card || !checkbox) return;
 
-    // Toggle the checkbox (which will trigger updateHabitData)
-    checkbox.checked = !checkbox.checked;
+    const wasCompleted = checkbox.checked;
+    const willBeCompleted = !wasCompleted;
 
-    // PHASE 2.2: Toggle completed class for checkmark overlay
-    if (checkbox.checked) {
+    // Toggle the checkbox
+    checkbox.checked = willBeCompleted;
+
+    if (willBeCompleted) {
+        // === COMPLETING A HABIT ===
+
+        // 1. IMMEDIATE HAPTIC FEEDBACK (Atoms-style)
+        if (window.haptics) {
+            window.haptics.tapComplete();
+        }
+
+        // 2. CARD FILL ANIMATION
+        const gradientIndex = habits.indexOf(habit) % habitGradients.length;
+        const gradient = habitGradients[gradientIndex];
+        card.style.setProperty('--fill-color', gradient);
+        card.classList.add('filling');
+
+        // Remove filling class after animation
+        setTimeout(() => {
+            card.classList.remove('filling');
+        }, 400);
+
+        // 3. Add completed class for checkmark
         card.classList.add('completed');
+
+        // 4. Update habit data
+        await updateHabitData(habitId);
+
+        // 5. Calculate current streak for celebration
+        const currentStreak = calculateStreak(habitId);
+        const completionCount = getHabitCompletionCount(habitId);
+
+        // 6. SHOW CELEBRATION MODAL (after card fill animation)
+        setTimeout(() => {
+            if (window.celebrationModal) {
+                window.celebrationModal.show({
+                    name: habit.name,
+                    icon: habit.icon,
+                    gradient: gradient,
+                    streak: currentStreak,
+                    reps: completionCount
+                });
+            }
+        }, 300);
+
+        // 7. Check for milestone haptic
+        const milestones = [1, 7, 14, 30, 60, 100];
+        if (milestones.includes(currentStreak) && window.haptics) {
+            setTimeout(() => window.haptics.milestone(), 1000);
+        }
+
+        // 8. Check if all habits complete
+        setTimeout(() => {
+            if (checkAllHabitsComplete() && window.haptics) {
+                window.haptics.allComplete();
+            }
+        }, 1400);
+
     } else {
+        // === UNCOMPLETING A HABIT ===
+
+        // 1. Undo haptic
+        if (window.haptics) {
+            window.haptics.undo();
+        }
+
+        // 2. Press animation
+        card.style.transform = 'scale(0.98)';
+        setTimeout(() => card.style.transform = 'scale(1)', 150);
+
+        // 3. Remove completed class
         card.classList.remove('completed');
-    }
 
-    updateHabitData(habitId);
-
-    // Haptic feedback (if supported)
-    if (window.navigator.vibrate) {
-        window.navigator.vibrate(10);
+        // 4. Update habit data
+        await updateHabitData(habitId);
     }
 };
+
+// Helper function to check if all habits are complete
+function checkAllHabitsComplete() {
+    const dateStr = getDateString(currentViewDate);
+    const dayData = habitData[dateStr] || {};
+
+    for (const habit of habits) {
+        const isApplicable = !(habit.schedule === 'weekdays' && !isWeekday(currentViewDate));
+        if (isApplicable && !dayData[habit.id]) {
+            return false;
+        }
+    }
+
+    return habits.length > 0;
+}
+
+// Helper function to get total completion count for a habit
+function getHabitCompletionCount(habitId) {
+    let count = 0;
+    for (const dateStr in habitData) {
+        if (habitData[dateStr][habitId]) {
+            count++;
+        }
+    }
+    return count;
+}
 
 window.updateHabitData = async function (habitId) {
     const dateStr = getDateString(currentViewDate);
