@@ -216,6 +216,144 @@ function isWeekday(date) {
     return day >= 1 && day <= 5; // Monday=1, Friday=5
 }
 
+// === ATOMS-INSPIRED UI COMPONENTS ===
+
+// Render horizontal date strip (7-day week view)
+window.renderDateStrip = function () {
+    const dateStrip = document.getElementById('dateStrip');
+    if (!dateStrip) return;
+
+    dateStrip.innerHTML = '';
+    const today = new Date();
+    const todayStr = getDateString(today);
+    const currentStr = getDateString(currentViewDate);
+
+    // Get the week containing currentViewDate
+    const startOfWeek = new Date(currentViewDate);
+    startOfWeek.setDate(currentViewDate.getDate() - currentViewDate.getDay()); // Sunday
+
+    for (let i = 0; i < 7; i++) {
+        const date = new Date(startOfWeek);
+        date.setDate(startOfWeek.getDate() + i);
+        const dateStr = getDateString(date);
+
+        const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        const dayName = dayNames[date.getDay()];
+        const dayNumber = date.getDate();
+
+        const dateItem = document.createElement('div');
+        dateItem.className = 'date-item';
+        dateItem.onclick = () => {
+            currentViewDate = new Date(date);
+            window.renderDateStrip();
+            window.updateDisplay();
+        };
+
+        const isToday = dateStr === todayStr;
+        const isSelected = dateStr === currentStr;
+
+        let numberClass = 'date-number';
+        if (isSelected) numberClass += ' selected';
+        if (isToday) numberClass += ' today';
+
+        dateItem.innerHTML = `
+            <div class="date-day">${dayName}</div>
+            <div class="${numberClass}">${dayNumber}</div>
+        `;
+
+        dateStrip.appendChild(dateItem);
+    }
+}
+
+// Render concentric rings (limit to 5 habits)
+window.renderConcentricRings = function () {
+    const svg = document.getElementById('concentricRings');
+    const centerText = document.getElementById('ringsCenterText');
+    if (!svg || !centerText) return;
+
+    // Clear existing rings
+    svg.innerHTML = '';
+
+    // Get top 5 habits by streak or creation order
+    const topHabits = habits.slice(0, 5);
+    const dateStr = getDateString(currentViewDate);
+    const dayData = habitData[dateStr] || {};
+
+    let completedCount = 0;
+    let totalCount = 0;
+
+    topHabits.forEach((habit, index) => {
+        const isApplicable = !(habit.schedule === 'weekdays' && !isWeekday(currentViewDate));
+        if (!isApplicable) return;
+
+        totalCount++;
+        const isCompleted = dayData[habit.id] || false;
+        if (isCompleted) completedCount++;
+
+        // Calculate ring parameters
+        const radius = 90 - (index * 15); // Decreasing radius for each ring
+        const circumference = 2 * Math.PI * radius;
+        const progress = isCompleted ? 1 : 0;
+        const dashOffset = circumference * (1 - progress);
+
+        // Create gradient for this ring
+        const gradientId = `gradient-${habit.id}`;
+        const defs = svg.querySelector('defs') || document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+        if (!svg.querySelector('defs')) svg.appendChild(defs);
+
+        const gradient = document.createElementNS('http://www.w3.org/2000/svg', 'linearGradient');
+        gradient.setAttribute('id', gradientId);
+        gradient.setAttribute('x1', '0%');
+        gradient.setAttribute('y1', '0%');
+        gradient.setAttribute('x2', '100%');
+        gradient.setAttribute('y2', '100%');
+
+        const stop1 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+        stop1.setAttribute('offset', '0%');
+        stop1.setAttribute('stop-color', habit.color || '#1A73E8');
+
+        const stop2 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+        stop2.setAttribute('offset', '100%');
+        stop2.setAttribute('stop-color', habit.color || '#1A73E8');
+        stop2.setAttribute('stop-opacity', '0.7');
+
+        gradient.appendChild(stop1);
+        gradient.appendChild(stop2);
+        defs.appendChild(gradient);
+
+        // Create ring path
+        const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        circle.setAttribute('class', 'ring-path');
+        circle.setAttribute('cx', '100');
+        circle.setAttribute('cy', '100');
+        circle.setAttribute('r', radius);
+        circle.setAttribute('stroke', `url(#${gradientId})`);
+        circle.setAttribute('stroke-dasharray', circumference);
+        circle.setAttribute('stroke-dashoffset', dashOffset);
+        circle.setAttribute('transform', 'rotate(-90 100 100)');
+
+        svg.appendChild(circle);
+    });
+
+    // Update center text
+    centerText.textContent = `${completedCount}/${totalCount}`;
+}
+
+// Display motivational quote
+window.displayQuote = function () {
+    const quoteText = document.getElementById('quoteText');
+    const quoteAuthor = document.getElementById('quoteAuthor');
+    if (!quoteText || !quoteAuthor) return;
+
+    // Use today's date as seed for consistent daily quote
+    const today = new Date();
+    const dayOfYear = Math.floor((today - new Date(today.getFullYear(), 0, 0)) / 86400000);
+    const quoteIndex = dayOfYear % motivationalQuotes.length;
+
+    quoteText.textContent = `"${motivationalQuotes[quoteIndex]}"`;
+    quoteAuthor.textContent = '— James Clear';
+}
+
 // === DATA LOADING & SAVING ===
 
 window.loadAllData = async function () {
@@ -715,12 +853,22 @@ window.updateDisplay = function () {
     const dateStr = getDateString(currentViewDate);
     const today = getDateString(new Date());
 
-    // Update date display
-    const options = { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' };
-    document.getElementById('currentDate').textContent = currentViewDate.toLocaleDateString('en-US', options);
+    // === ATOMS-INSPIRED UI UPDATES ===
+    // Render new components
+    window.renderDateStrip();
+    window.renderConcentricRings();
+    window.displayQuote();
+
+    // Update date display (for old components, if still present)
+    const currentDateEl = document.getElementById('currentDate');
+    if (currentDateEl) {
+        const options = { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' };
+        currentDateEl.textContent = currentViewDate.toLocaleDateString('en-US', options);
+    }
 
     // Disable next day button for future dates
-    document.getElementById('nextDayBtn').disabled = dateStr >= today;
+    const nextDayBtn = document.getElementById('nextDayBtn');
+    if (nextDayBtn) nextDayBtn.disabled = dateStr >= today;
 
     // Update checkboxes and habit cards
     const dayData = habitData[dateStr] || {};
@@ -757,33 +905,40 @@ window.updateDisplay = function () {
 
     // --- REFINEMENT: Principle #3 - Microcopy Feedback ---
     const subtextEl = document.getElementById('dateSubtext');
-    if (dateStr === today) {
-        if (totalHabitsToday === 0) {
-            subtextEl.textContent = "Add a habit to get started!";
-        } else if (todayComplete === 0) {
-            subtextEl.textContent = todayQuote; // Show quote
-        } else if (todayComplete === 1 && totalHabitsToday > 1) {
-            subtextEl.textContent = "You're off to a great start!";
-        } else if (todayComplete > 1 && todayComplete < totalHabitsToday) {
-            subtextEl.textContent = "Keep up the great work!";
-        } else if (todayComplete === totalHabitsToday) {
-            subtextEl.textContent = "All done! You crushed it today! 🎉";
+    if (subtextEl) {
+        if (dateStr === today) {
+            if (totalHabitsToday === 0) {
+                subtextEl.textContent = "Add a habit to get started!";
+            } else if (todayComplete === 0) {
+                subtextEl.textContent = todayQuote; // Show quote
+            } else if (todayComplete === 1 && totalHabitsToday > 1) {
+                subtextEl.textContent = "You're off to a great start!";
+            } else if (todayComplete > 1 && todayComplete < totalHabitsToday) {
+                subtextEl.textContent = "Keep up the great work!";
+            } else if (todayComplete === totalHabitsToday) {
+                subtextEl.textContent = "All done! You crushed it today! 🎉";
+            }
+        } else if (dateStr < today) {
+            subtextEl.textContent = 'Past day - Reviewing your progress';
+        } else {
+            subtextEl.textContent = 'Future day - Plan ahead!';
         }
-    } else if (dateStr < today) {
-        subtextEl.textContent = 'Past day - Reviewing your progress';
-    } else {
-        subtextEl.textContent = 'Future day - Plan ahead!';
     }
     // --- End Refinement ---
 
-    // Update progress ring
+    // Update progress ring (old component)
     updateProgressRing(todayComplete, totalHabitsToday);
 
     // Update stats
-    document.getElementById('weekProgress').textContent = calculateWeekProgress() + '%';
-    document.getElementById('totalCheckins').textContent = calculateTotalCheckins();
-    document.getElementById('bestStreak').textContent = calculateBestStreak();
-    document.getElementById('avgCompletion').textContent = calculateAvgCompletion() + '%';
+    const weekProgressEl = document.getElementById('weekProgress');
+    const totalCheckinsEl = document.getElementById('totalCheckins');
+    const bestStreakEl = document.getElementById('bestStreak');
+    const avgCompletionEl = document.getElementById('avgCompletion');
+
+    if (weekProgressEl) weekProgressEl.textContent = calculateWeekProgress() + '%';
+    if (totalCheckinsEl) totalCheckinsEl.textContent = calculateTotalCheckins();
+    if (bestStreakEl) bestStreakEl.textContent = calculateBestStreak();
+    if (avgCompletionEl) avgCompletionEl.textContent = calculateAvgCompletion() + '%';
 
     // REFINEMENT: Principle 3 - Update all progress bars
     updateAllProgressBars();

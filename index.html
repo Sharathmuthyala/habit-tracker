@@ -49,8 +49,11 @@
             --color-success: #34A853;
             --color-warning: #FBBC04;
 
-            /* Surface & Tones */
+            /* Surface & Tones - Warm Cream Background (Atoms-inspired) */
+            --color-background: #F5F3F0;
+            /* Warm cream */
             --color-surface: #FFFFFF;
+            /* Card backgrounds */
             --color-on-surface: #202124;
             --color-on-surface-variant: #5F6368;
             /* Using secondary for variant text */
@@ -58,13 +61,13 @@
             /* Tonal surfaces from principle 6, mapped to names from principle 1 */
             --color-surface-tone-1: #FFFFFF;
             /* --tone-surface-1 */
-            --color-surface-tone-2: #F8F9FA;
+            --color-surface-tone-2: #FAFAF8;
             /* --tone-surface-2 */
             --color-surface-tone-3: #E8EAED;
             /* --tone-surface-3 */
 
             /* --color-surface-elevated from principle 1 */
-            --color-surface-elevated: #F8F9FA;
+            --color-surface-elevated: #FAFAF8;
 
             /* Outline */
             --color-outline: #DADCE0;
@@ -235,7 +238,8 @@
         body {
             /* 5. Typography: Use --font-body */
             font: var(--font-body);
-            background-color: var(--color-surface);
+            background-color: var(--color-background);
+            /* Warm cream background */
             color: var(--color-on-surface);
             min-height: 100vh;
             padding: 0;
@@ -681,33 +685,136 @@
             color: var(--color-primary);
         }
 
-        .date-card {
-            /* REFINEMENT: Principle #1 - Use prominent background tint */
-            background: var(--color-surface-tone-2);
-            border-radius: var(--radius-large);
-            /* 12px */
+        /* === ATOMS-INSPIRED COMPONENTS === */
+
+        /* Horizontal Date Strip */
+        .date-strip-container {
+            margin-bottom: 20px;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .date-strip {
+            display: flex;
+            gap: 16px;
+            padding: 16px;
+            min-width: min-content;
+        }
+
+        .date-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            min-width: 48px;
+            cursor: pointer;
+            transition: transform var(--motion-fast);
+        }
+
+        .date-item:active {
+            transform: scale(0.95);
+        }
+
+        .date-day {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--color-on-surface-variant);
+            text-transform: uppercase;
+        }
+
+        .date-number {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all var(--motion-fast);
+        }
+
+        .date-number.selected {
+            background: var(--color-primary);
+            color: white;
+        }
+
+        .date-number.today {
+            border: 2px solid var(--color-primary);
+            color: var(--color-primary);
+        }
+
+        .date-number.today.selected {
+            background: var(--color-primary);
+            color: white;
+            border-color: var(--color-primary);
+        }
+
+        /* Concentric Rings */
+        .rings-container {
+            position: relative;
+            width: 240px;
+            height: 240px;
+            margin: 0 auto 24px;
+        }
+
+        .concentric-rings {
+            width: 100%;
+            height: 100%;
+        }
+
+        .rings-center-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 28px;
+            font-weight: 600;
+            color: var(--color-on-surface);
+        }
+
+        .ring-path {
+            fill: none;
+            stroke-width: 12;
+            stroke-linecap: round;
+            transition: stroke-dashoffset 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Motivational Quote Card */
+        .quote-card {
+            background: var(--color-surface);
+            border-radius: var(--radius-extra);
             padding: 24px;
             margin-bottom: 24px;
-            box-shadow: 0 1px 2px rgba(60, 64, 67, 0.3);
-            /* elevation-1 */
-            animation: fadeIn var(--motion-medium) forwards;
-        }
-
-        .date-header {
+            box-shadow: 0 1px 3px rgba(60, 64, 67, 0.15);
             text-align: center;
-            margin-bottom: 20px;
         }
 
-        .current-date {
-            font: var(--font-headline);
+        .quote-icon {
+            font-size: 32px;
+            display: block;
+            margin-bottom: 12px;
         }
 
-        .date-subtext {
-            font: var(--font-label);
+        .quote-text {
+            font-size: 18px;
+            font-weight: 500;
+            line-height: 1.5;
+            color: var(--color-on-surface);
+            margin: 0 0 8px 0;
+        }
+
+        .quote-author {
+            font-size: 14px;
             color: var(--color-on-surface-variant);
-            min-height: 20px;
-            /* Reserve space for microcopy */
-            transition: all var(--motion-fast);
+            margin: 0;
+            font-style: italic;
+        }
+
+        /* Old date-card styles (kept for backwards compatibility) */
+        .date-card {
+            display: none;
+            /* Hidden - replaced by new components */
         }
 
         .date-nav {
@@ -2015,43 +2122,33 @@
                     <li>Go to Firestore's <strong>Rules</strong> tab and replace the default rules with the ones from
                         the console warning.</li>
                     <li>Add a Web App (in Project Settings) and copy your config object into the
-                        <code>firebaseConfig</code> variable in the code.</li>
+                        <code>firebaseConfig</code> variable in the code.
+                    </li>
                 </ol>
                 <p style="margin-top: 16px;"><strong>This banner will hide once you add your config.</strong></p>
             </div>
 
-            <!-- Date Card -->
-            <div class="date-card">
-                <div class="date-header">
-                    <div class="current-date" id="currentDate"></div>
-                    <div class="date-subtext" id="dateSubtext"></div>
-                </div>
 
-                <div class="progress-ring-container">
-                    <svg class="progress-ring" width="120" height="120">
-                        <circle class="progress-ring-bg" cx="60" cy="60" r="52"></circle>
-                        <circle class="progress-ring-circle" cx="60" cy="60" r="52" id="progressCircle"
-                            style="stroke: var(--color-primary); stroke-dasharray: 326.73; stroke-dashoffset: 326.73;">
-                        </circle>
-                    </svg>
-                    <div class="progress-text" id="progressText">0/0</div>
+            <!-- Horizontal Date Strip (Atoms-inspired) -->
+            <div class="date-strip-container">
+                <div class="date-strip" id="dateStrip">
+                    <!-- Week dates will be generated by JavaScript -->
                 </div>
+            </div>
 
-                <div class="date-nav">
-                    <button class="icon-button state-layer-secondary" onclick="changeDate(-1)"
-                        aria-label="Previous day">
-                        <span class="material-symbols-outlined">chevron_left</span>
-                    </button>
-                    <button class="today-button state-layer-primary" onclick="goToToday()">
-                        <span class="material-symbols-outlined"
-                            style="font-size: 18px; vertical-align: middle;">today</span>
-                        Today
-                    </button>
-                    <button class="icon-button state-layer-secondary" onclick="changeDate(1)" id="nextDayBtn"
-                        aria-label="Next day">
-                        <span class="material-symbols-outlined">chevron_right</span>
-                    </button>
-                </div>
+            <!-- Concentric Rings Progress -->
+            <div class="rings-container">
+                <svg class="concentric-rings" id="concentricRings" viewBox="0 0 200 200">
+                    <!-- Rings will be generated by JavaScript -->
+                </svg>
+                <div class="rings-center-text" id="ringsCenterText">0/0</div>
+            </div>
+
+            <!-- Motivational Quote Card -->
+            <div class="quote-card" id="quoteCard">
+                <span class="quote-icon">💡</span>
+                <p class="quote-text" id="quoteText"></p>
+                <p class="quote-author" id="quoteAuthor"></p>
             </div>
 
             <!-- Habits Section -->
@@ -2064,8 +2161,9 @@
                 <!-- Habits will be rendered here by JavaScript -->
             </div>
 
-            <!-- Stats Grid -->
-            <div class="stats-grid">
+
+            <!-- Stats Grid (Hidden - will be in Progress tab) -->
+            <div class="stats-grid" style="display: none;">
                 <!-- Added style for stagger animation -->
                 <div class="stat-card" style="--index: 1;">
                     <!-- REFINEMENT: Principle #2 & 4 - Semantic/Colored Icons -->
