@@ -121,15 +121,29 @@ const habitSuggestions = [
 ];
 
 // REFINEMENT: Principle #8 - Motivational Quotes
-const motivationalQuotes = [
-    "The secret of getting ahead is getting started.",
-    "Don't break the chain.",
-    "A little progress each day adds up to big results.",
-    "Consistency is what transforms average into excellence.",
-    "You don't have to be great to start, but you have to start to be great.",
-    "Motivation is what gets you started. Habit is what keeps you going."
-];
-let todayQuote = motivationalQuotes[Math.floor(Math.random() * motivationalQuotes.length)];
+// REFINEMENT: Principle #8 - Motivational Quotes
+let motivationalQuotes = []; // Will be loaded from JSON
+let todayQuote = "Loading motivation...";
+
+async function loadQuotes() {
+    try {
+        const response = await fetch('assets/data/quotes.json');
+        if (!response.ok) throw new Error('Failed to load quotes');
+        motivationalQuotes = await response.json();
+        window.displayQuote(); // Refresh quote after loading
+    } catch (error) {
+        console.error('Error loading quotes:', error);
+        // Fallback quotes if fetch fails
+        motivationalQuotes = [
+            { text: "The secret of getting ahead is getting started.", author: "Mark Twain" },
+            { text: "Motivation is what gets you started. Habit is what keeps you going.", author: "Jim Ryun" }
+        ];
+        window.displayQuote();
+    }
+}
+
+// Load quotes on startup
+loadQuotes();
 
 // Colors from your principles
 const habitColors = [
@@ -419,13 +433,28 @@ window.displayQuote = function () {
     const quoteAuthor = document.getElementById('quoteAuthor');
     if (!quoteText || !quoteAuthor) return;
 
+    if (motivationalQuotes.length === 0) {
+        quoteText.textContent = "Loading motivation...";
+        return;
+    }
+
     // Use today's date as seed for consistent daily quote
     const today = new Date();
     const dayOfYear = Math.floor((today - new Date(today.getFullYear(), 0, 0)) / 86400000);
     const quoteIndex = dayOfYear % motivationalQuotes.length;
+    const quote = motivationalQuotes[quoteIndex];
 
-    quoteText.textContent = `"${motivationalQuotes[quoteIndex]}"`;
-    quoteAuthor.textContent = '— James Clear';
+    // Handle both string (legacy) and object formats
+    if (typeof quote === 'string') {
+        quoteText.textContent = `"${quote}"`;
+        quoteAuthor.textContent = '— James Clear';
+    } else {
+        quoteText.textContent = `"${quote.text}"`;
+        quoteAuthor.textContent = `— ${quote.author}`;
+    }
+
+    // Update global todayQuote for microcopy use
+    todayQuote = typeof quote === 'string' ? quote : quote.text;
 }
 
 // === DATA LOADING & SAVING ===
