@@ -2719,4 +2719,40 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 });
 
+// ==========================================
+// 3-TAB NAVIGATION SYSTEM
+// ==========================================
+
+/**
+ * Switch between tabs: habits, analytics, profile
+ */
+window.switchTab = function (tabName) {
+    // Update nav button states
+    document.querySelectorAll('.nav-tab').forEach(tab => {
+        tab.classList.toggle('active', tab.dataset.tab === tabName);
+    });
+
+    // Update tab content visibility
+    document.querySelectorAll('.tab-content').forEach(content => {
+        content.classList.toggle('active', content.id === `${tabName}-tab`);
+    });
+
+    // Load data when switching to analytics
+    if (tabName === 'analytics') {
+        // Analytics data will be loaded here in next phase
+        console.log('Analytics tab activated');
+    }
+
+    // Save current tab to localStorage
+    localStorage.setItem('currentTab', tabName);
+};
+
+// Restore last active tab on page load
+window.addEventListener('DOMContentLoaded', () => {
+    const lastTab = localStorage.getItem('currentTab') || 'habits';
+    if (lastTab !== 'habits') {
+        switchTab(lastTab);
+    }
+});
+
 init();

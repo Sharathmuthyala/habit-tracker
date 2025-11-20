@@ -2393,6 +2393,67 @@
                 opacity: 0;
             }
         }
+
+        /* ==========================================
+           3-TAB NAVIGATION SYSTEM
+           ========================================== */
+
+        /* Bottom Navigation */
+        .bottom-navigation {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            display: flex;
+            background: var(--color-surface);
+            border-top: 1px solid var(--color-outline-variant);
+            padding: 8px 0 calc(8px + env(safe-area-inset-bottom));
+            z-index: 1000;
+            box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .nav-tab {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            padding: 8px;
+            border: none;
+            background: transparent;
+            color: var(--color-on-surface-variant);
+            cursor: pointer;
+            transition: color 200ms ease;
+            font-family: var(--font-label);
+        }
+
+        .nav-tab.active {
+            color: var(--color-primary);
+        }
+
+        .nav-tab .material-symbols-outlined {
+            font-size: 24px;
+        }
+
+        .nav-label {
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        /* Tab Content Containers */
+        .tab-content {
+            display: none;
+            padding-bottom: calc(80px + env(safe-area-inset-bottom));
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Adjust FAB position for bottom nav */
+        .fab {
+            bottom: calc(72px + env(safe-area-inset-bottom)) !important;
+        }
     </style>
 </head>
 
@@ -2816,6 +2877,24 @@
             </div>
         </div>
     </div>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-navigation">
+        <button class="nav-tab active" data-tab="habits" onclick="switchTab('habits')">
+            <span class="material-symbols-outlined">check_circle</span>
+            <span class="nav-label">Habits</span>
+        </button>
+
+        <button class="nav-tab" data-tab="analytics" onclick="switchTab('analytics')">
+            <span class="material-symbols-outlined">bar_chart</span>
+            <span class="nav-label">Analytics</span>
+        </button>
+
+        <button class="nav-tab" data-tab="profile" onclick="switchTab('profile')">
+            <span class="material-symbols-outlined">person</span>
+            <span class="nav-label">Profile</span>
+        </button>
+    </nav>
 
     <!-- FAB -->
     <button class="fab state-layer-on-primary" onclick="openHabitModal()" aria-label="Add new habit" id="fabButton">
