@@ -3043,9 +3043,9 @@ window.switchTab = function (tabName) {
 // ========================================
 function renderProfile() {
     // Get user info from Firebase auth
-    if (auth.currentUser) {
-        const displayName = auth.currentUser.displayName || 'User';
-        const email = auth.currentUser.email || 'user@example.com';
+    if (window.auth && window.auth.currentUser) {
+        const displayName = window.auth.currentUser.displayName || 'User';
+        const email = window.auth.currentUser.email || 'user@example.com';
         const avatar = displayName.charAt(0).toUpperCase();
 
         document.getElementById('profileName').textContent = displayName;
@@ -3177,7 +3177,7 @@ window.handleLogout = async function () {
     }
 
     try {
-        await signOut(auth);
+        await window.fb.signOut(window.auth);
         // Redirect to login (auth state change listener will handle UI update)
         window.location.reload();
     } catch (error) {
