@@ -2737,10 +2737,14 @@ window.switchTab = function (tabName) {
         content.classList.toggle('active', content.id === `${tabName}-tab`);
     });
 
-    // Load data when switching to analytics
+    // Load data when switching to analytics tab
     if (tabName === 'analytics') {
-        // Analytics data will be loaded here in next phase
-        console.log('Analytics tab activated');
+        renderProgressView();
+    }
+
+    // Render profile when switching to profile tab
+    if (tabName === 'profile') {
+        renderProfile();
     }
 
     // Save current tab to localStorage
@@ -3021,22 +3025,6 @@ function generateMilestoneBadges(reps) {
 
     return html;
 }
-
-// Update switchTab to render progress when switching to analytics
-const originalSwitchTab = window.switchTab;
-window.switchTab = function (tabName) {
-    originalSwitchTab(tabName);
-
-    // Render progress view when switching to analytics tab
-    if (tabName === 'analytics') {
-        renderProgressView();
-    }
-
-    // Render profile when switching to profile tab
-    if (tabName === 'profile') {
-        renderProfile();
-    }
-};
 
 // ========================================
 // PROFILE TAB: Render Profile Data
