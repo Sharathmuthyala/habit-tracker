@@ -353,78 +353,52 @@ window.goToToday = function () {
     window.updateDisplay();
 }
 
-// Render concentric rings (limit to 5 habits)
-window.renderConcentricRings = function () {
-    const svg = document.getElementById('concentricRings');
-    const centerText = document.getElementById('ringsCenterText');
-    if (!svg || !centerText) return;
+// Render Apple-inspired activity ring
+window.renderActivityRing = function () {
+    const ringProgress = document.getElementById('habitRingProgress');
+    const ringNumber = document.getElementById('ringNumber');
+    const ringTotal = document.getElementById('ringTotal');
 
-    // Clear existing rings
-    svg.innerHTML = '';
+    if (!ringProgress || !ringNumber || !ringTotal) return;
 
-    // Get top 5 habits by streak or creation order
-    const topHabits = habits.slice(0, 5);
     const dateStr = getDateString(currentViewDate);
     const dayData = habitData[dateStr] || {};
 
     let completedCount = 0;
     let totalCount = 0;
 
-    topHabits.forEach((habit, index) => {
+    habits.forEach(habit => {
+        // Check if habit is scheduled for today
         const isApplicable = !(habit.schedule === 'weekdays' && !isWeekday(currentViewDate));
         if (!isApplicable) return;
 
         totalCount++;
-        const isCompleted = dayData[habit.id] || false;
-        if (isCompleted) completedCount++;
-
-        // Calculate ring parameters
-        const radius = 90 - (index * 15); // Decreasing radius for each ring
-        const circumference = 2 * Math.PI * radius;
-        const progress = isCompleted ? 1 : 0;
-        const dashOffset = circumference * (1 - progress);
-
-        // Create gradient for this ring
-        const gradientId = `gradient-${habit.id}`;
-        const defs = svg.querySelector('defs') || document.createElementNS('http://www.w3.org/2000/svg', 'defs');
-        if (!svg.querySelector('defs')) svg.appendChild(defs);
-
-        const gradient = document.createElementNS('http://www.w3.org/2000/svg', 'linearGradient');
-        gradient.setAttribute('id', gradientId);
-        gradient.setAttribute('x1', '0%');
-        gradient.setAttribute('y1', '0%');
-        gradient.setAttribute('x2', '100%');
-        gradient.setAttribute('y2', '100%');
-
-        const stop1 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
-        stop1.setAttribute('offset', '0%');
-        stop1.setAttribute('stop-color', habit.color || '#1A73E8');
-
-        const stop2 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
-        stop2.setAttribute('offset', '100%');
-        stop2.setAttribute('stop-color', habit.color || '#1A73E8');
-        stop2.setAttribute('stop-opacity', '0.7');
-
-        gradient.appendChild(stop1);
-        gradient.appendChild(stop2);
-        defs.appendChild(gradient);
-
-        // Create ring path
-        const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-        circle.setAttribute('class', 'ring-path');
-        circle.setAttribute('cx', '100');
-        circle.setAttribute('cy', '100');
-        circle.setAttribute('r', radius);
-        circle.setAttribute('stroke', `url(#${gradientId})`);
-        circle.setAttribute('stroke-dasharray', circumference);
-        circle.setAttribute('stroke-dashoffset', dashOffset);
-        circle.setAttribute('transform', 'rotate(-90 100 100)');
-
-        svg.appendChild(circle);
+        if (dayData[habit.id]) {
+            completedCount++;
+        }
     });
 
-    // Update center text
-    centerText.textContent = `${completedCount}/${totalCount}`;
+    // Update text
+    ringNumber.textContent = completedCount;
+    ringTotal.textContent = `/${totalCount}`;
+
+    // Update ring progress
+    // Circumference = 2 * PI * 52 ≈ 326.73
+    const circumference = 326.73;
+    const percentage = totalCount === 0 ? 0 : (completedCount / totalCount);
+
+    // Cap at 100% for visual ring (or allow overlap if desired, but simple 100% cap is cleaner)
+    const visualPercentage = Math.min(percentage, 1);
+    const offset = circumference * (1 - visualPercentage);
+
+    ringProgress.style.strokeDashoffset = offset;
+
+    // Optional: Add completion effect
+    if (percentage >= 1 && totalCount > 0) {
+        ringProgress.setAttribute('data-progress', '100');
+    } else {
+        ringProgress.removeAttribute('data-progress');
+    }
 }
 
 // Display motivational quote
@@ -764,30 +738,79 @@ window.renderHabits = function () {
 
     emptyState.style.display = 'none';
 
+    // Calculate streak helper
+    const calculateStreak = (habitId) => {
+        let streak = 0;
+        const today = new Date();
+        // Check up to 365 days back
+        for (let i = 0; i < 365; i++) {
+            const d = new Date(today);
+            d.setDate(d.getDate() - i);
+            const dateStr = getDateString(d);
+
+            // If today is not checked, don't break streak yet (unless it's yesterday)
+            if (i === 0 && (!habitData[dateStr] || !habitData[dateStr][habitId])) {
+                continue;
+            }
+
+            if (habitData[dateStr] && habitData[dateStr][habitId]) {
+                streak++;
+            } else {
+                break;
+            }
+        }
+        return streak;
+    };
+
     habits.forEach(habit => {
-        const scheduleText = habit.schedule === 'weekdays' ? 'Weekdays' : 'Daily';
+        const dateStr = getDateString(currentViewDate);
+        const isCompleted = habitData[dateStr] && habitData[dateStr][habit.id];
+        const streak = calculateStreak(habit.id);
 
         const card = document.createElement('div');
-        card.className = 'habit-card';
+        card.className = `habit-card ${isCompleted ? 'completed' : ''}`;
         card.style = `--habit-color: ${habit.color};`;
         card.id = `card-${habit.id}`; // Add ID for flash animation
 
-        card.onclick = (e) => openHeatmapModal(e, habit.id, habit.name, habit.color);
+        // Full card tap to toggle
+        card.onclick = (e) => {
+            // Prevent if clicking menu
+            if (e.target.closest('.icon-button-small') || e.target.closest('.dropdown-content')) return;
 
-        let whyHtml = habit.why ? `<div class="habit-why">...so I can ${habit.why}</div>` : '';
+            // Toggle check-in
+            const newStatus = !isCompleted;
+            updateHabitData(habit.id, newStatus);
+
+            // Visual feedback
+            if (newStatus) {
+                card.classList.add('completed');
+                triggerConfetti();
+            } else {
+                card.classList.remove('completed');
+            }
+        };
 
         card.innerHTML = `
-            <div class="habit-checkbox-wrapper">
-                <input type="checkbox" class="habit-checkbox" id="habit-${habit.id}" data-habit-id="${habit.id}">
+            <div class="check-overlay"></div>
+            
+            <!-- Gradient Icon Badge -->
+            <div class="habit-icon-badge" style="background: ${habit.color};">
+                <span class="material-symbols-outlined">${habit.icon}</span>
+                <div class="habit-streak-badge">
+                    <span class="material-symbols-outlined" style="font-size: 14px; color: #FF9800;">local_fire_department</span>
+                    ${streak}
+                </div>
             </div>
-            <div class="habit-icon">${habit.icon}</div>
-            <div class="habit-content">
-                <div class="habit-name">${habit.name}</div>
-                <div class="habit-schedule">${scheduleText}</div>
-                ${whyHtml}
+            
+            <!-- Habit Info -->
+            <div class="habit-info">
+                <h3 class="habit-title">${habit.name}</h3>
+                <p class="habit-why">${habit.why || 'Build a better you'}</p>
             </div>
+            
+            <!-- Context Menu -->
             <div class="habit-menu dropdown">
-                <button class="icon-button state-layer-secondary" onclick="toggleDropdown(event, '${habit.id}')">
+                <button class="icon-button-small" onclick="toggleDropdown(event, '${habit.id}')" style="background: transparent; box-shadow: none;">
                     <span class="material-symbols-outlined">more_vert</span>
                 </button>
                 <div class="dropdown-content" id="dropdown-${habit.id}">
@@ -801,23 +824,13 @@ window.renderHabits = function () {
                     </button>
                 </div>
             </div>
-            <!-- REFINEMENT: Principle 3 - Progress Bar -->
-            <div class="habit-progress-bar-container">
-                <div class="habit-progress-bar" id="progress-${habit.id}" style="background-color: ${habit.color};"></div>
-            </div>
         `;
 
         list.appendChild(card);
-
-        // Add event listener to checkbox
-        card.querySelector('.habit-checkbox').addEventListener('click', function (e) {
-            e.stopPropagation(); // Stop card click
-            updateHabitData(this.dataset.habitId);
-        });
     });
 
-    // After rendering, update progress bars
-    updateAllProgressBars();
+    // After rendering, update progress bars (if any logic remains for them, though we removed the bars from HTML)
+    // updateAllProgressBars(); // Removed as we don't use linear bars anymore
 }
 
 window.toggleDropdown = function (event, habitId) {
@@ -845,15 +858,14 @@ window.addEventListener('click', function (event) {
 });
 
 
-window.updateHabitData = async function (habitId) {
+window.updateHabitData = async function (habitId, status) {
     const dateStr = getDateString(currentViewDate);
-    const checkbox = document.getElementById(`habit-${habitId}`);
 
     // Get current data for the day
     let dayData = habitData[dateStr] || {};
 
     // Update the specific habit
-    dayData[habitId] = checkbox.checked;
+    dayData[habitId] = status;
 
     // Put it back into the main data object
     habitData[dateStr] = dayData;
@@ -861,39 +873,28 @@ window.updateHabitData = async function (habitId) {
     // Save locally
     window.saveHabitDataLocal();
 
-    // --- REFINEMENTS: Principle 1 & 7 ---
-    // 1. Pop the progress ring
-    const ring = document.querySelector('.progress-ring-container');
-    if (ring) {
-        ring.classList.add('pop');
-        ring.addEventListener('animationend', () => ring.classList.remove('pop'), { once: true });
-    }
+    // === SYNC UPDATES ===
+    // 1. Update the Activity Ring immediately
+    window.renderActivityRing();
 
-    // 2. Flash the habit card
-    const card = document.getElementById(`card-${habitId}`);
-    if (card && checkbox.checked) { // Only flash on completion
-        card.classList.add('flash');
-        card.addEventListener('animationend', () => card.classList.remove('flash'), { once: true });
-    }
-    // --- End Refinements ---
+    // 2. Recalculate streaks if needed (optional, but good for consistency)
+    // For now, we rely on renderHabits to update streaks on next full render
 
-    // Save to Firebase
+    // 3. Sync to Firestore
     const userId = getUserId();
-    if (window.firebaseEnabled && userId) {
+    if (userId) {
         try {
-            updateSyncStatus('syncing');
-            // Path: /users/{userId}/habitData/{dateString}
-            const dateRef = window.fb.doc(window.db, 'users', userId, 'habitData', dateStr);
-            await window.fb.setDoc(dateRef, dayData, { merge: true }); // Use setDoc with merge
-            updateSyncStatus('synced');
+            const checkinRef = window.fb.doc(window.db, 'users', userId, 'checkins', dateStr);
+            await window.fb.setDoc(checkinRef, dayData, { merge: true });
         } catch (error) {
-            console.error('Error saving to Firebase:', error);
-            updateSyncStatus('error');
+            console.error("Error syncing habit data:", error);
+            showSnackbar("Error syncing. Changes saved locally.", true);
         }
     }
+}
 
-    window.updateDisplay();
-    checkForCelebration();
+// Check for all-done celebration
+checkForCelebration();
 }
 
 window.checkForCelebration = function () {
@@ -959,7 +960,7 @@ window.updateDisplay = function () {
     // === ATOMS-INSPIRED UI UPDATES ===
     // Render new components
     window.renderDateStrip();
-    window.renderConcentricRings();
+    window.renderActivityRing();
     window.displayQuote();
 
     // Update date display (for old components, if still present)
