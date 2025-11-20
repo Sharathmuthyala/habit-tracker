@@ -2917,286 +2917,6 @@
                 </div>
                 <!-- Habits will be rendered here by JavaScript -->
             </div>
-
-
-            <!-- Stats Grid (Hidden - will be in Progress tab) -->
-            <div class="stats-grid" style="display: none;">
-                <!-- Added style for stagger animation -->
-                <div class="stat-card" style="--index: 1;">
-                    <!-- REFINEMENT: Principle #2 & 4 - Semantic/Colored Icons -->
-                    <div class="stat-icon" id="weekProgressIcon">
-                        <span class="material-symbols-outlined">calendar_month</span>
-                    </div>
-                    <div class="stat-value" id="weekProgress">0%</div>
-                    <div class="stat-label">This Week</div>
-                </div>
-                <div class="stat-card" style="--index: 2;">
-                    <div class="stat-icon" id="totalCheckinsIcon">
-                        <span class="material-symbols-outlined">task_alt</span>
-                    </div>
-                    <div class="stat-value" id="totalCheckins">0</div>
-                    <div class="stat-label">Total Check-ins</div>
-                </div>
-                <div class="stat-card" style="--index: 3;">
-                    <div class="stat-icon" id="bestStreakIcon">
-                        <span class="material-symbols-outlined">local_fire_department</span>
-                    </div>
-                    <div class="stat-value" id="bestStreak">0</div>
-                    <div class="stat-label">Best Streak</div>
-                </div>
-                <div class="stat-card" style="--index: 4;">
-                    <div class="stat-icon" id="avgCompletionIcon">
-                        <span class="material-symbols-outlined">leaderboard</span>
-                    </div>
-                    <div class="stat-value" id="avgCompletion">0%</div>
-                    <div class="stat-label">Avg Rate</div>
-                </div>
-            </div>
-
-            <!-- Analytics Dashboard -->
-            <div class="analytics-tabs">
-                <button class="analytics-tab active" onclick="switchAnalyticsTab('overview')">
-                    <span class="material-symbols-outlined">dashboard</span>
-                    Overview
-                </button>
-                <button class="analytics-tab" onclick="switchAnalyticsTab('heatmap')">
-                    <span class="material-symbols-outlined">grid_on</span>
-                    Heatmap
-                </button>
-                <button class="analytics-tab" onclick="switchAnalyticsTab('trends')">
-                    <span class="material-symbols-outlined">trending_up</span>
-                    Trends
-                </button>
-                <button class="analytics-tab" onclick="switchAnalyticsTab('insights')">
-                    <span class="material-symbols-outlined">lightbulb</span>
-                    Insights
-                </button>
-                <button class="analytics-tab" onclick="switchAnalyticsTab('compare')">
-                    <span class="material-symbols-outlined">compare_arrows</span>
-                    Compare
-                </button>
-            </div>
-
-            <!-- Analytics Content Sections -->
-
-            <!-- Overview Tab -->
-            <div class="analytics-content active" id="overview-content">
-                <div class="analytics-mini-stats">
-                    <div class="mini-stat-card">
-                        <div class="mini-stat-value" id="miniTotalHabits">0</div>
-                        <div class="mini-stat-label">Active Habits</div>
-                    </div>
-                    <div class="mini-stat-card">
-                        <div class="mini-stat-value" id="miniTodayCompleted">0</div>
-                        <div class="mini-stat-label">Today Completed</div>
-                    </div>
-                    <div class="mini-stat-card">
-                        <div class="mini-stat-value" id="miniTodayRate">0%</div>
-                        <div class="mini-stat-label">Today's Rate</div>
-                    </div>
-                    <div class="mini-stat-card">
-                        <div class="mini-stat-value" id="miniCurrentStreak">0</div>
-                        <div class="mini-stat-label">Current Streak</div>
-                    </div>
-                    <div class="mini-stat-card">
-                        <div class="mini-stat-value" id="miniMonthProgress">0%</div>
-                        <div class="mini-stat-label">This Month</div>
-                    </div>
-                    <div class="mini-stat-card">
-                        <div class="mini-stat-value" id="miniConsistency">0%</div>
-                        <div class="mini-stat-label">Consistency</div>
-                    </div>
-                </div>
-
-                <div class="chart-card">
-                    <h3>
-                        <span class="material-symbols-outlined">show_chart</span>
-                        7-Day Trend
-                    </h3>
-                    <div class="chart-wrapper">
-                        <canvas id="sevenDayTrendChart"></canvas>
-                    </div>
-                </div>
-
-                <div class="chart-card">
-                    <h3>
-                        <span class="material-symbols-outlined">donut_small</span>
-                        Today's Progress
-                    </h3>
-                    <div class="chart-wrapper small">
-                        <canvas id="todayDonutChart"></canvas>
-                    </div>
-                </div>
-
-                <div class="chart-card">
-                    <h3>
-                        <span class="material-symbols-outlined">bar_chart</span>
-                        Monthly Performance (Last 6 Months)
-                    </h3>
-                    <div class="chart-wrapper">
-                        <canvas id="monthlyPerformanceChart"></canvas>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Enhanced Heatmap Tab -->
-            <div class="analytics-content" id="heatmap-content">
-                <div class="heatmap-filters">
-                    <div class="filter-group">
-                        <label>Period:</label>
-                        <select id="heatmapPeriodFilter" class="filter-select" onchange="updateEnhancedHeatmap()">
-                            <option value="3">3 Months</option>
-                            <option value="6" selected>6 Months</option>
-                            <option value="12">1 Year</option>
-                        </select>
-                    </div>
-                    <div class="filter-group">
-                        <label>Habit:</label>
-                        <select id="heatmapHabitFilter" class="filter-select" onchange="updateEnhancedHeatmap()">
-                            <option value="all">All Habits</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="chart-card">
-                    <div id="enhancedHeatmapGrid"></div>
-                    <div class="heatmap-legend">
-                        <div class="legend-item">
-                            <div class="legend-color" style="background: var(--color-surface-tone-3); opacity: 0.25;">
-                            </div>
-                            <span>0-25%</span>
-                        </div>
-                        <div class="legend-item">
-                            <div class="legend-color" style="background: var(--color-primary); opacity: 0.5;"></div>
-                            <span>26-50%</span>
-                        </div>
-                        <div class="legend-item">
-                            <div class="legend-color" style="background: var(--color-primary); opacity: 0.75;"></div>
-                            <span>51-75%</span>
-                        </div>
-                        <div class="legend-item">
-                            <div class="legend-color" style="background: var(--color-primary); opacity: 1;"></div>
-                            <span>76-100%</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Trends Tab -->
-            <div class="analytics-content" id="trends-content">
-                <div class="chart-card">
-                    <h3>
-                        <span class="material-symbols-outlined">timeline</span>
-                        30-Day Completion Trend
-                    </h3>
-                    <div class="chart-wrapper">
-                        <canvas id="thirtyDayTrendChart"></canvas>
-                    </div>
-                </div>
-
-                <div class="chart-card">
-                    <h3>
-                        <span class="material-symbols-outlined">local_fire_department</span>
-                        Streak Timeline
-                    </h3>
-                    <div class="chart-wrapper large">
-                        <canvas id="streakTimelineChart"></canvas>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Insights Tab -->
-            <div class="analytics-content" id="insights-content">
-                <div class="insights-grid">
-                    <div id="topPerformersContainer" style="display: flex; flex-direction: column; gap: 16px;">
-                        <!-- Generated by JS -->
-                    </div>
-
-                    <div id="needsAttentionContainer" style="display: flex; flex-direction: column; gap: 16px;">
-                        <!-- Generated by JS -->
-                    </div>
-                </div>
-
-                <div class="chart-card">
-                    <h3>
-                        <span class="material-symbols-outlined">calendar_view_week</span>
-                        Best Days of the Week
-                    </h3>
-                    <div class="chart-wrapper">
-                        <canvas id="bestDaysChart"></canvas>
-                    </div>
-                </div>
-
-                <div id="patternRecognitionContainer" style="display: flex; flex-direction: column; gap: 16px;">
-                    <!-- Generated by JS -->
-                </div>
-            </div>
-
-            <!-- Compare Tab -->
-            <div class="analytics-content" id="compare-content">
-                <div class="chart-card">
-                    <h3>
-                        <span class="material-symbols-outlined">table_chart</span>
-                        Habit Comparison
-                    </h3>
-                    <table class="comparison-table" id="comparisonTable">
-                        <thead>
-                            <tr>
-                                <th>Habit</th>
-                                <th>This Week</th>
-                                <th>This Month</th>
-                                <th>Current Streak</th>
-                                <th>Best Streak</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <!-- Generated by JS -->
-                        </tbody>
-                    </table>
-                </div>
-
-                <div class="chart-card">
-                    <h3>
-                        <span class="material-symbols-outlined">stacked_line_chart</span>
-                        Head-to-Head (Last 14 Days)
-                    </h3>
-                    <div class="compare-selects"
-                        style="display: flex; gap: 16px; margin-bottom: 16px; align-items: center;">
-                        <div style="flex: 1;">
-                            <label style="display: block; margin-bottom: 8px; font-weight: 500;">Habit 1:</label>
-                            <select id="compareHabit1" class="filter-select" style="width: 100%;">
-                                <!-- Generated by JS -->
-                            </select>
-                        </div>
-                        <div style="flex: 1;">
-                            <label style="display: block; margin-bottom: 8px; font-weight: 500;">Habit 2:</label>
-                            <select id="compareHabit2" class="filter-select" style="width: 100%;">
-                                <!-- Generated by JS -->
-                            </select>
-                        </div>
-                    </div>
-                    <div class="chart-wrapper large">
-                        <canvas id="headToHeadChart"></canvas>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Export Section -->
-            <div class="export-section">
-                <h3>
-                    <!-- REFINEMENT: Principle #6 - Change icon -->
-                    <span class="material-symbols-outlined" style="vertical-align: middle;">cloud_download</span>
-                    Export Your Data
-                </h3>
-                <p>Download your complete habit history as a CSV file</p>
-                <button class="filled-button state-layer-primary" onclick="exportToCSV()">
-                    <span class="material-symbols-outlined"
-                        style="font-size: 18px; vertical-align: middle;">file_download</span>
-                    Download CSV
-                </button>
-                <!-- REFINEMENT: Principle #6 - Add privacy note -->
-                <p class="export-privacy-note">Your data stays private—exported only to your device.</p>
-            </div>
             </div>
         </div>
         <!-- End Habits Tab -->
@@ -3269,10 +2989,280 @@
 
                 <!-- ANALYTICS SUB-TAB -->
                 <div class="sub-tab-content" id="analytics-subtab">
-                    <h2 style="padding: 24px 16px;">Analytics Charts</h2>
-                    <p style="padding: 0 16px; color: var(--color-on-surface-variant);">
-                        Existing analytics charts will be moved here in Phase 3d.
-                    </p>
+                    <!-- Stats Grid -->
+                    <div class="stats-grid">
+                        <div class="stat-card" style="--index: 1;">
+                            <div class="stat-icon" id="weekProgressIcon">
+                                <span class="material-symbols-outlined">calendar_month</span>
+                            </div>
+                            <div class="stat-value" id="weekProgress">0%</div>
+                            <div class="stat-label">This Week</div>
+                        </div>
+                        <div class="stat-card" style="--index: 2;">
+                            <div class="stat-icon" id="totalCheckinsIcon">
+                                <span class="material-symbols-outlined">task_alt</span>
+                            </div>
+                            <div class="stat-value" id="totalCheckins">0</div>
+                            <div class="stat-label">Total Check-ins</div>
+                        </div>
+                        <div class="stat-card" style="--index: 3;">
+                            <div class="stat-icon" id="bestStreakIcon">
+                                <span class="material-symbols-outlined">local_fire_department</span>
+                            </div>
+                            <div class="stat-value" id="bestStreak">0</div>
+                            <div class="stat-label">Best Streak</div>
+                        </div>
+                        <div class="stat-card" style="--index: 4;">
+                            <div class="stat-icon" id="avgCompletionIcon">
+                                <span class="material-symbols-outlined">leaderboard</span>
+                            </div>
+                            <div class="stat-value" id="avgCompletion">0%</div>
+                            <div class="stat-label">Avg Rate</div>
+                        </div>
+                    </div>
+
+                    <!-- Analytics Dashboard -->
+                    <div class="analytics-tabs">
+                        <button class="analytics-tab active" onclick="switchAnalyticsTab('overview')">
+                            <span class="material-symbols-outlined">dashboard</span>
+                            Overview
+                        </button>
+                        <button class="analytics-tab" onclick="switchAnalyticsTab('heatmap')">
+                            <span class="material-symbols-outlined">grid_on</span>
+                            Heatmap
+                        </button>
+                        <button class="analytics-tab" onclick="switchAnalyticsTab('trends')">
+                            <span class="material-symbols-outlined">trending_up</span>
+                            Trends
+                        </button>
+                        <button class="analytics-tab" onclick="switchAnalyticsTab('insights')">
+                            <span class="material-symbols-outlined">lightbulb</span>
+                            Insights
+                        </button>
+                        <button class="analytics-tab" onclick="switchAnalyticsTab('compare')">
+                            <span class="material-symbols-outlined">compare_arrows</span>
+                            Compare
+                        </button>
+                    </div>
+
+                    <!-- Analytics Content Sections -->
+
+                    <!-- Overview Tab -->
+                    <div class="analytics-content active" id="overview-content">
+                        <div class="analytics-mini-stats">
+                            <div class="mini-stat-card">
+                                <div class="mini-stat-value" id="miniTotalHabits">0</div>
+                                <div class="mini-stat-label">Active Habits</div>
+                            </div>
+                            <div class="mini-stat-card">
+                                <div class="mini-stat-value" id="miniTodayCompleted">0</div>
+                                <div class="mini-stat-label">Today Completed</div>
+                            </div>
+                            <div class="mini-stat-card">
+                                <div class="mini-stat-value" id="miniTodayRate">0%</div>
+                                <div class="mini-stat-label">Today's Rate</div>
+                            </div>
+                            <div class="mini-stat-card">
+                                <div class="mini-stat-value" id="miniCurrentStreak">0</div>
+                                <div class="mini-stat-label">Current Streak</div>
+                            </div>
+                            <div class="mini-stat-card">
+                                <div class="mini-stat-value" id="miniMonthProgress">0%</div>
+                                <div class="mini-stat-label">This Month</div>
+                            </div>
+                            <div class="mini-stat-card">
+                                <div class="mini-stat-value" id="miniConsistency">0</div>
+                                <div class="mini-stat-label">Consistency</div>
+                            </div>
+                        </div>
+
+                        <div class="chart-card">
+                            <h3>
+                                <span class="material-symbols-outlined">show_chart</span>
+                                7-Day Trend
+                            </h3>
+                            <div class="chart-wrapper">
+                                <canvas id="sevenDayTrendChart"></canvas>
+                            </div>
+                        </div>
+
+                        <div class="chart-card">
+                            <h3>
+                                <span class="material-symbols-outlined">donut_small</span>
+                                Today's Progress
+                            </h3>
+                            <div class="chart-wrapper small">
+                                <canvas id="todayDonutChart"></canvas>
+                            </div>
+                        </div>
+
+                        <div class="chart-card">
+                            <h3>
+                                <span class="material-symbols-outlined">bar_chart</span>
+                                Monthly Performance (Last 6 Months)
+                            </h3>
+                            <div class="chart-wrapper">
+                                <canvas id="monthlyPerformanceChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Enhanced Heatmap Tab -->
+                    <div class="analytics-content" id="heatmap-content">
+                        <div class="heatmap-filters">
+                            <div class="filter-group">
+                                <label>Period:</label>
+                                <select id="heatmapPeriodFilter" class="filter-select" onchange="updateEnhancedHeatmap()">
+                                    <option value="3">3 Months</option>
+                                    <option value="6" selected>6 Months</option>
+                                    <option value="12">1 Year</option>
+                                </select>
+                            </div>
+                            <div class="filter-group">
+                                <label>Habit:</label>
+                                <select id="heatmapHabitFilter" class="filter-select" onchange="updateEnhancedHeatmap()">
+                                    <option value="all">All Habits</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="chart-card">
+                            <div id="enhancedHeatmapGrid"></div>
+                            <div class="heatmap-legend">
+                                <div class="legend-item">
+                                    <div class="legend-color" style="background: var(--color-surface-tone-3); opacity: 0.25;">
+                                    </div>
+                                    <span>0-25%</span>
+                                </div>
+                                <div class="legend-item">
+                                    <div class="legend-color" style="background: var(--color-primary); opacity: 0.5;"></div>
+                                    <span>26-50%</span>
+                                </div>
+                                <div class="legend-item">
+                                    <div class="legend-color" style="background: var(--color-primary); opacity: 0.75;"></div>
+                                    <span>51-75%</span>
+                                </div>
+                                <div class="legend-item">
+                                    <div class="legend-color" style="background: var(--color-primary); opacity: 1;"></div>
+                                    <span>76-100%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Trends Tab -->
+                    <div class="analytics-content" id="trends-content">
+                        <div class="chart-card">
+                            <h3>
+                                <span class="material-symbols-outlined">timeline</span>
+                                30-Day Completion Trend
+                            </h3>
+                            <div class="chart-wrapper">
+                                <canvas id="thirtyDayTrendChart"></canvas>
+                            </div>
+                        </div>
+
+                        <div class="chart-card">
+                            <h3>
+                                <span class="material-symbols-outlined">local_fire_department</span>
+                                Streak Timeline
+                            </h3>
+                            <div class="chart-wrapper large">
+                                <canvas id="streakTimelineChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Insights Tab -->
+                    <div class="analytics-content" id="insights-content">
+                        <div class="insights-grid">
+                            <div id="topPerformersContainer" style="display: flex; flex-direction: column; gap: 16px;">
+                                <!-- Generated by JS -->
+                            </div>
+
+                            <div id="needsAttentionContainer" style="display: flex; flex-direction: column; gap: 16px;">
+                                <!-- Generated by JS -->
+                            </div>
+                        </div>
+
+                        <div class="chart-card">
+                            <h3>
+                                <span class="material-symbols-outlined">calendar_view_week</span>
+                                Best Days of the Week
+                            </h3>
+                            <div class="chart-wrapper">
+                                <canvas id="bestDaysChart"></canvas>
+                            </div>
+                        </div>
+
+                        <div id="patternRecognitionContainer" style="display: flex; flex-direction: column; gap: 16px;">
+                            <!-- Generated by JS -->
+                        </div>
+                    </div>
+
+                    <!-- Compare Tab -->
+                    <div class="analytics-content" id="compare-content">
+                        <div class="chart-card">
+                            <h3>
+                                <span class="material-symbols-outlined">table_chart</span>
+                                Habit Comparison
+                            </h3>
+                            <table class="comparison-table" id="comparisonTable">
+                                <thead>
+                                    <tr>
+                                        <th>Habit</th>
+                                        <th>This Week</th>
+                                        <th>This Month</th>
+                                        <th>Current Streak</th>
+                                        <th>Best Streak</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Generated by JS -->
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="chart-card">
+                            <h3>
+                                <span class="material-symbols-outlined">stacked_line_chart</span>
+                                Head-to-Head (Last 14 Days)
+                            </h3>
+                            <div class="compare-selects"
+                                style="display: flex; gap: 16px; margin-bottom: 16px; align-items: center;">
+                                <div style="flex: 1;">
+                                    <label style="display: block; margin-bottom: 8px; font-weight: 500;">Habit 1:</label>
+                                    <select id="compareHabit1" class="filter-select" style="width: 100%;">
+                                        <!-- Generated by JS -->
+                                    </select>
+                                </div>
+                                <div style="flex: 1;">
+                                    <label style="display: block; margin-bottom: 8px; font-weight: 500;">Habit 2:</label>
+                                    <select id="compareHabit2" class="filter-select" style="width: 100%;">
+                                        <!-- Generated by JS -->
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="chart-wrapper large">
+                                <canvas id="headToHeadChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Export Section -->
+                    <div class="export-section">
+                        <h3>
+                            <span class="material-symbols-outlined" style="vertical-align: middle;">cloud_download</span>
+                            Export Your Data
+                        </h3>
+                        <p>Download your complete habit history as a CSV file</p>
+                        <button class="filled-button state-layer-primary" onclick="exportToCSV()">
+                            <span class="material-symbols-outlined"
+                                style="font-size: 18px; vertical-align: middle;">file_download</span>
+                            Download CSV
+                        </button>
+                        <p class="export-privacy-note">Your data stays private—exported only to your device.</p>
+                    </div>
                 </div>
             </div>
         </div>
