@@ -221,6 +221,9 @@ function isWeekday(date) {
 // Render horizontal date strip (7-day week view)
 window.renderDateStrip = function () {
     const dateStrip = document.getElementById('dateStrip');
+    const weekRangeEl = document.getElementById('weekRange');
+    const nextWeekBtn = document.getElementById('nextWeekBtn');
+
     if (!dateStrip) return;
 
     dateStrip.innerHTML = '';
@@ -232,6 +235,30 @@ window.renderDateStrip = function () {
     // Get the week containing currentViewDate
     const startOfWeek = new Date(currentViewDate);
     startOfWeek.setDate(currentViewDate.getDate() - currentViewDate.getDay()); // Sunday
+    startOfWeek.setHours(0, 0, 0, 0);
+
+    const endOfWeek = new Date(startOfWeek);
+    endOfWeek.setDate(startOfWeek.getDate() + 6); // Saturday
+
+    // Update Week Range Text (e.g., "Nov 9-15")
+    if (weekRangeEl) {
+        const startMonth = startOfWeek.toLocaleDateString('en-US', { month: 'short' });
+        const endMonth = endOfWeek.toLocaleDateString('en-US', { month: 'short' });
+        const startDay = startOfWeek.getDate();
+        const endDay = endOfWeek.getDate();
+
+        if (startMonth === endMonth) {
+            weekRangeEl.textContent = `${startMonth} ${startDay}–${endDay}`;
+        } else {
+            weekRangeEl.textContent = `${startMonth} ${startDay} – ${endMonth} ${endDay}`;
+        }
+    }
+
+    // Disable Next Week button if we are in the current week or future
+    if (nextWeekBtn) {
+        // If end of week is today or in future, disable next week
+        nextWeekBtn.disabled = endOfWeek >= today;
+    }
 
     for (let i = 0; i < 7; i++) {
         const date = new Date(startOfWeek);
@@ -275,6 +302,41 @@ window.renderDateStrip = function () {
 
         dateStrip.appendChild(dateItem);
     }
+}
+
+// Navigate weeks
+window.changeWeek = function (offset) {
+    const newDate = new Date(currentViewDate);
+    newDate.setDate(currentViewDate.getDate() + (offset * 7));
+
+    // Don't allow going to future weeks if it results in a date beyond today
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // If going forward, check if we exceed today
+    if (offset > 0) {
+        // If current date is already today, don't move
+        if (currentViewDate >= today) return;
+
+        // If new date is in future, cap at today
+        if (newDate > today) {
+            currentViewDate = new Date(today);
+        } else {
+            currentViewDate = newDate;
+        }
+    } else {
+        currentViewDate = newDate;
+    }
+
+    window.renderDateStrip();
+    window.updateDisplay();
+}
+
+// Go to today
+window.goToToday = function () {
+    currentViewDate = new Date();
+    window.renderDateStrip();
+    window.updateDisplay();
 }
 
 // Render concentric rings (limit to 5 habits)
