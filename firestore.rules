@@ -16,63 +16,37 @@ service cloud.firestore {
       return isAuthenticated() && request.auth.uid == userId;
     }
     
-    // Validate habit data structure
-    function isValidHabit() {
-      let data = request.resource.data;
-      return data.keys().hasAll(['name', 'icon', 'createdAt', 'userId'])
-        && data.name is string
-        && data.name.size() > 0
-        && data.name.size() <= 100
-        && data.icon is string
-        && data.icon.size() > 0
-        && data.icon.size() <= 50
-        && data.userId == request.auth.uid
-        && data.createdAt is timestamp;
-    }
-    
-    // Validate checkin data structure
-    function isValidCheckin() {
-      let data = request.resource.data;
-      return data.keys().hasAll(['habitId', 'date', 'completed', 'timestamp', 'userId'])
-        && data.habitId is string
-        && data.date is string
-        && data.date.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$') // YYYY-MM-DD format
-        && data.completed is bool
-        && data.userId == request.auth.uid
-        && data.timestamp is timestamp;
-    }
-    
     // ============================================
-    // USER HABITS COLLECTION
+    // USER HABITS COLLECTION (userHabits)
     // ============================================
     
-    match /users/{userId}/habits/{habitId} {
+    match /users/{userId}/userHabits/{habitId} {
       // Allow read if user is the owner
       allow read: if isOwner(userId);
       
-      // Allow create if user is the owner and data is valid
-      allow create: if isOwner(userId) && isValidHabit();
+      // Allow create if user is the owner
+      allow create: if isOwner(userId);
       
-      // Allow update if user is the owner and data is valid
-      allow update: if isOwner(userId) && isValidHabit();
+      // Allow update if user is the owner
+      allow update: if isOwner(userId);
       
       // Allow delete if user is the owner
       allow delete: if isOwner(userId);
     }
     
     // ============================================
-    // USER CHECKINS COLLECTION
+    // USER HABIT DATA COLLECTION (habitData)
     // ============================================
     
-    match /users/{userId}/checkins/{checkinId} {
+    match /users/{userId}/habitData/{dateString} {
       // Allow read if user is the owner
       allow read: if isOwner(userId);
       
-      // Allow create if user is the owner and data is valid
-      allow create: if isOwner(userId) && isValidCheckin();
+      // Allow create if user is the owner
+      allow create: if isOwner(userId);
       
-      // Allow update if user is the owner and data is valid
-      allow update: if isOwner(userId) && isValidCheckin();
+      // Allow update if user is the owner
+      allow update: if isOwner(userId);
       
       // Allow delete if user is the owner
       allow delete: if isOwner(userId);
