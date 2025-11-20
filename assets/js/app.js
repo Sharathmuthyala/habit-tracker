@@ -892,39 +892,28 @@ window.updateHabitData = async function (habitId, status) {
     // Save locally
     window.saveHabitDataLocal();
 
-    // --- REFINEMENTS: Principle 1 & 7 ---
-    // 1. Pop the progress ring
-    const ring = document.querySelector('.progress-ring-container');
-    if (ring) {
-        ring.classList.add('pop');
-        ring.addEventListener('animationend', () => ring.classList.remove('pop'), { once: true });
-    }
+    // === SYNC UPDATES ===
+    // 1. Update the Activity Ring immediately
+    window.renderActivityRing();
 
-    // 2. Flash the habit card
-    const card = document.getElementById(`card-${habitId}`);
-    if (card && checkbox.checked) { // Only flash on completion
-        card.classList.add('flash');
-        card.addEventListener('animationend', () => card.classList.remove('flash'), { once: true });
-    }
-    // --- End Refinements ---
+    // 2. Recalculate streaks if needed (optional, but good for consistency)
+    // For now, we rely on renderHabits to update streaks on next full render
 
-    // Save to Firebase
+    // 3. Sync to Firestore
     const userId = getUserId();
-    if (window.firebaseEnabled && userId) {
+    if (userId) {
         try {
-            updateSyncStatus('syncing');
-            // Path: /users/{userId}/habitData/{dateString}
-            const dateRef = window.fb.doc(window.db, 'users', userId, 'habitData', dateStr);
-            await window.fb.setDoc(dateRef, dayData, { merge: true }); // Use setDoc with merge
-            updateSyncStatus('synced');
+            const checkinRef = window.fb.doc(window.db, 'users', userId, 'checkins', dateStr);
+            await window.fb.setDoc(checkinRef, dayData, { merge: true });
         } catch (error) {
-            console.error('Error saving to Firebase:', error);
-            updateSyncStatus('error');
+            console.error("Error syncing habit data:", error);
+            showSnackbar("Error syncing. Changes saved locally.", true);
         }
     }
+}
 
-    window.updateDisplay();
-    checkForCelebration();
+// Check for all-done celebration
+checkForCelebration();
 }
 
 window.checkForCelebration = function () {
