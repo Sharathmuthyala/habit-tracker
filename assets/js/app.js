@@ -903,6 +903,14 @@ window.handleHabitTap = function (habitId) {
 
     // Toggle the checkbox (which will trigger updateHabitData)
     checkbox.checked = !checkbox.checked;
+
+    // PHASE 2.2: Toggle completed class for checkmark overlay
+    if (checkbox.checked) {
+        card.classList.add('completed');
+    } else {
+        card.classList.remove('completed');
+    }
+
     updateHabitData(habitId);
 
     // Haptic feedback (if supported)
