@@ -1674,6 +1674,9 @@ function updateEnhancedHeatmap() {
         // Tooltip
         dayEl.title = `${date.toLocaleDateString()}: ${completedCount}/${totalCount} (${Math.round(percentage)}%)`;
 
+        // Set grid row based on day of week (Sunday = 1, Saturday = 7)
+        dayEl.style.gridRow = date.getDay() + 1;
+
         daysGrid.appendChild(dayEl);
     }
 
