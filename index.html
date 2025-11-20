@@ -750,6 +750,22 @@
             border-color: var(--color-primary);
         }
 
+        /* Disabled future dates */
+        .date-item.disabled {
+            pointer-events: none;
+        }
+
+        .date-item.disabled .date-day,
+        .date-item.disabled .date-number {
+            opacity: 0.4;
+            color: var(--color-on-surface-variant);
+        }
+
+        .date-number.future {
+            border: none;
+            background: none;
+        }
+
         /* Concentric Rings */
         .rings-container {
             position: relative;

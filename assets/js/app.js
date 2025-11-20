@@ -225,6 +225,7 @@ window.renderDateStrip = function () {
 
     dateStrip.innerHTML = '';
     const today = new Date();
+    today.setHours(0, 0, 0, 0); // Normalize to start of day
     const todayStr = getDateString(today);
     const currentStr = getDateString(currentViewDate);
 
@@ -235,26 +236,37 @@ window.renderDateStrip = function () {
     for (let i = 0; i < 7; i++) {
         const date = new Date(startOfWeek);
         date.setDate(startOfWeek.getDate() + i);
+        date.setHours(0, 0, 0, 0); // Normalize to start of day
         const dateStr = getDateString(date);
 
         const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
         const dayName = dayNames[date.getDay()];
         const dayNumber = date.getDate();
 
-        const dateItem = document.createElement('div');
-        dateItem.className = 'date-item';
-        dateItem.onclick = () => {
-            currentViewDate = new Date(date);
-            window.renderDateStrip();
-            window.updateDisplay();
-        };
-
         const isToday = dateStr === todayStr;
         const isSelected = dateStr === currentStr;
+        const isFuture = date > today; // Check if date is in the future
+
+        const dateItem = document.createElement('div');
+        dateItem.className = 'date-item';
+
+        // Only allow clicking on past dates and today
+        if (!isFuture) {
+            dateItem.onclick = () => {
+                currentViewDate = new Date(date);
+                window.renderDateStrip();
+                window.updateDisplay();
+            };
+        } else {
+            dateItem.classList.add('disabled');
+            dateItem.style.cursor = 'not-allowed';
+            dateItem.style.opacity = '0.4';
+        }
 
         let numberClass = 'date-number';
-        if (isSelected) numberClass += ' selected';
+        if (isSelected && !isFuture) numberClass += ' selected';
         if (isToday) numberClass += ' today';
+        if (isFuture) numberClass += ' future';
 
         dateItem.innerHTML = `
             <div class="date-day">${dayName}</div>
