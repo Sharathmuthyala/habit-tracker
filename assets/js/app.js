@@ -170,6 +170,18 @@ const habitColors = [
     '#E91E63', '#009688', '#FF9800', '#607D8B', '#795548'
 ];
 
+// PHASE 2: Gradient palette for icon badges
+const habitGradients = [
+    'linear-gradient(135deg, #FFD166 0%, #FF9B42 100%)', // Warm yellow-orange
+    'linear-gradient(135deg, #FF6B6B 0%, #FF4757 100%)', // Coral-red
+    'linear-gradient(135deg, #A78BFA 0%, #8B5CF6 100%)', // Soft purple
+    'linear-gradient(135deg, #4ECDC4 0%, #06B6D4 100%)', // Cyan-turquoise
+    'linear-gradient(135deg, #6EE7B7 0%, #10B981 100%)', // Fresh green
+    'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)', // Amber
+    'linear-gradient(135deg, #EC4899 0%, #DB2777 100%)', // Pink
+    'linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%)', // Deep purple
+];
+
 // === UTILITY FUNCTIONS ===
 
 function getUserId() {
@@ -783,43 +795,65 @@ window.renderHabits = function () {
 
     emptyState.style.display = 'none';
 
-    habits.forEach(habit => {
+    habits.forEach((habit, index) => {
         const scheduleText = habit.schedule === 'weekdays' ? 'Weekdays' : 'Daily';
+
+        // Calculate current streak for this habit
+        const currentStreak = calculateStreak(habit.id);
+
+        // Get gradient for this habit (cycle through gradients if more habits than gradients)
+        const gradientIndex = index % habitGradients.length;
+        const gradient = habitGradients[gradientIndex];
 
         const card = document.createElement('div');
         card.className = 'habit-card';
-        card.style = `--habit-color: ${habit.color};`;
+        card.style = `--habit-color: ${habit.color}; --habit-gradient: ${gradient};`;
         card.id = `card-${habit.id}`; // Add ID for flash animation
 
-        card.onclick = (e) => openHeatmapModal(e, habit.id, habit.name, habit.color);
+        // PHASE 2.2: Full card tap instead of clicking card for heatmap
+        // Click menu button for dropdown, otherwise toggle completion
+        card.onclick = (e) => {
+            // Don't toggle if clicking menu button
+            if (e.target.closest('.habit-menu')) {
+                return;
+            }
+            // PHASE 2.2: Toggle habit completion with full card tap
+            handleHabitTap(habit.id);
+        };
 
         let whyHtml = habit.why ? `<div class="habit-why">...so I can ${habit.why}</div>` : '';
 
         card.innerHTML = `
-            <div class="habit-checkbox-wrapper">
-                <input type="checkbox" class="habit-checkbox" id="habit-${habit.id}" data-habit-id="${habit.id}">
+            <div class="habit-icon-badge" style="background: ${gradient};">
+                <div class="habit-icon-emoji">${habit.icon}</div>
+                <div class="habit-streak-number">${currentStreak}</div>
             </div>
-            <div class="habit-icon">${habit.icon}</div>
             <div class="habit-content">
                 <div class="habit-name">${habit.name}</div>
                 <div class="habit-schedule">${scheduleText}</div>
                 ${whyHtml}
             </div>
             <div class="habit-menu dropdown">
-                <button class="icon-button state-layer-secondary" onclick="toggleDropdown(event, '${habit.id}')">
+                <button class="icon-button state-layer-secondary" onclick="toggleDropdown(event, '${habit.id}'); event.stopPropagation();">
                     <span class="material-symbols-outlined">more_vert</span>
                 </button>
                 <div class="dropdown-content" id="dropdown-${habit.id}">
-                    <button class="dropdown-item state-layer-secondary" onclick="openHabitModal('${habit.id}')">
+                    <button class="dropdown-item state-layer-secondary" onclick="openHeatmapModal(event, '${habit.id}', '${habit.name}', '${habit.color}'); event.stopPropagation();">
+                        <span class="material-symbols-outlined">insights</span>
+                        View Details
+                    </button>
+                    <button class="dropdown-item state-layer-secondary" onclick="openHabitModal('${habit.id}'); event.stopPropagation();">
                         <span class="material-symbols-outlined">edit</span>
                         Edit
                     </button>
-                    <button class="dropdown-item delete state-layer-secondary" onclick="deleteHabit('${habit.id}', '${habit.name.replace(/'/g, "\\'")}')">
+                    <button class="dropdown-item delete state-layer-secondary" onclick="deleteHabit('${habit.id}', '${habit.name.replace(/'/g, "\\'")}'); event.stopPropagation();">
                         <span class="material-symbols-outlined">delete</span>
                         Delete
                     </button>
                 </div>
             </div>
+            <!-- Hidden checkbox for state tracking -->
+            <input type="checkbox" class="habit-checkbox" id="habit-${habit.id}" data-habit-id="${habit.id}" style="display: none;">
             <!-- REFINEMENT: Principle 3 - Progress Bar -->
             <div class="habit-progress-bar-container">
                 <div class="habit-progress-bar" id="progress-${habit.id}" style="background-color: ${habit.color};"></div>
@@ -827,12 +861,6 @@ window.renderHabits = function () {
         `;
 
         list.appendChild(card);
-
-        // Add event listener to checkbox
-        card.querySelector('.habit-checkbox').addEventListener('click', function (e) {
-            e.stopPropagation(); // Stop card click
-            updateHabitData(this.dataset.habitId);
-        });
     });
 
     // After rendering, update progress bars
@@ -863,6 +891,25 @@ window.addEventListener('click', function (event) {
     }
 });
 
+
+// PHASE 2.2: Handle full card tap interaction
+window.handleHabitTap = function (habitId) {
+    const card = document.getElementById(`card-${habitId}`);
+    const checkbox = document.getElementById(`habit-${habitId}`);
+
+    // Press animation
+    card.style.transform = 'scale(0.98)';
+    setTimeout(() => card.style.transform = 'scale(1)', 150);
+
+    // Toggle the checkbox (which will trigger updateHabitData)
+    checkbox.checked = !checkbox.checked;
+    updateHabitData(habitId);
+
+    // Haptic feedback (if supported)
+    if (window.navigator.vibrate) {
+        window.navigator.vibrate(10);
+    }
+};
 
 window.updateHabitData = async function (habitId) {
     const dateStr = getDateString(currentViewDate);

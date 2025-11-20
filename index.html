@@ -997,10 +997,14 @@
 
         .habit-card {
             background: var(--color-surface);
-            border-radius: var(--radius-medium);
-            /* 8px */
+            border-radius: var(--radius-extra);
+            /* PHASE 2.3: Softer 16px corners */
             padding: 20px;
-            margin: 8px;
+            /* PHASE 2.3: More breathing room */
+            margin: 16px 8px;
+            /* PHASE 2.3: 16px vertical spacing */
+            min-height: 100px;
+            /* PHASE 2.3: Taller cards */
             display: flex;
             align-items: center;
             gap: 16px;
@@ -1008,7 +1012,8 @@
             cursor: pointer;
             position: relative;
             overflow: hidden;
-            box-shadow: 0 1px 2px rgba(60, 64, 67, 0.2);
+            box-shadow: 0 2px 8px rgba(60, 64, 67, 0.08);
+            /* PHASE 2.3: Softer shadow */
         }
 
         /* REFINEMENT: Principle 7 - Flash animation */
@@ -1128,6 +1133,69 @@
             font-size: 32px;
             flex-shrink: 0;
             pointer-events: none;
+        }
+
+        /* PHASE 2: Gradient Icon Badge with Streak */
+        .habit-icon-badge {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            flex-shrink: 0;
+            pointer-events: none;
+            transition: transform var(--motion-fast);
+        }
+
+        .habit-icon-emoji {
+            font-size: 40px;
+            margin-bottom: -4px;
+            line-height: 1;
+        }
+
+        .habit-streak-number {
+            font-size: 20px;
+            font-weight: 700;
+            color: white;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+            line-height: 1;
+            margin-top: 2px;
+        }
+
+        /* PHASE 2.2: Checkmark overlay for completed habits */
+        .habit-card.completed .habit-icon-badge::after {
+            content: '✓';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 28px;
+            height: 28px;
+            background: var(--color-success);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: bold;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+            animation: checkPop 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes checkPop {
+            0% {
+                transform: scale(0);
+            }
+            50% {
+                transform: scale(1.2);
+            }
+            100% {
+                transform: scale(1);
+            }
         }
 
         .habit-content {
