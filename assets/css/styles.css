@@ -1009,7 +1009,7 @@ body.dark-mode .habit-card.flash {
     /* elevation-3 */
     border-radius: var(--radius-large);
     /* 12px */
-    z-index: 10;
+    z-index: 100;
     padding: 8px;
     border: 1px solid var(--color-outline);
     animation: fadeIn 100ms ease-out;
@@ -1660,65 +1660,18 @@ body.dark-mode .form-select {
 
 /* Enhanced Heatmap Grid */
 .enhanced-heatmap-grid {
-    display: grid;
-    grid-template-columns: 20px 1fr;
-    grid-template-rows: auto 1fr;
-    gap: 4px;
     margin-top: 16px;
     overflow-x: auto;
-    padding-bottom: 8px;
-}
-
-.heatmap-month-labels {
-    grid-column: 2;
-    grid-row: 1;
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 4px;
-}
-
-.heatmap-day-labels {
-    grid-column: 1;
-    grid-row: 2;
-    display: grid;
-    grid-template-rows: repeat(7, 14px);
-    gap: 3px;
-    padding-top: 0;
-}
-
-.heatmap-day-labels div {
-    font: var(--font-label);
-    font-size: 9px;
-    line-height: 14px;
-    color: var(--color-on-surface-variant);
-    text-align: center;
-}
-
-.heatmap-days-grid {
-    grid-column: 2;
-    grid-row: 2;
-    display: grid;
-    grid-template-rows: repeat(7, 14px);
-    grid-auto-flow: column;
-    grid-auto-columns: 14px;
-    gap: 3px;
-}
-
-.heatmap-month-label {
-    color: var(--color-on-surface-variant);
-    font: var(--font-label);
-    font-size: 10px;
-    text-align: center;
+    padding: 8px 0;
 }
 
 .enhanced-heatmap-day {
     width: 14px;
     height: 14px;
-    border-radius: var(--radius-small);
+    border-radius: 2px;
     background: var(--color-surface-tone-3);
-    transition: all var(--motion-fast);
+    transition: all 0.2s;
     cursor: pointer;
-    position: relative;
 }
 
 .enhanced-heatmap-day:hover {

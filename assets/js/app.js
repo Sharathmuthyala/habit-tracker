@@ -416,11 +416,11 @@ window.openHabitModal = function (habitId = null) {
         // --- Add Mode ---
         title.textContent = 'Add New Habit';
 
-        // Set a suggestion
+        // Set placeholders as suggestions
         const suggestion = habitSuggestions[Math.floor(Math.random() * habitSuggestions.length)];
-        document.getElementById('habitName').value = suggestion.name;
-        document.getElementById('habitIcon').value = suggestion.icon;
-        document.getElementById('habitWhy').value = suggestion.why || '';
+        document.getElementById('habitName').placeholder = suggestion.name;
+        document.getElementById('habitIcon').placeholder = suggestion.icon;
+        document.getElementById('habitWhy').placeholder = suggestion.why || 'learn a new skill';
 
         // Select first color by default
         document.querySelector('.color-swatch').classList.add('selected');
@@ -1593,94 +1593,132 @@ function updateEnhancedHeatmap() {
     // Calculate date range
     const months = parseInt(periodFilter);
     const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // Calculate start date (beginning of week that contains the date X months ago)
     const startDate = new Date(today);
     startDate.setMonth(startDate.getMonth() - months);
+    // Go back to Sunday of that week
+    startDate.setDate(startDate.getDate() - startDate.getDay());
 
     // Generate heatmap
     grid.innerHTML = '';
 
-    // Month labels
-    const monthLabels = document.createElement('div');
-    monthLabels.className = 'heatmap-month-labels';
+    // Create container
+    const container = document.createElement('div');
+    container.style.cssText = 'display: flex; gap: 8px; overflow-x: auto; padding: 8px 0;';
 
-    for (let m = 0; m < months; m++) {
-        const date = new Date(today);
-        date.setMonth(date.getMonth() - (months - m - 1));
+    // Day labels column
+    const dayLabelsCol = document.createElement('div');
+    dayLabelsCol.style.cssText = 'display: flex; flex-direction: column; gap: 3px; padding-top: 20px;';
+    ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].forEach((day, index) => {
         const label = document.createElement('div');
-        label.textContent = date.toLocaleDateString('en-US', { month: 'short' });
-        monthLabels.appendChild(label);
-    }
-
-    grid.appendChild(monthLabels);
-
-    // Day labels
-    const dayLabels = document.createElement('div');
-    dayLabels.className = 'heatmap-day-labels';
-    ['S', 'M', 'T', 'W', 'T', 'F', 'S'].forEach(day => {
-        const label = document.createElement('div');
-        label.textContent = day;
-        dayLabels.appendChild(label);
+        label.textContent = index % 2 === 1 ? day : ''; // Show only Mon, Wed, Fri
+        label.style.cssText = 'height: 14px; font-size: 9px; line-height: 14px; color: var(--color-on-surface-variant); text-align: right; padding-right: 4px; width: 30px;';
+        dayLabelsCol.appendChild(label);
     });
-    grid.appendChild(dayLabels);
+    container.appendChild(dayLabelsCol);
 
-    // Days grid
-    const daysGrid = document.createElement('div');
-    daysGrid.className = 'heatmap-days-grid';
+    // Weeks container
+    const weeksContainer = document.createElement('div');
+    weeksContainer.style.cssText = 'display: flex; gap: 3px;';
 
-    const totalDays = Math.floor((today - startDate) / (1000 * 60 * 60 * 24));
+    // Calculate number of weeks
+    const totalDays = Math.ceil((today - startDate) / (1000 * 60 * 60 * 24)) + 1;
+    const numWeeks = Math.ceil(totalDays / 7);
 
-    for (let i = totalDays; i >= 0; i--) {
-        const date = new Date(today);
-        date.setDate(date.getDate() - i);
-        const dateStr = date.toISOString().split('T')[0];
+    // Generate weeks
+    for (let week = 0; week < numWeeks; week++) {
+        const weekCol = document.createElement('div');
+        weekCol.style.cssText = 'display: flex; flex-direction: column; gap: 3px;';
 
-        let completedCount = 0;
-        let totalCount = 0;
+        // Month label (show at start of month)
+        const firstDayOfWeek = new Date(startDate);
+        firstDayOfWeek.setDate(startDate.getDate() + (week * 7));
 
-        if (habitFilter === 'all') {
-            totalCount = habits.length;
-            habits.forEach(habit => {
-                if (habitData[dateStr] && habitData[dateStr][habit.id]) {
-                    completedCount++;
-                }
-            });
-        } else {
-            const habit = habits.find(h => h.id === habitFilter);
-            if (habit) {
-                totalCount = 1;
-                if (habitData[dateStr] && habitData[dateStr][habit.id]) {
-                    completedCount = 1;
+        const monthLabel = document.createElement('div');
+        monthLabel.style.cssText = 'height: 15px; font-size: 9px; color: var(--color-on-surface-variant); text-align: left; margin-bottom: 2px;';
+
+        // Show month label if it's the first week or if month changed
+        if (week === 0 || firstDayOfWeek.getDate() <= 7) {
+            monthLabel.textContent = firstDayOfWeek.toLocaleDateString('en-US', { month: 'short' });
+        }
+        weekCol.appendChild(monthLabel);
+
+        // Generate 7 days for this week
+        for (let day = 0; day < 7; day++) {
+            const currentDate = new Date(startDate);
+            currentDate.setDate(startDate.getDate() + (week * 7) + day);
+
+            const dayEl = document.createElement('div');
+            dayEl.style.cssText = 'width: 14px; height: 14px; border-radius: 2px; cursor: pointer; transition: all 0.2s;';
+
+            // Skip if beyond today
+            if (currentDate > today) {
+                dayEl.style.background = 'transparent';
+                weekCol.appendChild(dayEl);
+                continue;
+            }
+
+            const dateStr = currentDate.toISOString().split('T')[0];
+            let completedCount = 0;
+            let totalCount = 0;
+
+            if (habitFilter === 'all') {
+                totalCount = habits.length;
+                habits.forEach(habit => {
+                    if (habitData[dateStr] && habitData[dateStr][habit.id]) {
+                        completedCount++;
+                    }
+                });
+            } else {
+                const habit = habits.find(h => h.id === habitFilter);
+                if (habit) {
+                    totalCount = 1;
+                    if (habitData[dateStr] && habitData[dateStr][habit.id]) {
+                        completedCount = 1;
+                    }
                 }
             }
+
+            const percentage = totalCount > 0 ? (completedCount / totalCount) * 100 : 0;
+
+            // Set color based on percentage
+            if (percentage === 0) {
+                dayEl.style.background = 'var(--color-surface-tone-3)';
+            } else if (percentage <= 25) {
+                dayEl.style.background = 'rgba(103, 80, 164, 0.3)';
+            } else if (percentage <= 50) {
+                dayEl.style.background = 'rgba(103, 80, 164, 0.5)';
+            } else if (percentage <= 75) {
+                dayEl.style.background = 'rgba(103, 80, 164, 0.75)';
+            } else {
+                dayEl.style.background = 'rgb(103, 80, 164)';
+            }
+
+            // Tooltip
+            dayEl.title = `${currentDate.toLocaleDateString()}: ${completedCount}/${totalCount} (${Math.round(percentage)}%)`;
+
+            // Hover effect
+            dayEl.onmouseenter = function () {
+                this.style.transform = 'scale(1.3)';
+                this.style.zIndex = '10';
+                this.style.boxShadow = '0 2px 4px rgba(0,0,0,0.2)';
+            };
+            dayEl.onmouseleave = function () {
+                this.style.transform = 'scale(1)';
+                this.style.zIndex = '1';
+                this.style.boxShadow = 'none';
+            };
+
+            weekCol.appendChild(dayEl);
         }
 
-        const percentage = totalCount > 0 ? (completedCount / totalCount) * 100 : 0;
-
-        const dayEl = document.createElement('div');
-        dayEl.className = 'enhanced-heatmap-day';
-
-        if (percentage === 0) {
-            dayEl.style.background = 'var(--color-surface-tone-3)';
-        } else if (percentage <= 25) {
-            dayEl.style.background = 'rgba(103, 80, 164, 0.25)';
-        } else if (percentage <= 50) {
-            dayEl.style.background = 'rgba(103, 80, 164, 0.5)';
-        } else if (percentage <= 75) {
-            dayEl.style.background = 'rgba(103, 80, 164, 0.75)';
-        } else {
-            dayEl.style.background = 'rgb(103, 80, 164)';
-        }
-
-        // Tooltip
-        dayEl.title = `${date.toLocaleDateString()}: ${completedCount}/${totalCount} (${Math.round(percentage)}%)`;
-
-        // Set grid row based on day of week (Sunday = 1, Saturday = 7)
-        dayEl.style.gridRow = date.getDay() + 1;
-
-        daysGrid.appendChild(dayEl);
+        weeksContainer.appendChild(weekCol);
     }
 
-    grid.appendChild(daysGrid);
+    container.appendChild(weeksContainer);
+    grid.appendChild(container);
 }
 
 /**
