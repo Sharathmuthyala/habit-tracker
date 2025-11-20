@@ -2454,6 +2454,326 @@
         .fab {
             bottom: calc(72px + env(safe-area-inset-bottom)) !important;
         }
+
+        /* ==========================================
+           ANALYTICS TAB - ATOMS-INSPIRED PROGRESS VIEW
+           ========================================== */
+
+        /* Sub-tabs in Analytics */
+        .sub-tabs {
+            display: flex;
+            gap: 8px;
+            padding: 16px;
+            background: var(--color-background);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .sub-tab {
+            flex: 1;
+            padding: 12px 24px;
+            border-radius: 24px;
+            border: none;
+            background: var(--color-surface-variant);
+            color: var(--color-on-surface-variant);
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 200ms ease;
+        }
+
+        .sub-tab.active {
+            background: var(--color-surface);
+            color: var(--color-on-surface);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .sub-tab-content {
+            display: none;
+        }
+
+        .sub-tab-content.active {
+            display: block;
+        }
+
+        /* Progress Hero Section */
+        .progress-hero {
+            padding: 24px 16px;
+            text-align: center;
+            background: var(--color-background);
+        }
+
+        .progress-hero h2 {
+            font-size: 28px;
+            font-weight: 600;
+            margin: 0 0 12px 0;
+        }
+
+        .progress-quote {
+            font-size: 15px;
+            color: var(--color-on-surface-variant);
+            line-height: 1.6;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        /* Progress Toggle */
+        .progress-toggle {
+            display: flex;
+            gap: 8px;
+            padding: 0 16px 16px;
+            background: var(--color-background);
+        }
+
+        .toggle-btn {
+            flex: 1;
+            padding: 12px 24px;
+            border-radius: 24px;
+            border: none;
+            background: var(--color-surface-variant);
+            color: var(--color-on-surface-variant);
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 200ms ease;
+        }
+
+        .toggle-btn.active {
+            background: var(--color-primary);
+            color: var(--color-on-primary);
+            box-shadow: 0 2px 6px rgba(26, 115, 232, 0.3);
+        }
+
+        /* Total Reps Card */
+        .total-reps-card {
+            background: var(--color-surface);
+            border-radius: 16px;
+            padding: 24px;
+            margin: 0 16px 16px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .card-header h3 {
+            font-size: 16px;
+            font-weight: 500;
+            color: var(--color-on-surface-variant);
+            margin: 0;
+        }
+
+        .share-btn {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 8px 16px;
+            border: 1px solid var(--color-outline);
+            border-radius: 20px;
+            background: transparent;
+            color: var(--color-primary);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 200ms ease;
+        }
+
+        .share-btn:hover {
+            background: var(--color-primary-container);
+        }
+
+        .share-btn .material-symbols-outlined {
+            font-size: 18px;
+        }
+
+        .total-number {
+            font-size: 56px;
+            font-weight: 700;
+            margin: 16px 0;
+            color: var(--color-on-surface);
+        }
+
+        .votes-message {
+            font-size: 16px;
+            line-height: 1.5;
+            margin-bottom: 24px;
+            color: var(--color-on-surface-variant);
+        }
+
+        .votes-message strong {
+            color: var(--color-on-surface);
+            font-weight: 600;
+        }
+
+        /* Habit Breakdown Bar */
+        .habit-breakdown-bar {
+            display: flex;
+            height: 48px;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 16px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .bar-segment {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            transition: transform 200ms ease;
+            position: relative;
+        }
+
+        .bar-segment:hover {
+            transform: scaleY(1.1);
+            z-index: 1;
+        }
+
+        .bar-label {
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Habit Stats List */
+        .habit-stats-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .habit-stat-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: var(--color-surface-variant);
+            border-radius: 8px;
+        }
+
+        .habit-color-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .habit-stat-name {
+            flex: 1;
+            font-size: 15px;
+            font-weight: 500;
+            color: var(--color-on-surface);
+        }
+
+        .habit-stat-count {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--color-on-surface-variant);
+        }
+
+        /* Milestone Cards */
+        .milestones-view {
+            padding: 0 16px;
+        }
+
+        .milestone-card {
+            background: var(--color-surface);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        .milestone-header h4 {
+            font-size: 18px;
+            font-weight: 600;
+            margin: 0 0 4px 0;
+        }
+
+        .milestone-identity {
+            font-size: 14px;
+            color: var(--color-on-surface-variant);
+            margin: 0 0 16px 0;
+        }
+
+        .milestone-current-streak {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .streak-number {
+            font-size: 48px;
+            font-weight: 700;
+            color: var(--color-primary);
+        }
+
+        .streak-label {
+            font-size: 14px;
+            color: var(--color-on-surface-variant);
+            display: block;
+            margin-top: 4px;
+        }
+
+        .milestone-badges {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+
+        .milestone-badge {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .badge-icon {
+            width: 64px;
+            height: 64px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: 700;
+            color: white;
+        }
+
+        .badge-label {
+            font-size: 12px;
+            color: var(--color-on-surface-variant);
+            text-align: center;
+        }
+
+        .milestone-badge.upcoming .badge-icon {
+            background: var(--color-surface-variant);
+            color: var(--color-on-surface-variant);
+            opacity: 0.5;
+        }
+
+        .view-all-btn {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--color-outline);
+            border-radius: 8px;
+            background: transparent;
+            color: var(--color-primary);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 200ms ease;
+        }
+
+        .view-all-btn:hover {
+            background: var(--color-primary-container);
+        }
     </style>
 </head>
 
@@ -2884,10 +3204,76 @@
         <!-- TAB 2: ANALYTICS -->
         <div class="tab-content" id="analytics-tab">
             <div class="container">
-                <h2 style="padding: 24px 16px;">Analytics</h2>
-                <p style="padding: 0 16px; color: var(--color-on-surface-variant);">
-                    Analytics content will be added in Phase 3.
-                </p>
+                <!-- Sub-tabs for Progress | Analytics -->
+                <div class="sub-tabs">
+                    <button class="sub-tab active" data-subtab="progress" onclick="switchAnalyticsSubTab('progress')">
+                        Progress
+                    </button>
+                    <button class="sub-tab" data-subtab="analytics" onclick="switchAnalyticsSubTab('analytics')">
+                        Analytics
+                    </button>
+                </div>
+
+                <!-- PROGRESS SUB-TAB -->
+                <div class="sub-tab-content active" id="progress-subtab">
+                    <!-- Hero Section -->
+                    <div class="progress-hero">
+                        <h2 class="progress-title">Habit progress</h2>
+                        <p class="progress-quote" id="progressQuote">
+                            "The secret of getting ahead is getting started." — Mark Twain
+                        </p>
+                    </div>
+
+                    <!-- Progress / Milestones Toggle -->
+                    <div class="progress-toggle">
+                        <button class="toggle-btn active" data-view="progress" onclick="switchProgressView('progress')">
+                            Progress
+                        </button>
+                        <button class="toggle-btn" data-view="milestones" onclick="switchProgressView('milestones')">
+                            Milestones
+                        </button>
+                    </div>
+
+                    <!-- PROGRESS VIEW -->
+                    <div class="progress-view active" id="progress-view">
+                        <!-- Total Reps Card -->
+                        <div class="total-reps-card">
+                            <p class="total-label">Total repetitions</p>
+                            <h1 class="total-number" id="totalRepsNumber">0</h1>
+                            <p class="votes-message" id="votesMessage">
+                                That's <strong id="votesCount">0</strong> votes for a better you!
+                            </p>
+                        </div>
+
+                        <!-- Habit Breakdown Bar -->
+                        <div style="padding: 0 16px;">
+                            <h3 style="font-size: 16px; font-weight: 600; margin: 24px 0 12px;">Breakdown</h3>
+                            <div class="habit-breakdown-bar" id="habitBreakdownBar">
+                                <!-- Segments will be generated by JS -->
+                            </div>
+                        </div>
+
+                        <!-- Habit Stats List -->
+                        <div class="habit-stats-list" id="habitStatsList">
+                            <!-- Individual habit stats will be generated by JS -->
+                        </div>
+                    </div>
+
+                    <!-- MILESTONES VIEW -->
+                    <div class="progress-view" id="milestones-view">
+                        <div id="milestoneCardsContainer">
+                            <!-- Milestone cards will be generated by JS -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ANALYTICS SUB-TAB -->
+                <div class="sub-tab-content" id="analytics-subtab">
+                    <h2 style="padding: 24px 16px;">Analytics Charts</h2>
+                    <p style="padding: 0 16px; color: var(--color-on-surface-variant);">
+                        Existing analytics charts will be moved here in Phase 3d.
+                    </p>
+                </div>
             </div>
         </div>
         <!-- End Analytics Tab -->

@@ -2755,4 +2755,282 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 });
 
+// ========================================
+// ANALYTICS TAB: Sub-tab Switching
+// ========================================
+window.switchAnalyticsSubTab = function (subtabName) {
+    // Update sub-tab button states
+    document.querySelectorAll('.sub-tab').forEach(tab => {
+        tab.classList.toggle('active', tab.dataset.subtab === subtabName);
+    });
+
+    // Update sub-tab content visibility
+    document.querySelectorAll('.sub-tab-content').forEach(content => {
+        content.classList.toggle('active', content.id === `${subtabName}-subtab`);
+    });
+
+    // Load data when switching to progress sub-tab
+    if (subtabName === 'progress') {
+        renderProgressView();
+    }
+};
+
+// ========================================
+// ANALYTICS TAB: Progress/Milestones Toggle
+// ========================================
+window.switchProgressView = function (viewName) {
+    // Update toggle button states
+    document.querySelectorAll('.toggle-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.view === viewName);
+    });
+
+    // Update view visibility
+    document.querySelectorAll('.progress-view').forEach(view => {
+        view.classList.toggle('active', view.id === `${viewName}-view`);
+    });
+
+    // Render appropriate content
+    if (viewName === 'milestones') {
+        renderMilestoneCards();
+    }
+};
+
+// ========================================
+// ANALYTICS TAB: Calculate Total Reps
+// ========================================
+function calculateTotalReps() {
+    let total = 0;
+    for (const dateStr in habitData) {
+        for (const habitId in habitData[dateStr]) {
+            if (habitData[dateStr][habitId]) {
+                total++;
+            }
+        }
+    }
+    return total;
+}
+
+// ========================================
+// ANALYTICS TAB: Render Progress View
+// ========================================
+function renderProgressView() {
+    const totalReps = calculateTotalReps();
+
+    // Update total reps number
+    const totalRepsNumber = document.getElementById('totalRepsNumber');
+    if (totalRepsNumber) {
+        totalRepsNumber.textContent = totalReps.toLocaleString();
+    }
+
+    // Update votes message
+    const votesCount = document.getElementById('votesCount');
+    if (votesCount) {
+        votesCount.textContent = totalReps.toLocaleString();
+    }
+
+    // Render breakdown bar and stats list
+    renderHabitBreakdownBar();
+    renderHabitStatsList();
+}
+
+// ========================================
+// ANALYTICS TAB: Render Habit Breakdown Bar
+// ========================================
+function renderHabitBreakdownBar() {
+    const breakdownBar = document.getElementById('habitBreakdownBar');
+    if (!breakdownBar) return;
+
+    // Calculate reps per habit
+    const habitReps = {};
+    let totalReps = 0;
+
+    for (const dateStr in habitData) {
+        for (const habitId in habitData[dateStr]) {
+            if (habitData[dateStr][habitId]) {
+                habitReps[habitId] = (habitReps[habitId] || 0) + 1;
+                totalReps++;
+            }
+        }
+    }
+
+    // If no data, show empty state
+    if (totalReps === 0) {
+        breakdownBar.innerHTML = '<div style="text-align: center; padding: 16px; color: var(--color-on-surface-variant);">No habit data yet</div>';
+        return;
+    }
+
+    // Create segments
+    let html = '';
+    habits.forEach((habit, index) => {
+        const reps = habitReps[habit.id] || 0;
+        if (reps === 0) return;
+
+        const percentage = (reps / totalReps) * 100;
+        const gradient = habitGradients[index % habitGradients.length];
+
+        html += `
+            <div class="bar-segment"
+                 style="width: ${percentage}%; background: ${gradient};"
+                 title="${habit.name}: ${reps} reps (${percentage.toFixed(1)}%)">
+            </div>
+        `;
+    });
+
+    breakdownBar.innerHTML = html;
+}
+
+// ========================================
+// ANALYTICS TAB: Render Habit Stats List
+// ========================================
+function renderHabitStatsList() {
+    const statsList = document.getElementById('habitStatsList');
+    if (!statsList) return;
+
+    // Calculate reps per habit
+    const habitReps = {};
+    let totalReps = 0;
+
+    for (const dateStr in habitData) {
+        for (const habitId in habitData[dateStr]) {
+            if (habitData[dateStr][habitId]) {
+                habitReps[habitId] = (habitReps[habitId] || 0) + 1;
+                totalReps++;
+            }
+        }
+    }
+
+    // If no data, show empty state
+    if (totalReps === 0) {
+        statsList.innerHTML = '<div style="text-align: center; padding: 32px; color: var(--color-on-surface-variant);">No habit data yet</div>';
+        return;
+    }
+
+    // Sort habits by reps (descending)
+    const sortedHabits = habits
+        .map((habit, index) => ({
+            habit,
+            reps: habitReps[habit.id] || 0,
+            gradient: habitGradients[index % habitGradients.length]
+        }))
+        .filter(item => item.reps > 0)
+        .sort((a, b) => b.reps - a.reps);
+
+    // Create stat items
+    let html = '';
+    sortedHabits.forEach(item => {
+        const percentage = ((item.reps / totalReps) * 100).toFixed(1);
+
+        html += `
+            <div class="habit-stat-item">
+                <div class="habit-stat-left">
+                    <div class="habit-stat-icon" style="background: ${item.gradient};">
+                        ${item.habit.icon}
+                    </div>
+                    <div class="habit-stat-info">
+                        <h4 class="habit-stat-name">${item.habit.name}</h4>
+                        <p class="habit-stat-percentage">${percentage}% of total</p>
+                    </div>
+                </div>
+                <div class="habit-stat-count">${item.reps}</div>
+            </div>
+        `;
+    });
+
+    statsList.innerHTML = html;
+}
+
+// ========================================
+// ANALYTICS TAB: Render Milestone Cards
+// ========================================
+function renderMilestoneCards() {
+    const container = document.getElementById('milestoneCardsContainer');
+    if (!container) return;
+
+    // Calculate reps per habit
+    const habitReps = {};
+    for (const dateStr in habitData) {
+        for (const habitId in habitData[dateStr]) {
+            if (habitData[dateStr][habitId]) {
+                habitReps[habitId] = (habitReps[habitId] || 0) + 1;
+            }
+        }
+    }
+
+    // If no data, show empty state
+    if (Object.keys(habitReps).length === 0) {
+        container.innerHTML = '<div style="text-align: center; padding: 32px; color: var(--color-on-surface-variant);">Complete habits to unlock milestones!</div>';
+        return;
+    }
+
+    // Generate milestone cards for each habit
+    let html = '';
+    habits.forEach((habit, index) => {
+        const reps = habitReps[habit.id] || 0;
+        if (reps === 0) return;
+
+        const gradient = habitGradients[index % habitGradients.length];
+        const badges = generateMilestoneBadges(reps);
+
+        html += `
+            <div class="milestone-card">
+                <div class="milestone-header">
+                    <div class="milestone-icon" style="background: ${gradient};">
+                        ${habit.icon}
+                    </div>
+                    <div class="milestone-title">
+                        <h3>${habit.name}</h3>
+                        <p>${reps} total reps</p>
+                    </div>
+                </div>
+                <div class="milestone-badges">
+                    ${badges}
+                </div>
+            </div>
+        `;
+    });
+
+    container.innerHTML = html;
+}
+
+// ========================================
+// ANALYTICS TAB: Generate Milestone Badges
+// ========================================
+function generateMilestoneBadges(reps) {
+    const milestones = [
+        { count: 1, icon: '🎯', label: '1st Rep' },
+        { count: 7, icon: '🔥', label: '7 Days' },
+        { count: 14, icon: '💪', label: '2 Weeks' },
+        { count: 30, icon: '⭐', label: '30 Days' },
+        { count: 60, icon: '👑', label: '2 Months' },
+        { count: 100, icon: '💎', label: '100 Days' },
+        { count: 365, icon: '🏆', label: '1 Year' }
+    ];
+
+    let html = '';
+    milestones.forEach(milestone => {
+        const earned = reps >= milestone.count;
+        const className = earned ? 'badge-icon earned' : 'badge-icon locked';
+
+        html += `
+            <div class="${className}" title="${milestone.label}${earned ? ' - Earned!' : ' - Locked'}">
+                <span>${milestone.icon}</span>
+                <span class="badge-count">${milestone.count}</span>
+            </div>
+        `;
+    });
+
+    return html;
+}
+
+// Update switchTab to render progress when switching to analytics
+const originalSwitchTab = window.switchTab;
+window.switchTab = function (tabName) {
+    originalSwitchTab(tabName);
+
+    // Render progress view when switching to analytics tab
+    if (tabName === 'analytics') {
+        renderProgressView();
+    }
+};
+
 init();
