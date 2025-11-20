@@ -757,30 +757,79 @@ window.renderHabits = function () {
 
     emptyState.style.display = 'none';
 
+    // Calculate streak helper
+    const calculateStreak = (habitId) => {
+        let streak = 0;
+        const today = new Date();
+        // Check up to 365 days back
+        for (let i = 0; i < 365; i++) {
+            const d = new Date(today);
+            d.setDate(d.getDate() - i);
+            const dateStr = getDateString(d);
+
+            // If today is not checked, don't break streak yet (unless it's yesterday)
+            if (i === 0 && (!habitData[dateStr] || !habitData[dateStr][habitId])) {
+                continue;
+            }
+
+            if (habitData[dateStr] && habitData[dateStr][habitId]) {
+                streak++;
+            } else {
+                break;
+            }
+        }
+        return streak;
+    };
+
     habits.forEach(habit => {
-        const scheduleText = habit.schedule === 'weekdays' ? 'Weekdays' : 'Daily';
+        const dateStr = getDateString(currentViewDate);
+        const isCompleted = habitData[dateStr] && habitData[dateStr][habit.id];
+        const streak = calculateStreak(habit.id);
 
         const card = document.createElement('div');
-        card.className = 'habit-card';
+        card.className = `habit-card ${isCompleted ? 'completed' : ''}`;
         card.style = `--habit-color: ${habit.color};`;
         card.id = `card-${habit.id}`; // Add ID for flash animation
 
-        card.onclick = (e) => openHeatmapModal(e, habit.id, habit.name, habit.color);
+        // Full card tap to toggle
+        card.onclick = (e) => {
+            // Prevent if clicking menu
+            if (e.target.closest('.icon-button-small') || e.target.closest('.dropdown-content')) return;
 
-        let whyHtml = habit.why ? `<div class="habit-why">...so I can ${habit.why}</div>` : '';
+            // Toggle check-in
+            const newStatus = !isCompleted;
+            updateHabitData(habit.id, newStatus);
+
+            // Visual feedback
+            if (newStatus) {
+                card.classList.add('completed');
+                triggerConfetti();
+            } else {
+                card.classList.remove('completed');
+            }
+        };
 
         card.innerHTML = `
-            <div class="habit-checkbox-wrapper">
-                <input type="checkbox" class="habit-checkbox" id="habit-${habit.id}" data-habit-id="${habit.id}">
+            <div class="check-overlay"></div>
+            
+            <!-- Gradient Icon Badge -->
+            <div class="habit-icon-badge" style="background: ${habit.color};">
+                <span class="material-symbols-outlined">${habit.icon}</span>
+                <div class="habit-streak-badge">
+                    <span class="material-symbols-outlined" style="font-size: 14px; color: #FF9800;">local_fire_department</span>
+                    ${streak}
+                </div>
             </div>
-            <div class="habit-icon">${habit.icon}</div>
-            <div class="habit-content">
-                <div class="habit-name">${habit.name}</div>
-                <div class="habit-schedule">${scheduleText}</div>
-                ${whyHtml}
+            
+            <!-- Habit Info -->
+            <div class="habit-info">
+                <h3 class="habit-title">${habit.name}</h3>
+                <p class="habit-why">${habit.why || 'Build a better you'}</p>
             </div>
+            
+            <!-- Context Menu -->
             <div class="habit-menu dropdown">
-                <button class="icon-button state-layer-secondary" onclick="toggleDropdown(event, '${habit.id}')">
+                <button class="icon-button-small" onclick="toggleDropdown(event, '${habit.id}')" style="background: transparent; box-shadow: none;">
                     <span class="material-symbols-outlined">more_vert</span>
                 </button>
                 <div class="dropdown-content" id="dropdown-${habit.id}">
@@ -794,23 +843,13 @@ window.renderHabits = function () {
                     </button>
                 </div>
             </div>
-            <!-- REFINEMENT: Principle 3 - Progress Bar -->
-            <div class="habit-progress-bar-container">
-                <div class="habit-progress-bar" id="progress-${habit.id}" style="background-color: ${habit.color};"></div>
-            </div>
         `;
 
         list.appendChild(card);
-
-        // Add event listener to checkbox
-        card.querySelector('.habit-checkbox').addEventListener('click', function (e) {
-            e.stopPropagation(); // Stop card click
-            updateHabitData(this.dataset.habitId);
-        });
     });
 
-    // After rendering, update progress bars
-    updateAllProgressBars();
+    // After rendering, update progress bars (if any logic remains for them, though we removed the bars from HTML)
+    // updateAllProgressBars(); // Removed as we don't use linear bars anymore
 }
 
 window.toggleDropdown = function (event, habitId) {
@@ -838,15 +877,14 @@ window.addEventListener('click', function (event) {
 });
 
 
-window.updateHabitData = async function (habitId) {
+window.updateHabitData = async function (habitId, status) {
     const dateStr = getDateString(currentViewDate);
-    const checkbox = document.getElementById(`habit-${habitId}`);
 
     // Get current data for the day
     let dayData = habitData[dateStr] || {};
 
     // Update the specific habit
-    dayData[habitId] = checkbox.checked;
+    dayData[habitId] = status;
 
     // Put it back into the main data object
     habitData[dateStr] = dayData;
