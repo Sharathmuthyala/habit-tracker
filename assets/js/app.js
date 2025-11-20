@@ -123,39 +123,20 @@ const habitSuggestions = [
 // REFINEMENT: Principle #8 - Motivational Quotes
 // REFINEMENT: Principle #8 - Motivational Quotes
 let motivationalQuotes = []; // Will be loaded from JSON
-let quoteSource = "James Clear"; // Default source
 let todayQuote = "Loading motivation...";
 
 async function loadQuotes() {
     try {
         const response = await fetch('assets/data/quotes.json');
         if (!response.ok) throw new Error('Failed to load quotes');
-
-        const data = await response.json();
-
-        // Handle new format with categories
-        if (data.categories) {
-            quoteSource = data.source || "James Clear";
-            motivationalQuotes = [];
-
-            // Flatten all categories into one array
-            Object.values(data.categories).forEach(category => {
-                if (Array.isArray(category.quotes)) {
-                    motivationalQuotes.push(...category.quotes);
-                }
-            });
-        } else if (Array.isArray(data)) {
-            // Handle legacy array format
-            motivationalQuotes = data;
-        }
-
+        motivationalQuotes = await response.json();
         window.displayQuote(); // Refresh quote after loading
     } catch (error) {
         console.error('Error loading quotes:', error);
         // Fallback quotes if fetch fails
         motivationalQuotes = [
-            "The secret of getting ahead is getting started.",
-            "Motivation is what gets you started. Habit is what keeps you going."
+            { text: "The secret of getting ahead is getting started.", author: "Mark Twain" },
+            { text: "Motivation is what gets you started. Habit is what keeps you going.", author: "Jim Ryun" }
         ];
         window.displayQuote();
     }
@@ -463,10 +444,10 @@ window.displayQuote = function () {
     const quoteIndex = dayOfYear % motivationalQuotes.length;
     const quote = motivationalQuotes[quoteIndex];
 
-    // Handle both string (new format) and object (legacy) formats
+    // Handle both string (legacy) and object formats
     if (typeof quote === 'string') {
         quoteText.textContent = `"${quote}"`;
-        quoteAuthor.textContent = `— ${quoteSource}`;
+        quoteAuthor.textContent = '— James Clear';
     } else {
         quoteText.textContent = `"${quote.text}"`;
         quoteAuthor.textContent = `— ${quote.author}`;
