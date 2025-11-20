@@ -372,78 +372,52 @@ window.goToToday = function () {
     window.updateDisplay();
 }
 
-// Render concentric rings (limit to 5 habits)
-window.renderConcentricRings = function () {
-    const svg = document.getElementById('concentricRings');
-    const centerText = document.getElementById('ringsCenterText');
-    if (!svg || !centerText) return;
+// Render Apple-inspired activity ring
+window.renderActivityRing = function () {
+    const ringProgress = document.getElementById('habitRingProgress');
+    const ringNumber = document.getElementById('ringNumber');
+    const ringTotal = document.getElementById('ringTotal');
 
-    // Clear existing rings
-    svg.innerHTML = '';
+    if (!ringProgress || !ringNumber || !ringTotal) return;
 
-    // Get top 5 habits by streak or creation order
-    const topHabits = habits.slice(0, 5);
     const dateStr = getDateString(currentViewDate);
     const dayData = habitData[dateStr] || {};
 
     let completedCount = 0;
     let totalCount = 0;
 
-    topHabits.forEach((habit, index) => {
+    habits.forEach(habit => {
+        // Check if habit is scheduled for today
         const isApplicable = !(habit.schedule === 'weekdays' && !isWeekday(currentViewDate));
         if (!isApplicable) return;
 
         totalCount++;
-        const isCompleted = dayData[habit.id] || false;
-        if (isCompleted) completedCount++;
-
-        // Calculate ring parameters
-        const radius = 90 - (index * 15); // Decreasing radius for each ring
-        const circumference = 2 * Math.PI * radius;
-        const progress = isCompleted ? 1 : 0;
-        const dashOffset = circumference * (1 - progress);
-
-        // Create gradient for this ring
-        const gradientId = `gradient-${habit.id}`;
-        const defs = svg.querySelector('defs') || document.createElementNS('http://www.w3.org/2000/svg', 'defs');
-        if (!svg.querySelector('defs')) svg.appendChild(defs);
-
-        const gradient = document.createElementNS('http://www.w3.org/2000/svg', 'linearGradient');
-        gradient.setAttribute('id', gradientId);
-        gradient.setAttribute('x1', '0%');
-        gradient.setAttribute('y1', '0%');
-        gradient.setAttribute('x2', '100%');
-        gradient.setAttribute('y2', '100%');
-
-        const stop1 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
-        stop1.setAttribute('offset', '0%');
-        stop1.setAttribute('stop-color', habit.color || '#1A73E8');
-
-        const stop2 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
-        stop2.setAttribute('offset', '100%');
-        stop2.setAttribute('stop-color', habit.color || '#1A73E8');
-        stop2.setAttribute('stop-opacity', '0.7');
-
-        gradient.appendChild(stop1);
-        gradient.appendChild(stop2);
-        defs.appendChild(gradient);
-
-        // Create ring path
-        const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-        circle.setAttribute('class', 'ring-path');
-        circle.setAttribute('cx', '100');
-        circle.setAttribute('cy', '100');
-        circle.setAttribute('r', radius);
-        circle.setAttribute('stroke', `url(#${gradientId})`);
-        circle.setAttribute('stroke-dasharray', circumference);
-        circle.setAttribute('stroke-dashoffset', dashOffset);
-        circle.setAttribute('transform', 'rotate(-90 100 100)');
-
-        svg.appendChild(circle);
+        if (dayData[habit.id]) {
+            completedCount++;
+        }
     });
 
-    // Update center text
-    centerText.textContent = `${completedCount}/${totalCount}`;
+    // Update text
+    ringNumber.textContent = completedCount;
+    ringTotal.textContent = `/${totalCount}`;
+
+    // Update ring progress
+    // Circumference = 2 * PI * 52 ≈ 326.73
+    const circumference = 326.73;
+    const percentage = totalCount === 0 ? 0 : (completedCount / totalCount);
+
+    // Cap at 100% for visual ring (or allow overlap if desired, but simple 100% cap is cleaner)
+    const visualPercentage = Math.min(percentage, 1);
+    const offset = circumference * (1 - visualPercentage);
+
+    ringProgress.style.strokeDashoffset = offset;
+
+    // Optional: Add completion effect
+    if (percentage >= 1 && totalCount > 0) {
+        ringProgress.setAttribute('data-progress', '100');
+    } else {
+        ringProgress.removeAttribute('data-progress');
+    }
 }
 
 // Display motivational quote
@@ -978,7 +952,7 @@ window.updateDisplay = function () {
     // === ATOMS-INSPIRED UI UPDATES ===
     // Render new components
     window.renderDateStrip();
-    window.renderConcentricRings();
+    window.renderActivityRing();
     window.displayQuote();
 
     // Update date display (for old components, if still present)
