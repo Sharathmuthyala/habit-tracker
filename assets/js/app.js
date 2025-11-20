@@ -1,0 +1,2261 @@
+import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+
+// Auth State Listener
+// We use a timeout to ensure window.auth is initialized from firebase-config.js
+setTimeout(() => {
+    if (window.auth) {
+        onAuthStateChanged(window.auth, (user) => {
+            if (user) {
+                window.currentUser = user;
+                console.log('Signed in with user ID:', user.uid);
+                const authOverlay = document.getElementById('authOverlay');
+                const appContainer = document.getElementById('appContainer');
+                if (authOverlay) authOverlay.classList.remove('show');
+                if (appContainer) appContainer.classList.add('show');
+
+                if (window.loadAllData) window.loadAllData();
+            } else {
+                window.currentUser = null;
+                console.log('User is signed out');
+                const authOverlay = document.getElementById('authOverlay');
+                const appContainer = document.getElementById('appContainer');
+                if (authOverlay) authOverlay.classList.add('show');
+                if (appContainer) appContainer.classList.remove('show');
+
+                if (window.clearLocalData) window.clearLocalData();
+            }
+        });
+    } else {
+        console.error("window.auth not initialized!");
+    }
+}, 100);
+
+window.handleLoginClick = function () {
+    // This function is now shared for Login and Sign Up
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+    const button = document.getElementById('authButton');
+    const errorEl = document.getElementById('authError');
+
+    if (!email || password.length < 6) {
+        errorEl.textContent = 'Please enter a valid email and a password (min. 6 chars).';
+        errorEl.style.display = 'block';
+        return;
+    }
+
+    errorEl.style.display = 'none';
+    button.disabled = true;
+
+    if (window.isLoginMode) {
+        // --- Sign In ---
+        button.textContent = 'Signing In...';
+        window.fb.signInWithEmailAndPassword(window.auth, email, password)
+            .then((userCredential) => {
+                // Signed in, onAuthStateChanged will handle the rest
+                console.log('User signed in:', userCredential.user.uid);
+            })
+            .catch((error) => {
+                errorEl.textContent = error.message;
+                errorEl.style.display = 'block';
+            })
+            .finally(() => {
+                button.disabled = false;
+                button.textContent = 'Sign In';
+            });
+    } else {
+        // --- Sign Up ---
+        button.textContent = 'Creating Account...';
+        window.fb.createUserWithEmailAndPassword(window.auth, email, password)
+            .then((userCredential) => {
+                // Signed up, onAuthStateChanged will handle the rest
+                console.log('User created:', userCredential.user.uid);
+            })
+            .catch((error) => {
+                errorEl.textContent = error.message;
+                errorEl.style.display = 'block';
+            })
+            .finally(() => {
+                button.disabled = false;
+                button.textContent = 'Sign Up';
+            });
+    }
+}
+
+window.handleSignOut = function () {
+    window.fb.signOut(window.auth).catch((error) => {
+        console.error('Sign out error:', error);
+    });
+}
+
+window.isLoginMode = true;
+window.toggleAuthMode = function () {
+    window.isLoginMode = !window.isLoginMode;
+    const button = document.getElementById('authButton');
+    const toggle = document.getElementById('authToggle');
+    const subtitle = document.getElementById('authSubtitle');
+
+    if (window.isLoginMode) {
+        button.textContent = 'Sign In';
+        toggle.textContent = 'Need an account? Sign Up';
+        subtitle.textContent = 'Sign in to sync your habits';
+    } else {
+        button.textContent = 'Sign Up';
+        toggle.textContent = 'Have an account? Sign In';
+        subtitle.textContent = 'Create an account to get started';
+    }
+    document.getElementById('authError').style.display = 'none';
+}
+// === GLOBAL APP STATE ===
+let habitData = {}; // { "2025-11-06": { "habitId1": true } }
+let habits = [];    // [ { id: "...", name: "...", icon: "..." } ]
+let currentViewDate = new Date();
+
+const habitSuggestions = [
+    { name: "Read 10 pages", icon: "📚", why: "become more knowledgeable" },
+    { name: "Go for a walk", icon: "🚶", why: "improve my health" },
+    { name: "Drink 8 glasses of water", icon: "💧", why: "stay hydrated" },
+    { name: "Meditate for 5 minutes", icon: "🧘", why: "clear my mind" },
+    { name: "Write in a journal", icon: "✍️", why: "practice gratitude" },
+    { name: "No social media before 9 AM", icon: "📱", why: "start the day focused" },
+    { name: "Practice a new skill", icon: "💡", why: "grow my abilities" },
+];
+
+// REFINEMENT: Principle #8 - Motivational Quotes
+const motivationalQuotes = [
+    "The secret of getting ahead is getting started.",
+    "Don't break the chain.",
+    "A little progress each day adds up to big results.",
+    "Consistency is what transforms average into excellence.",
+    "You don't have to be great to start, but you have to start to be great.",
+    "Motivation is what gets you started. Habit is what keeps you going."
+];
+let todayQuote = motivationalQuotes[Math.floor(Math.random() * motivationalQuotes.length)];
+
+// Colors from your principles
+const habitColors = [
+    '#EA4335', '#FBBC04', '#34A853', '#1A73E8', '#673AB7',
+    '#E91E63', '#009688', '#FF9800', '#607D8B', '#795548'
+];
+
+// === UTILITY FUNCTIONS ===
+
+function getUserId() {
+    if (window.currentUser) {
+        return window.currentUser.uid;
+    }
+    return null;
+}
+
+function getDateString(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
+function showSnackbar(message, isError = false) {
+    const snackbar = document.getElementById('snackbar');
+    const icon = document.getElementById('snackbarIcon');
+
+    document.getElementById('snackbarText').textContent = message;
+
+    if (isError) {
+        icon.textContent = 'error';
+        icon.style.color = 'var(--color-error)';
+    } else {
+        icon.textContent = 'check_circle';
+        icon.style.color = 'var(--color-success)';
+    }
+
+    snackbar.classList.add('show');
+    setTimeout(() => {
+        snackbar.classList.remove('show');
+    }, 3000);
+}
+
+function updateSyncStatus(status) {
+    const syncStatus = document.getElementById('syncStatus');
+    if (!syncStatus) return;
+    const icon = syncStatus.querySelector('.material-symbols-outlined');
+
+    if (status === 'syncing') {
+        syncStatus.classList.add('syncing');
+        icon.textContent = 'sync';
+        syncStatus.title = 'Syncing...';
+    } else if (status === 'synced') {
+        syncStatus.classList.remove('syncing');
+        icon.textContent = 'cloud_done';
+        syncStatus.title = 'Synced';
+    } else if (status === 'error') {
+        syncStatus.classList.remove('syncing');
+        icon.textContent = 'cloud_off';
+        syncStatus.title = 'Sync Error';
+    }
+}
+
+function clearAllData() {
+    habits = [];
+    habitData = {};
+    currentViewDate = new Date();
+    window.renderHabits();
+    window.updateDisplay();
+}
+
+window.clearLocalData = function () {
+    // Called on sign-out
+    habits = [];
+    habitData = {};
+    localStorage.removeItem('habitTrackerHabits');
+    localStorage.removeItem('habitTrackerData');
+    window.renderHabits();
+    window.updateDisplay();
+}
+
+function isWeekday(date) {
+    const day = date.getDay();
+    return day >= 1 && day <= 5; // Monday=1, Friday=5
+}
+
+// === DATA LOADING & SAVING ===
+
+window.loadAllData = async function () {
+    // This is the main entry point after login
+    const userId = getUserId();
+    if (!userId) return;
+
+    try {
+        // 1. Load habits config
+        await window.loadHabits();
+
+        // 2. Load habit data (check-ins)
+        await window.loadHabitData();
+
+        // 3. Setup realtime listeners
+        window.setupRealtimeSync();
+
+        // 4. Update UI
+        window.renderHabits();
+        window.updateDisplay();
+
+    } catch (error) {
+        console.error("Error loading all data:", error);
+        showSnackbar("Error loading data. Please refresh.", true);
+    }
+}
+
+window.loadHabits = async function () {
+    // Load the list of habits (name, icon, etc.)
+    const userId = getUserId();
+    if (!userId) return;
+
+    // Try local cache first
+    const localHabits = localStorage.getItem('habitTrackerHabits');
+    if (localHabits) {
+        habits = JSON.parse(localHabits);
+        window.renderHabits(); // Render quickly from cache
+    }
+
+    if (window.firebaseEnabled) {
+        try {
+            console.log('Loading habits from Firebase...');
+            // Path: /users/{userId}/userHabits/{habitDocId}
+            const q = window.fb.query(window.fb.collection(window.db, 'users', userId, 'userHabits'));
+            const querySnapshot = await window.fb.getDocs(q);
+
+            if (querySnapshot.empty && habits.length === 0) {
+                // User has no habits and no local habits.
+                console.log('No habits found. User is new.');
+                habits = [];
+            } else if (!querySnapshot.empty) {
+                let newHabits = [];
+                querySnapshot.forEach((doc) => {
+                    newHabits.push({ id: doc.id, ...doc.data() });
+                });
+                habits = newHabits;
+                console.log('Habits loaded from Firebase:', habits);
+            }
+
+            // Save to local storage and render
+            window.saveHabitsLocal();
+            window.renderHabits();
+
+        } catch (error) {
+            console.error("Error loading habits from Firebase:", error);
+            showSnackbar("Error loading your habits.", true);
+        }
+    }
+}
+
+window.loadHabitData = async function () {
+    // Load the check-in data (dates)
+    const userId = getUserId();
+    if (!userId) return;
+
+    // Try local cache first
+    const localData = localStorage.getItem('habitTrackerData');
+    if (localData) {
+        habitData = JSON.parse(localData);
+        window.updateDisplay(); // Render quickly
+    }
+
+    if (window.firebaseEnabled) {
+        try {
+            console.log('Loading habit data from Firebase...');
+            // Path: /users/{userId}/habitData/{dateString}
+            const q = window.fb.query(window.fb.collection(window.db, 'users', userId, 'habitData'));
+            const querySnapshot = await window.fb.getDocs(q);
+
+            if (!querySnapshot.empty) {
+                querySnapshot.forEach((doc) => {
+                    habitData[doc.id] = doc.data();
+                });
+                console.log('Habit data loaded from Firebase');
+            }
+
+            window.saveHabitDataLocal();
+            window.updateDisplay();
+
+        } catch (error) {
+            console.error("Error loading from Firebase:", error);
+        }
+    }
+}
+
+window.saveHabitsLocal = function () {
+    // Sort by creation time before saving
+    habits.sort((a, b) => (a.createdAt?.seconds || 0) - (b.createdAt?.seconds || 0));
+    localStorage.setItem('habitTrackerHabits', JSON.stringify(habits));
+}
+
+window.saveHabitDataLocal = function () {
+    localStorage.setItem('habitTrackerData', JSON.stringify(habitData));
+}
+
+// === REALTIME SYNC ===
+
+window.setupRealtimeSync = function () {
+    const userId = getUserId();
+    if (!window.firebaseEnabled || !userId) {
+        return;
+    }
+
+    // 1. Listen for changes to the list of habits
+    try {
+        const habitsRef = window.fb.collection(window.db, 'users', userId, 'userHabits');
+        window.fb.onSnapshot(habitsRef, (snapshot) => {
+            let newHabits = [];
+            snapshot.forEach(doc => {
+                newHabits.push({ id: doc.id, ...doc.data() });
+            });
+            // Sort by creation time
+            newHabits.sort((a, b) => (a.createdAt?.seconds || 0) - (b.createdAt?.seconds || 0));
+            habits = newHabits;
+
+            window.saveHabitsLocal();
+            window.renderHabits();
+            window.updateDisplay();
+            console.log('Realtime: Habits list synced.');
+        });
+    } catch (error) {
+        console.error("Error setting up habits listener:", error);
+    }
+
+    // 2. Listen for changes to the check-in data
+    try {
+        const dataRef = window.fb.collection(window.db, 'users', userId, 'habitData');
+        window.fb.onSnapshot(dataRef, (snapshot) => {
+            snapshot.docChanges().forEach((change) => {
+                if (change.type === 'added' || change.type === 'modified') {
+                    const dateStr = change.doc.id;
+                    const data = change.doc.data();
+                    habitData[dateStr] = data;
+                    console.log(`Realtime: Synced data for ${dateStr}`);
+                }
+                // Note: Deletions not handled, as we don't delete date docs
+            });
+            window.saveHabitDataLocal();
+            window.updateDisplay();
+        });
+    } catch (error) {
+        console.error("Error setting up habit data listener:", error);
+    }
+}
+
+// === HABIT CRUD FUNCTIONS ===
+
+window.openHabitModal = function (habitId = null) {
+    const modal = document.getElementById('habitModal');
+    const title = document.getElementById('habitModalTitle');
+    const form = document.getElementById('habitForm');
+
+    // Reset form
+    form.reset();
+    document.getElementById('habitIdInput').value = '';
+
+    // Clear existing 'selected' swatches
+    document.querySelectorAll('.color-swatch.selected').forEach(sw => sw.classList.remove('selected'));
+
+    if (habitId) {
+        // --- Edit Mode ---
+        const habit = habits.find(h => h.id === habitId);
+        if (habit) {
+            title.textContent = 'Edit Habit';
+            document.getElementById('habitIdInput').value = habit.id;
+            document.getElementById('habitName').value = habit.name;
+            document.getElementById('habitIcon').value = habit.icon;
+            document.getElementById('habitSchedule').value = habit.schedule;
+            document.getElementById('habitWhy').value = habit.why || '';
+
+            // Select color
+            const swatch = document.querySelector(`.color-swatch[data-color="${habit.color}"]`);
+            if (swatch) {
+                swatch.classList.add('selected');
+            }
+        }
+    } else {
+        // --- Add Mode ---
+        title.textContent = 'Add New Habit';
+
+        // Set a suggestion
+        const suggestion = habitSuggestions[Math.floor(Math.random() * habitSuggestions.length)];
+        document.getElementById('habitName').value = suggestion.name;
+        document.getElementById('habitIcon').value = suggestion.icon;
+        document.getElementById('habitWhy').value = suggestion.why || '';
+
+        // Select first color by default
+        document.querySelector('.color-swatch').classList.add('selected');
+    }
+
+    modal.classList.add('show');
+}
+
+window.closeHabitModal = function () {
+    document.getElementById('habitModal').classList.remove('show');
+}
+
+window.saveHabit = async function () {
+    const userId = getUserId();
+    if (!userId) return;
+
+    const id = document.getElementById('habitIdInput').value;
+    const name = document.getElementById('habitName').value;
+    const icon = document.getElementById('habitIcon').value;
+    const schedule = document.getElementById('habitSchedule').value;
+    const why = document.getElementById('habitWhy').value; // Get the "why"
+    const selectedColor = document.querySelector('.color-swatch.selected');
+
+    if (!name || !icon || !selectedColor) {
+        showSnackbar("Please fill out all fields.", true);
+        return;
+    }
+
+    const color = selectedColor.dataset.color;
+
+    const habitData = {
+        name,
+        icon,
+        schedule,
+        color,
+        why: why || '', // Save the "why"
+        createdAt: window.fb.serverTimestamp() // Add/update server timestamp
+    };
+
+    if (id) {
+        // --- Update existing habit ---
+        try {
+            const habitRef = window.fb.doc(window.db, 'users', userId, 'userHabits', id);
+            await window.fb.setDoc(habitRef, habitData, { merge: true }); // Use setDoc with merge
+            showSnackbar("Habit updated!");
+        } catch (error) {
+            console.error("Error updating habit:", error);
+            showSnackbar("Error updating habit.", true);
+        }
+    } else {
+        // --- Add new habit ---
+        try {
+            const habitRef = window.fb.collection(window.db, 'users', userId, 'userHabits');
+            await window.fb.addDoc(habitRef, habitData);
+            showSnackbar("Habit added!");
+        } catch (error) {
+            console.error("Error adding habit:", error);
+            showSnackbar("Error adding habit.", true);
+        }
+    }
+
+    closeHabitModal();
+    // Realtime listener will handle the UI update
+}
+
+window.deleteHabit = async function (habitId, habitName) {
+    const userId = getUserId();
+    if (!userId) return;
+
+    if (!confirm(`Are you sure you want to delete "${habitName}"?\n\nThis will NOT delete your past check-in history for this habit.`)) {
+        return;
+    }
+
+    try {
+        const habitRef = window.fb.doc(window.db, 'users', userId, 'userHabits', habitId);
+        await window.fb.deleteDoc(habitRef);
+        showSnackbar("Habit deleted!");
+    } catch (error) {
+        console.error("Error deleting habit:", error);
+        showSnackbar("Error deleting habit.", true);
+    }
+    // Realtime listener will handle UI update
+}
+
+// === MAIN APP LOGIC ===
+
+window.renderHabits = function () {
+    const list = document.getElementById('habitsList');
+    if (!list) return;
+
+    // Clear list but preserve empty state
+    const emptyState = document.getElementById('emptyState');
+    list.innerHTML = '';
+    list.appendChild(emptyState);
+
+    if (habits.length === 0) {
+        emptyState.style.display = 'block';
+        return;
+    }
+
+    emptyState.style.display = 'none';
+
+    habits.forEach(habit => {
+        const scheduleText = habit.schedule === 'weekdays' ? 'Weekdays' : 'Daily';
+
+        const card = document.createElement('div');
+        card.className = 'habit-card';
+        card.style = `--habit-color: ${habit.color};`;
+        card.id = `card-${habit.id}`; // Add ID for flash animation
+
+        card.onclick = (e) => openHeatmapModal(e, habit.id, habit.name, habit.color);
+
+        let whyHtml = habit.why ? `<div class="habit-why">...so I can ${habit.why}</div>` : '';
+
+        card.innerHTML = `
+            <div class="habit-checkbox-wrapper">
+                <input type="checkbox" class="habit-checkbox" id="habit-${habit.id}" data-habit-id="${habit.id}">
+            </div>
+            <div class="habit-icon">${habit.icon}</div>
+            <div class="habit-content">
+                <div class="habit-name">${habit.name}</div>
+                <div class="habit-schedule">${scheduleText}</div>
+                ${whyHtml}
+            </div>
+            <div class="habit-menu dropdown">
+                <button class="icon-button state-layer-secondary" onclick="toggleDropdown(event, '${habit.id}')">
+                    <span class="material-symbols-outlined">more_vert</span>
+                </button>
+                <div class="dropdown-content" id="dropdown-${habit.id}">
+                    <button class="dropdown-item state-layer-secondary" onclick="openHabitModal('${habit.id}')">
+                        <span class="material-symbols-outlined">edit</span>
+                        Edit
+                    </button>
+                    <button class="dropdown-item delete state-layer-secondary" onclick="deleteHabit('${habit.id}', '${habit.name.replace(/'/g, "\\'")}')">
+                        <span class="material-symbols-outlined">delete</span>
+                        Delete
+                    </button>
+                </div>
+            </div>
+            <!-- REFINEMENT: Principle 3 - Progress Bar -->
+            <div class="habit-progress-bar-container">
+                <div class="habit-progress-bar" id="progress-${habit.id}" style="background-color: ${habit.color};"></div>
+            </div>
+        `;
+
+        list.appendChild(card);
+
+        // Add event listener to checkbox
+        card.querySelector('.habit-checkbox').addEventListener('click', function (e) {
+            e.stopPropagation(); // Stop card click
+            updateHabitData(this.dataset.habitId);
+        });
+    });
+
+    // After rendering, update progress bars
+    updateAllProgressBars();
+}
+
+window.toggleDropdown = function (event, habitId) {
+    event.stopPropagation(); // Prevent card click
+
+    // Close all other dropdowns
+    document.querySelectorAll('.dropdown-content.show').forEach(openDropdown => {
+        if (openDropdown.id !== `dropdown-${habitId}`) {
+            openDropdown.classList.remove('show');
+        }
+    });
+
+    // Toggle the clicked one
+    const dropdown = document.getElementById(`dropdown-${habitId}`);
+    dropdown.classList.toggle('show');
+}
+
+// Close dropdowns if clicking outside
+window.addEventListener('click', function (event) {
+    if (!event.target.closest('.dropdown')) {
+        document.querySelectorAll('.dropdown-content.show').forEach(openDropdown => {
+            openDropdown.classList.remove('show');
+        });
+    }
+});
+
+
+window.updateHabitData = async function (habitId) {
+    const dateStr = getDateString(currentViewDate);
+    const checkbox = document.getElementById(`habit-${habitId}`);
+
+    // Get current data for the day
+    let dayData = habitData[dateStr] || {};
+
+    // Update the specific habit
+    dayData[habitId] = checkbox.checked;
+
+    // Put it back into the main data object
+    habitData[dateStr] = dayData;
+
+    // Save locally
+    window.saveHabitDataLocal();
+
+    // --- REFINEMENTS: Principle 1 & 7 ---
+    // 1. Pop the progress ring
+    const ring = document.querySelector('.progress-ring-container');
+    if (ring) {
+        ring.classList.add('pop');
+        ring.addEventListener('animationend', () => ring.classList.remove('pop'), { once: true });
+    }
+
+    // 2. Flash the habit card
+    const card = document.getElementById(`card-${habitId}`);
+    if (card && checkbox.checked) { // Only flash on completion
+        card.classList.add('flash');
+        card.addEventListener('animationend', () => card.classList.remove('flash'), { once: true });
+    }
+    // --- End Refinements ---
+
+    // Save to Firebase
+    const userId = getUserId();
+    if (window.firebaseEnabled && userId) {
+        try {
+            updateSyncStatus('syncing');
+            // Path: /users/{userId}/habitData/{dateString}
+            const dateRef = window.fb.doc(window.db, 'users', userId, 'habitData', dateStr);
+            await window.fb.setDoc(dateRef, dayData, { merge: true }); // Use setDoc with merge
+            updateSyncStatus('synced');
+        } catch (error) {
+            console.error('Error saving to Firebase:', error);
+            updateSyncStatus('error');
+        }
+    }
+
+    window.updateDisplay();
+    checkForCelebration();
+}
+
+window.checkForCelebration = function () {
+    const dateStr = getDateString(currentViewDate);
+    const today = getDateString(new Date());
+
+    if (dateStr !== today) return;
+
+    const dayData = habitData[dateStr] || {};
+    let allComplete = habits.length > 0; // Assume complete, then check
+
+    for (const habit of habits) {
+        const isApplicable = !(habit.schedule === 'weekdays' && !isWeekday(currentViewDate));
+        if (isApplicable && !dayData[habit.id]) {
+            allComplete = false;
+            break;
+        }
+    }
+
+    if (allComplete) {
+        showCelebration();
+    }
+}
+
+function showCelebration() {
+    const celebration = document.getElementById('celebration');
+    celebration.classList.add('show');
+
+    // REFINEMENT: Principle 7 - Run Confetti
+    runCelebrationConfetti();
+
+    setTimeout(() => {
+        celebration.classList.remove('show');
+    }, 3000);
+}
+
+// REFINEMENT: Principle 7 - Confetti Function
+function runCelebrationConfetti() {
+    const container = document.getElementById('confettiContainer');
+    container.innerHTML = ''; // Clear old confetti
+    const confettiCount = 50;
+
+    for (let i = 0; i < confettiCount; i++) {
+        const confetti = document.createElement('div');
+        confetti.className = 'confetti';
+        confetti.style.left = `${Math.random() * 100}vw`;
+        confetti.style.backgroundColor = habitColors[Math.floor(Math.random() * habitColors.length)];
+        confetti.style.animationDuration = `${2 + Math.random() * 2}s`;
+        confetti.style.animationDelay = `${Math.random() * 0.5}s`;
+        container.appendChild(confetti);
+    }
+
+    // Clear confetti elements after animation
+    setTimeout(() => {
+        container.innerHTML = '';
+    }, 5000);
+}
+
+window.updateDisplay = function () {
+    const dateStr = getDateString(currentViewDate);
+    const today = getDateString(new Date());
+
+    // Update date display
+    const options = { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' };
+    document.getElementById('currentDate').textContent = currentViewDate.toLocaleDateString('en-US', options);
+
+    // Disable next day button for future dates
+    document.getElementById('nextDayBtn').disabled = dateStr >= today;
+
+    // Update checkboxes and habit cards
+    const dayData = habitData[dateStr] || {};
+    let todayComplete = 0;
+    let totalHabitsToday = 0;
+
+    habits.forEach(habit => {
+        const checkbox = document.getElementById(`habit-${habit.id}`);
+        if (!checkbox) return; // Habit may not be rendered yet
+
+        const habitCard = checkbox.closest('.habit-card');
+        const isApplicable = !(habit.schedule === 'weekdays' && !isWeekday(currentViewDate));
+
+        if (isApplicable) {
+            checkbox.disabled = false;
+            checkbox.checked = dayData[habit.id] || false;
+            habitCard.style.opacity = '1';
+            totalHabitsToday++;
+
+            if (checkbox.checked) {
+                todayComplete++;
+                habitCard.classList.add('completed');
+            } else {
+                habitCard.classList.remove('completed');
+            }
+        } else {
+            // Not applicable (e.g., weekday habit on weekend)
+            checkbox.disabled = true;
+            checkbox.checked = false;
+            habitCard.style.opacity = '0.5';
+            habitCard.classList.remove('completed');
+        }
+    });
+
+    // --- REFINEMENT: Principle #3 - Microcopy Feedback ---
+    const subtextEl = document.getElementById('dateSubtext');
+    if (dateStr === today) {
+        if (totalHabitsToday === 0) {
+            subtextEl.textContent = "Add a habit to get started!";
+        } else if (todayComplete === 0) {
+            subtextEl.textContent = todayQuote; // Show quote
+        } else if (todayComplete === 1 && totalHabitsToday > 1) {
+            subtextEl.textContent = "You're off to a great start!";
+        } else if (todayComplete > 1 && todayComplete < totalHabitsToday) {
+            subtextEl.textContent = "Keep up the great work!";
+        } else if (todayComplete === totalHabitsToday) {
+            subtextEl.textContent = "All done! You crushed it today! 🎉";
+        }
+    } else if (dateStr < today) {
+        subtextEl.textContent = 'Past day - Reviewing your progress';
+    } else {
+        subtextEl.textContent = 'Future day - Plan ahead!';
+    }
+    // --- End Refinement ---
+
+    // Update progress ring
+    updateProgressRing(todayComplete, totalHabitsToday);
+
+    // Update stats
+    document.getElementById('weekProgress').textContent = calculateWeekProgress() + '%';
+    document.getElementById('totalCheckins').textContent = calculateTotalCheckins();
+    document.getElementById('bestStreak').textContent = calculateBestStreak();
+    document.getElementById('avgCompletion').textContent = calculateAvgCompletion() + '%';
+
+    // REFINEMENT: Principle 3 - Update all progress bars
+    updateAllProgressBars();
+
+    // Update analytics
+    if (typeof updateAllAnalytics === 'function') {
+        updateAllAnalytics();
+    }
+}
+
+// REFINEMENT: Principle 3 - Function to update all bars
+function updateAllProgressBars() {
+    habits.forEach(habit => {
+        const rate = calculateCompletionRate(habit.id);
+        const progressBar = document.getElementById(`progress-${habit.id}`);
+        if (progressBar) {
+            progressBar.style.width = `${rate}%`;
+        }
+    });
+}
+
+function updateProgressRing(completed, total) {
+    const circle = document.getElementById('progressCircle');
+    const text = document.getElementById('progressText');
+    if (!circle || !text) return;
+
+    const radius = 52;
+    const circumference = 2 * Math.PI * radius;
+
+    const progress = total > 0 ? (completed / total) : 0;
+    const offset = circumference - (progress * circumference);
+
+    circle.style.strokeDashoffset = offset;
+    text.textContent = `${completed}/${total}`;
+}
+
+function getOldestDataDate() {
+    const dates = Object.keys(habitData);
+    if (dates.length === 0) {
+        return new Date();
+    }
+    dates.sort();
+    return new Date(dates[0]);
+}
+
+function calculateStreak(habitId) {
+    const habit = habits.find(h => h.id === habitId);
+    if (!habit) return 0;
+
+    let streak = 0;
+    let checkDate = new Date();
+
+    for (let i = 0; i < 365; i++) { // Check up to 1 year back
+        const isApplicable = !(habit.schedule === 'weekdays' && !isWeekday(checkDate));
+        const dateStr = getDateString(checkDate);
+        const dayData = habitData[dateStr] || {};
+
+        if (isApplicable) {
+            if (dayData[habit.id]) {
+                streak++;
+            } else if (i > 0) {
+                // Missed an applicable day that wasn't today
+                break;
+            } else if (i === 0 && !dayData[habit.id]) {
+                // Not done today, streak is 0
+            }
+        }
+        // If not applicable, streak continues
+
+        checkDate.setDate(checkDate.getDate() - 1);
+    }
+
+    return streak;
+}
+
+function calculateCompletionRate(habitId) {
+    const habit = habits.find(h => h.id === habitId);
+    if (!habit) return 0;
+
+    const startDate = getOldestDataDate();
+    const today = new Date();
+    let totalDays = 0;
+    let completedDays = 0;
+
+    let checkDate = new Date(startDate);
+    while (checkDate <= today) {
+        const isApplicable = !(habit.schedule === 'weekdays' && !isWeekday(checkDate));
+
+        if (isApplicable) {
+            totalDays++;
+            const dateStr = getDateString(checkDate);
+            const dayData = habitData[dateStr] || {};
+            if (dayData[habit.id]) {
+                completedDays++;
+            }
+        }
+
+        checkDate.setDate(checkDate.getDate() + 1);
+    }
+
+    return totalDays > 0 ? Math.round((completedDays / totalDays) * 100) : 0;
+}
+
+function calculateWeekProgress() {
+    const today = new Date();
+    const weekStart = new Date(today);
+    weekStart.setDate(today.getDate() - today.getDay()); // Get last Sunday
+
+    let totalPossible = 0;
+    let totalCompleted = 0;
+
+    for (let i = 0; i < 7; i++) {
+        const checkDate = new Date(weekStart);
+        checkDate.setDate(weekStart.getDate() + i);
+
+        if (checkDate > today) break;
+
+        const dateStr = getDateString(checkDate);
+        const dayData = habitData[dateStr] || {};
+
+        habits.forEach(habit => {
+            const isApplicable = !(habit.schedule === 'weekdays' && !isWeekday(checkDate));
+            if (isApplicable) {
+                totalPossible++;
+                if (dayData[habit.id]) {
+                    totalCompleted++;
+                }
+            }
+        });
+    }
+
+    return totalPossible > 0 ? Math.round((totalCompleted / totalPossible) * 100) : 0;
+}
+
+function calculateTotalCheckins() {
+    let total = 0;
+    Object.values(habitData).forEach(dayData => {
+        Object.values(dayData).forEach(checked => {
+            if (checked) total++;
+        });
+    });
+    return total;
+}
+
+function calculateBestStreak() {
+    // This is a placeholder. A real "best streak" requires iterating all time.
+    // For now, return the best "current" streak.
+    let bestStreak = 0;
+    habits.forEach(habit => {
+        const streak = calculateStreak(habit.id);
+        if (streak > bestStreak) {
+            bestStreak = streak;
+        }
+    });
+    return bestStreak;
+}
+
+function calculateAvgCompletion() {
+    if (habits.length === 0) return 0;
+    let total = 0;
+
+    habits.forEach(habit => {
+        total += calculateCompletionRate(habit.id);
+    });
+
+    return Math.round(total / habits.length);
+}
+
+window.changeDate = function (days) {
+    currentViewDate.setDate(currentViewDate.getDate() + days);
+    window.updateDisplay();
+}
+
+window.goToToday = function () {
+    currentViewDate = new Date();
+    window.updateDisplay();
+    showSnackbar('Back to today! 📅');
+}
+
+window.exportToCSV = function () {
+    let csv = 'Date,';
+    habits.forEach(habit => {
+        csv += `"${habit.name.replace(/"/g, '""')}",`;
+    });
+    csv = csv.slice(0, -1) + '\n'; // Remove last comma
+
+    const startDate = getOldestDataDate();
+    const endDate = new Date();
+
+    let checkDate = new Date(startDate);
+    while (checkDate <= endDate) {
+        const dateStr = getDateString(checkDate);
+        const dayData = habitData[dateStr] || {};
+
+        csv += `${dateStr},`;
+        habits.forEach(habit => {
+            csv += `${dayData[habit.id] ? 'Yes' : 'No'},`;
+        });
+        csv = csv.slice(0, -1) + '\n';
+
+        checkDate.setDate(checkDate.getDate() + 1);
+    }
+
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `habit-tracker-${getDateString(new Date())}.csv`;
+    a.click();
+    window.URL.revokeObjectURL(url);
+
+    showSnackbar('CSV downloaded successfully! 💾');
+}
+
+// === HEATMAP LOGIC ===
+
+window.openHeatmapModal = function (event, habitId, habitName, habitColor) {
+    // Stop if clicking checkbox or menu
+    if (event.target.matches('.habit-checkbox') || event.target.closest('.habit-menu')) {
+        return;
+    }
+
+    const habit = habits.find(h => h.id === habitId);
+    if (!habit) return;
+
+    document.getElementById('heatmapTitle').textContent = `${habit.icon} ${habit.name}`;
+
+    // Update legend color
+    document.getElementById('heatmapLegendColor').style.backgroundColor = habitColor;
+
+    // Generate grid
+    generateHeatmapGrid(habit);
+
+    // Show modal
+    document.getElementById('heatmapModal').classList.add('show');
+}
+
+window.closeHeatmapModal = function () {
+    document.getElementById('heatmapModal').classList.remove('show');
+}
+
+window.generateHeatmapGrid = function (habit) {
+    const grid = document.getElementById('heatmapGrid');
+    grid.innerHTML = '';
+
+    const numWeeks = 26; // 6 months
+    const today = new Date();
+
+    // Find the Sunday of this week
+    let startDate = new Date();
+    startDate.setDate(today.getDate() - today.getDay());
+
+    // Go back numWeeks
+    startDate.setDate(startDate.getDate() - (numWeeks - 1) * 7);
+
+    let checkDate = new Date(startDate);
+
+    for (let i = 0; i < numWeeks * 7; i++) {
+        const day = document.createElement('div');
+        day.className = 'heatmap-day';
+
+        const dateStr = getDateString(checkDate);
+
+        if (checkDate > today) {
+            day.classList.add('na'); // Future date
+        } else {
+            const dayData = habitData[dateStr] || {};
+            const isApplicable = !(habit.schedule === 'weekdays' && !isWeekday(checkDate));
+
+            if (!isApplicable) {
+                day.classList.add('na'); // Not applicable
+            } else if (dayData[habit.id]) {
+                day.classList.add('filled'); // Completed
+                day.style.backgroundColor = habit.color;
+            } else {
+                day.classList.add('missed'); // Missed
+            }
+        }
+
+        if (dateStr === getDateString(today)) {
+            day.classList.add('today');
+        }
+
+        day.title = checkDate.toLocaleDateString();
+        grid.appendChild(day);
+
+        checkDate.setDate(checkDate.getDate() + 1);
+    }
+}
+
+
+// === INITIALIZE ===
+
+function populateColorPicker() {
+    const picker = document.getElementById('colorPicker');
+    picker.innerHTML = ''; // Clear first
+    habitColors.forEach(color => {
+        const swatch = document.createElement('div');
+        swatch.className = 'color-swatch';
+        swatch.dataset.color = color;
+        swatch.style.backgroundColor = color;
+        swatch.onclick = () => {
+            document.querySelectorAll('.color-swatch.selected').forEach(s => s.classList.remove('selected'));
+            swatch.classList.add('selected');
+        };
+        picker.appendChild(swatch);
+    });
+}
+
+// REFINEMENT: Principle #2 - Dynamic App Bar
+window.addEventListener('scroll', () => {
+    const appBar = document.getElementById('appBar');
+    if (!appBar) return;
+    if (window.scrollY > 10) {
+        appBar.classList.add('scrolled');
+    } else {
+        appBar.classList.remove('scrolled');
+    }
+});
+
+// REFINEMENT: Principle #7 - Dark Mode Toggle
+window.toggleDarkMode = function () {
+    const body = document.body;
+    body.classList.toggle('dark-mode');
+
+    // Save preference
+    if (body.classList.contains('dark-mode')) {
+        localStorage.setItem('theme', 'dark');
+    } else {
+        localStorage.setItem('theme', 'light');
+    }
+}
+
+function applyInitialTheme() {
+    const savedTheme = localStorage.getItem('theme');
+    // Check for saved theme OR system preference
+    if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.body.classList.add('dark-mode');
+    } else {
+        document.body.classList.remove('dark-mode');
+    }
+}
+
+// Initialize on page load
+function init() {
+    // Auth is handled by onAuthStateChanged
+    applyInitialTheme();
+    populateColorPicker();
+    goToToday(); // Sets initial date and calls updateDisplay
+}
+// ==========================================
+// ANALYTICS FUNCTIONS
+// ==========================================
+
+// Chart instances (global to allow updates)
+let sevenDayTrendChart = null;
+let todayDonutChart = null;
+let monthlyPerformanceChart = null;
+let thirtyDayTrendChart = null;
+let streakTimelineChart = null;
+let bestDaysChart = null;
+let headToHeadChart = null;
+
+// Current analytics tab
+let currentAnalyticsTab = 'overview';
+
+/**
+ * Switch between analytics tabs
+ */
+window.switchAnalyticsTab = function (tabName) {
+    currentAnalyticsTab = tabName;
+
+    // Update tab buttons
+    document.querySelectorAll('.analytics-tab').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    event.target.closest('.analytics-tab').classList.add('active');
+
+    // Update content sections
+    document.querySelectorAll('.analytics-content').forEach(content => {
+        content.classList.remove('active');
+    });
+    document.getElementById(`${tabName}-content`).classList.add('active');
+
+    // Refresh data for the selected tab
+    updateAnalyticsTab(tabName);
+}
+
+/**
+ * Update analytics for a specific tab
+ */
+function updateAnalyticsTab(tabName) {
+    switch (tabName) {
+        case 'overview':
+            updateOverviewTab();
+            break;
+        case 'heatmap':
+            updateEnhancedHeatmap();
+            break;
+        case 'trends':
+            updateTrendsTab();
+            break;
+        case 'insights':
+            updateInsightsTab();
+            break;
+        case 'compare':
+            updateCompareTab();
+            break;
+    }
+}
+
+/**
+ * Calculate best streak for a habit (all time)
+ */
+function calculateBestStreakAllTime(habitId) {
+    const habit = habits.find(h => h.id === habitId);
+    if (!habit) return 0;
+
+    let maxStreak = 0;
+    let currentStreak = 0;
+
+    // Get all dates from oldest data to today
+    const startDate = getOldestDataDate();
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    for (let d = new Date(startDate); d <= today; d.setDate(d.getDate() + 1)) {
+        const dateStr = d.toISOString().split('T')[0];
+        const dayData = habitData[dateStr] || {};
+
+        if (dayData[habitId]) {
+            currentStreak++;
+            maxStreak = Math.max(maxStreak, currentStreak);
+        } else {
+            currentStreak = 0;
+        }
+    }
+
+    return maxStreak;
+}
+
+/**
+ * Calculate current month progress percentage
+ */
+function calculateMonthProgress() {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const today = now.getDate();
+
+    let totalPossible = 0;
+    let totalCompleted = 0;
+
+    habits.forEach(habit => {
+        for (let day = 1; day <= today; day++) {
+            const dateStr = new Date(year, month, day).toISOString().split('T')[0];
+            totalPossible++;
+            if (habitData[dateStr] && habitData[dateStr][habit.id]) {
+                totalCompleted++;
+            }
+        }
+    });
+
+    return totalPossible > 0 ? Math.round((totalCompleted / totalPossible) * 100) : 0;
+}
+
+/**
+ * Calculate consistency score (0-100) based on completion patterns
+ */
+function calculateConsistencyScore() {
+    if (habits.length === 0) return 0;
+
+    const last30Days = [];
+    const today = new Date();
+
+    for (let i = 0; i < 30; i++) {
+        const date = new Date(today);
+        date.setDate(date.getDate() - i);
+        last30Days.push(date.toISOString().split('T')[0]);
+    }
+
+    let totalScore = 0;
+
+    habits.forEach(habit => {
+        let completedDays = 0;
+        last30Days.forEach(dateStr => {
+            if (habitData[dateStr] && habitData[dateStr][habit.id]) {
+                completedDays++;
+            }
+        });
+        totalScore += (completedDays / 30) * 100;
+    });
+
+    return Math.round(totalScore / habits.length);
+}
+
+/**
+ * Get day of week analysis
+ */
+function getDayOfWeekData() {
+    const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const dayCounts = [0, 0, 0, 0, 0, 0, 0];
+    const dayTotals = [0, 0, 0, 0, 0, 0, 0];
+
+    const last90Days = [];
+    const today = new Date();
+
+    for (let i = 0; i < 90; i++) {
+        const date = new Date(today);
+        date.setDate(date.getDate() - i);
+        last90Days.push(date);
+    }
+
+    habits.forEach(habit => {
+        last90Days.forEach(date => {
+            const dayOfWeek = date.getDay();
+            const dateStr = date.toISOString().split('T')[0];
+            dayTotals[dayOfWeek]++;
+            if (habitData[dateStr] && habitData[dateStr][habit.id]) {
+                dayCounts[dayOfWeek]++;
+            }
+        });
+    });
+
+    const percentages = dayCounts.map((count, index) =>
+        dayTotals[index] > 0 ? Math.round((count / dayTotals[index]) * 100) : 0
+    );
+
+    return { dayNames, percentages };
+}
+
+/**
+ * Calculate completion rate for a habit over specified days
+ */
+function calculatePeriodRate(habitId, days) {
+    const habit = habits.find(h => h.id === habitId);
+    if (!habit) return 0;
+
+    let completed = 0;
+    const today = new Date();
+
+    for (let i = 0; i < days; i++) {
+        const date = new Date(today);
+        date.setDate(date.getDate() - i);
+        const dateStr = date.toISOString().split('T')[0];
+        if (habitData[dateStr] && habitData[dateStr][habit.id]) {
+            completed++;
+        }
+    }
+
+    return Math.round((completed / days) * 100);
+}
+
+/**
+ * Update Overview Tab
+ */
+function updateOverviewTab() {
+    // Mini stats
+    const activeHabits = habits.length;
+    const todayDateStr = getDateString(new Date());
+    const todayCompleted = habits.filter(h => habitData[todayDateStr] && habitData[todayDateStr][h.id]).length;
+    const todayRate = activeHabits > 0 ? Math.round((todayCompleted / activeHabits) * 100) : 0;
+    const currentStreak = calculateCurrentStreak();
+    const monthProgress = calculateMonthProgress();
+    const consistencyScore = calculateConsistencyScore();
+
+    document.getElementById('miniTotalHabits').textContent = activeHabits;
+    document.getElementById('miniTodayCompleted').textContent = todayCompleted;
+    document.getElementById('miniTodayRate').textContent = `${todayRate}%`;
+    document.getElementById('miniCurrentStreak').textContent = currentStreak;
+    document.getElementById('miniMonthProgress').textContent = `${monthProgress}%`;
+    document.getElementById('miniConsistency').textContent = `${consistencyScore}%`;
+
+    // Initialize charts
+    initSevenDayTrendChart();
+    initTodayDonutChart();
+    initMonthlyPerformanceChart();
+}
+
+/**
+ * Calculate current streak (consecutive days with at least one habit completed)
+ */
+function calculateCurrentStreak() {
+    if (habits.length === 0) return 0;
+
+    let streak = 0;
+    const today = new Date();
+
+    for (let i = 0; i < 365; i++) {
+        const date = new Date(today);
+        date.setDate(date.getDate() - i);
+        const dateStr = date.toISOString().split('T')[0];
+
+        let dayHasCompletion = false;
+        for (const habit of habits) {
+            if (habitData[dateStr] && habitData[dateStr][habit.id]) {
+                dayHasCompletion = true;
+                break;
+            }
+        }
+
+        if (dayHasCompletion) {
+            streak++;
+        } else {
+            break;
+        }
+    }
+
+    return streak;
+}
+
+/**
+ * Initialize 7-Day Trend Chart
+ */
+function initSevenDayTrendChart() {
+    const ctx = document.getElementById('sevenDayTrendChart');
+    if (!ctx) return;
+
+    const labels = [];
+    const data = [];
+    const today = new Date();
+
+    for (let i = 6; i >= 0; i--) {
+        const date = new Date(today);
+        date.setDate(date.getDate() - i);
+        const dateStr = date.toISOString().split('T')[0];
+        labels.push(date.toLocaleDateString('en-US', { weekday: 'short' }));
+
+        let dayCompleted = 0;
+        habits.forEach(habit => {
+            if (habitData[dateStr] && habitData[dateStr][habit.id]) {
+                dayCompleted++;
+            }
+        });
+
+        data.push(dayCompleted);
+    }
+
+    if (sevenDayTrendChart) {
+        sevenDayTrendChart.destroy();
+    }
+
+    sevenDayTrendChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Habits Completed',
+                data: data,
+                borderColor: 'rgb(103, 80, 164)',
+                backgroundColor: 'rgba(103, 80, 164, 0.1)',
+                borderWidth: 3,
+                fill: true,
+                tension: 0.4,
+                pointRadius: 5,
+                pointBackgroundColor: 'rgb(103, 80, 164)',
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: { stepSize: 1 }
+                }
+            }
+        }
+    });
+}
+
+/**
+ * Initialize Today's Completion Donut Chart
+ */
+function initTodayDonutChart() {
+    const ctx = document.getElementById('todayDonutChart');
+    if (!ctx) return;
+
+    const todayDateStr = getDateString(new Date());
+    const completed = habits.filter(h => habitData[todayDateStr] && habitData[todayDateStr][h.id]).length;
+    const pending = habits.length - completed;
+
+    if (todayDonutChart) {
+        todayDonutChart.destroy();
+    }
+
+    todayDonutChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Completed', 'Pending'],
+            datasets: [{
+                data: [completed, pending],
+                backgroundColor: ['rgb(103, 80, 164)', 'rgba(103, 80, 164, 0.2)'],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+}
+
+/**
+ * Initialize Monthly Performance Chart (6 months)
+ */
+function initMonthlyPerformanceChart() {
+    const ctx = document.getElementById('monthlyPerformanceChart');
+    if (!ctx) return;
+
+    const labels = [];
+    const data = [];
+    const today = new Date();
+
+    for (let i = 5; i >= 0; i--) {
+        const date = new Date(today.getFullYear(), today.getMonth() - i, 1);
+        labels.push(date.toLocaleDateString('en-US', { month: 'short' }));
+
+        const year = date.getFullYear();
+        const month = date.getMonth();
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+        let monthTotal = 0;
+        let monthCompleted = 0;
+
+        habits.forEach(habit => {
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dateStr = new Date(year, month, day).toISOString().split('T')[0];
+                monthTotal++;
+                if (habitData[dateStr] && habitData[dateStr][habit.id]) {
+                    monthCompleted++;
+                }
+            }
+        });
+
+        const percentage = monthTotal > 0 ? Math.round((monthCompleted / monthTotal) * 100) : 0;
+        data.push(percentage);
+    }
+
+    if (monthlyPerformanceChart) {
+        monthlyPerformanceChart.destroy();
+    }
+
+    monthlyPerformanceChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Completion %',
+                data: data,
+                backgroundColor: 'rgb(103, 80, 164)',
+                borderRadius: 8
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 100,
+                    ticks: {
+                        callback: function (value) {
+                            return value + '%';
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+/**
+ * Update Enhanced Heatmap
+ */
+function updateEnhancedHeatmap() {
+    const periodFilter = document.getElementById('heatmapPeriodFilter').value;
+    const habitFilter = document.getElementById('heatmapHabitFilter').value;
+    const grid = document.getElementById('enhancedHeatmapGrid');
+
+    if (!grid) return;
+
+    // Update habit filter dropdown
+    const habitSelect = document.getElementById('heatmapHabitFilter');
+    habitSelect.innerHTML = '<option value="all">All Habits</option>';
+    habits.forEach(habit => {
+        const option = document.createElement('option');
+        option.value = habit.id;
+        option.textContent = habit.name;
+        habitSelect.appendChild(option);
+    });
+
+    // Calculate date range
+    const months = parseInt(periodFilter);
+    const today = new Date();
+    const startDate = new Date(today);
+    startDate.setMonth(startDate.getMonth() - months);
+
+    // Generate heatmap
+    grid.innerHTML = '';
+
+    // Month labels
+    const monthLabels = document.createElement('div');
+    monthLabels.className = 'heatmap-month-labels';
+
+    for (let m = 0; m < months; m++) {
+        const date = new Date(today);
+        date.setMonth(date.getMonth() - (months - m - 1));
+        const label = document.createElement('div');
+        label.textContent = date.toLocaleDateString('en-US', { month: 'short' });
+        monthLabels.appendChild(label);
+    }
+
+    grid.appendChild(monthLabels);
+
+    // Day labels
+    const dayLabels = document.createElement('div');
+    dayLabels.className = 'heatmap-day-labels';
+    ['S', 'M', 'T', 'W', 'T', 'F', 'S'].forEach(day => {
+        const label = document.createElement('div');
+        label.textContent = day;
+        dayLabels.appendChild(label);
+    });
+    grid.appendChild(dayLabels);
+
+    // Days grid
+    const daysGrid = document.createElement('div');
+    daysGrid.className = 'heatmap-days-grid';
+
+    const totalDays = Math.floor((today - startDate) / (1000 * 60 * 60 * 24));
+
+    for (let i = totalDays; i >= 0; i--) {
+        const date = new Date(today);
+        date.setDate(date.getDate() - i);
+        const dateStr = date.toISOString().split('T')[0];
+
+        let completedCount = 0;
+        let totalCount = 0;
+
+        if (habitFilter === 'all') {
+            totalCount = habits.length;
+            habits.forEach(habit => {
+                if (habitData[dateStr] && habitData[dateStr][habit.id]) {
+                    completedCount++;
+                }
+            });
+        } else {
+            const habit = habits.find(h => h.id === habitFilter);
+            if (habit) {
+                totalCount = 1;
+                if (habitData[dateStr] && habitData[dateStr][habit.id]) {
+                    completedCount = 1;
+                }
+            }
+        }
+
+        const percentage = totalCount > 0 ? (completedCount / totalCount) * 100 : 0;
+
+        const dayEl = document.createElement('div');
+        dayEl.className = 'enhanced-heatmap-day';
+
+        if (percentage === 0) {
+            dayEl.style.background = 'var(--color-surface-tone-3)';
+        } else if (percentage <= 25) {
+            dayEl.style.background = 'rgba(103, 80, 164, 0.25)';
+        } else if (percentage <= 50) {
+            dayEl.style.background = 'rgba(103, 80, 164, 0.5)';
+        } else if (percentage <= 75) {
+            dayEl.style.background = 'rgba(103, 80, 164, 0.75)';
+        } else {
+            dayEl.style.background = 'rgb(103, 80, 164)';
+        }
+
+        // Tooltip
+        dayEl.title = `${date.toLocaleDateString()}: ${completedCount}/${totalCount} (${Math.round(percentage)}%)`;
+
+        daysGrid.appendChild(dayEl);
+    }
+
+    grid.appendChild(daysGrid);
+}
+
+/**
+ * Update Trends Tab
+ */
+function updateTrendsTab() {
+    initThirtyDayTrendChart();
+    initStreakTimelineChart();
+}
+
+/**
+ * Initialize 30-Day Completion Trend Chart
+ */
+function initThirtyDayTrendChart() {
+    const ctx = document.getElementById('thirtyDayTrendChart');
+    if (!ctx) return;
+
+    const labels = [];
+    const data = [];
+    const today = new Date();
+
+    for (let i = 29; i >= 0; i--) {
+        const date = new Date(today);
+        date.setDate(date.getDate() - i);
+        const dateStr = date.toISOString().split('T')[0];
+
+        if (i % 5 === 0) {
+            labels.push(date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
+        } else {
+            labels.push('');
+        }
+
+        let dayCompleted = 0;
+        habits.forEach(habit => {
+            if (habitData[dateStr] && habitData[dateStr][habit.id]) {
+                dayCompleted++;
+            }
+        });
+
+        const percentage = habits.length > 0 ? Math.round((dayCompleted / habits.length) * 100) : 0;
+        data.push(percentage);
+    }
+
+    if (thirtyDayTrendChart) {
+        thirtyDayTrendChart.destroy();
+    }
+
+    thirtyDayTrendChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Completion %',
+                data: data,
+                borderColor: 'rgb(103, 80, 164)',
+                backgroundColor: 'rgba(103, 80, 164, 0.1)',
+                borderWidth: 2,
+                fill: true,
+                tension: 0.4,
+                pointRadius: 3,
+                pointBackgroundColor: 'rgb(103, 80, 164)'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 100,
+                    ticks: {
+                        callback: function (value) {
+                            return value + '%';
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+/**
+ * Initialize Streak Timeline Chart
+ */
+function initStreakTimelineChart() {
+    const ctx = document.getElementById('streakTimelineChart');
+    if (!ctx) return;
+
+    const labels = [];
+    const currentStreaks = [];
+    const bestStreaks = [];
+
+    habits.slice(0, 8).forEach(habit => {
+        labels.push(habit.name.length > 15 ? habit.name.substring(0, 15) + '...' : habit.name);
+
+        // Calculate current streak
+        let currentStreak = 0;
+        const today = new Date();
+        for (let i = 0; i < 365; i++) {
+            const date = new Date(today);
+            date.setDate(date.getDate() - i);
+            const dateStr = date.toISOString().split('T')[0];
+            if (habitData[dateStr] && habitData[dateStr][habit.id]) {
+                currentStreak++;
+            } else {
+                break;
+            }
+        }
+        currentStreaks.push(currentStreak);
+
+        // Calculate best streak
+        const bestStreak = calculateBestStreakAllTime(habit.id);
+        bestStreaks.push(bestStreak);
+    });
+
+    if (streakTimelineChart) {
+        streakTimelineChart.destroy();
+    }
+
+    streakTimelineChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    label: 'Current Streak',
+                    data: currentStreaks,
+                    backgroundColor: 'rgb(103, 80, 164)',
+                    borderRadius: 6
+                },
+                {
+                    label: 'Best Streak',
+                    data: bestStreaks,
+                    backgroundColor: 'rgba(103, 80, 164, 0.4)',
+                    borderRadius: 6
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'top'
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: { stepSize: 1 }
+                }
+            }
+        }
+    });
+}
+
+/**
+ * Update Insights Tab
+ */
+function updateInsightsTab() {
+    generateTopPerformers();
+    generateNeedsAttention();
+    initBestDaysChart();
+    generatePatternRecognition();
+}
+
+/**
+ * Generate Top Performers
+ */
+function generateTopPerformers() {
+    const container = document.getElementById('topPerformersContainer');
+    if (!container) return;
+
+    container.innerHTML = '';
+
+    if (habits.length === 0) {
+        container.innerHTML = '<p style="color: var(--color-on-surface-variant); text-align: center;">No habits tracked yet</p>';
+        return;
+    }
+
+    // Calculate 30-day completion rates
+    const habitScores = habits.map(habit => {
+        const rate = calculatePeriodRate(habit.id, 30);
+        return { habit, rate };
+    });
+
+    // Sort by rate
+    habitScores.sort((a, b) => b.rate - a.rate);
+
+    // Top 3
+    habitScores.slice(0, 3).forEach((item, index) => {
+        const card = document.createElement('div');
+        card.className = 'insight-card';
+        card.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+                <span class="material-symbols-outlined" style="font-size: 32px; color: ${index === 0 ? '#FFD700' : index === 1 ? '#C0C0C0' : '#CD7F32'};">
+                    ${index === 0 ? 'workspace_premium' : 'emoji_events'}
+                </span>
+                <div style="flex: 1;">
+                    <div style="font-weight: 600; font-size: 16px;">${item.habit.name}</div>
+                    <div style="color: var(--color-on-surface-variant); font-size: 14px;">30-day completion: ${item.rate}%</div>
+                </div>
+            </div>
+            <div style="background: var(--color-surface-tone-3); height: 8px; border-radius: 4px; overflow: hidden;">
+                <div style="background: rgb(103, 80, 164); height: 100%; width: ${item.rate}%; transition: width 0.3s;"></div>
+            </div>
+        `;
+        container.appendChild(card);
+    });
+}
+
+/**
+ * Generate Needs Attention List
+ */
+function generateNeedsAttention() {
+    const container = document.getElementById('needsAttentionContainer');
+    if (!container) return;
+
+    container.innerHTML = '';
+
+    if (habits.length === 0) {
+        container.innerHTML = '<p style="color: var(--color-on-surface-variant); text-align: center;">No habits tracked yet</p>';
+        return;
+    }
+
+    // Calculate 7-day completion rates
+    const habitScores = habits.map(habit => {
+        const rate = calculatePeriodRate(habit.id, 7);
+        return { habit, rate };
+    });
+
+    // Sort by rate (ascending)
+    habitScores.sort((a, b) => a.rate - b.rate);
+
+    // Bottom 3
+    habitScores.slice(0, 3).forEach(item => {
+        const card = document.createElement('div');
+        card.className = 'insight-card';
+        card.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+                <span class="material-symbols-outlined" style="font-size: 32px; color: var(--color-error);">
+                    error
+                </span>
+                <div style="flex: 1;">
+                    <div style="font-weight: 600; font-size: 16px;">${item.habit.name}</div>
+                    <div style="color: var(--color-on-surface-variant); font-size: 14px;">Only ${item.rate}% completion this week</div>
+                </div>
+            </div>
+            <div style="background: var(--color-surface-tone-3); height: 8px; border-radius: 4px; overflow: hidden;">
+                <div style="background: var(--color-error); height: 100%; width: ${item.rate}%; transition: width 0.3s;"></div>
+            </div>
+        `;
+        container.appendChild(card);
+    });
+}
+
+/**
+ * Initialize Best Days Chart
+ */
+function initBestDaysChart() {
+    const ctx = document.getElementById('bestDaysChart');
+    if (!ctx) return;
+
+    const { dayNames, percentages } = getDayOfWeekData();
+
+    if (bestDaysChart) {
+        bestDaysChart.destroy();
+    }
+
+    bestDaysChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: dayNames,
+            datasets: [{
+                label: 'Completion %',
+                data: percentages,
+                backgroundColor: 'rgb(103, 80, 164)',
+                borderRadius: 8
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 100,
+                    ticks: {
+                        callback: function (value) {
+                            return value + '%';
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+/**
+ * Generate Pattern Recognition
+ */
+function generatePatternRecognition() {
+    const container = document.getElementById('patternRecognitionContainer');
+    if (!container) return;
+
+    container.innerHTML = '';
+
+    if (habits.length === 0) {
+        container.innerHTML = '<p style="color: var(--color-on-surface-variant); text-align: center;">No habits tracked yet</p>';
+        return;
+    }
+
+    const { dayNames, percentages } = getDayOfWeekData();
+
+    // Find best and worst days
+    const maxIndex = percentages.indexOf(Math.max(...percentages));
+    const minIndex = percentages.indexOf(Math.min(...percentages));
+
+    // Best day pattern
+    const bestCard = document.createElement('div');
+    bestCard.className = 'insight-card';
+    bestCard.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <span class="material-symbols-outlined" style="font-size: 32px; color: rgb(103, 80, 164);">
+                trending_up
+            </span>
+            <div>
+                <div style="font-weight: 600; font-size: 16px;">Best Day</div>
+                <div style="color: var(--color-on-surface-variant); font-size: 14px;">
+                    ${dayNames[maxIndex]} - ${percentages[maxIndex]}% completion rate
+                </div>
+            </div>
+        </div>
+    `;
+    container.appendChild(bestCard);
+
+    // Worst day pattern
+    const worstCard = document.createElement('div');
+    worstCard.className = 'insight-card';
+    worstCard.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <span class="material-symbols-outlined" style="font-size: 32px; color: var(--color-error);">
+                trending_down
+            </span>
+            <div>
+                <div style="font-weight: 600; font-size: 16px;">Needs Improvement</div>
+                <div style="color: var(--color-on-surface-variant); font-size: 14px;">
+                    ${dayNames[minIndex]} - ${percentages[minIndex]}% completion rate
+                </div>
+            </div>
+        </div>
+    `;
+    container.appendChild(worstCard);
+
+    // Consistency pattern
+    const consistencyScore = calculateConsistencyScore();
+    const consistencyCard = document.createElement('div');
+    consistencyCard.className = 'insight-card';
+    const consistencyLevel = consistencyScore >= 80 ? 'Excellent' : consistencyScore >= 60 ? 'Good' : consistencyScore >= 40 ? 'Fair' : 'Needs Work';
+    const consistencyColor = consistencyScore >= 80 ? 'rgb(103, 80, 164)' : consistencyScore >= 60 ? '#4CAF50' : consistencyScore >= 40 ? '#FF9800' : 'var(--color-error)';
+
+    consistencyCard.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <span class="material-symbols-outlined" style="font-size: 32px; color: ${consistencyColor};">
+                insights
+            </span>
+            <div>
+                <div style="font-weight: 600; font-size: 16px;">Consistency Level</div>
+                <div style="color: var(--color-on-surface-variant); font-size: 14px;">
+                    ${consistencyLevel} - ${consistencyScore}% over last 30 days
+                </div>
+            </div>
+        </div>
+    `;
+    container.appendChild(consistencyCard);
+}
+
+/**
+ * Update Compare Tab
+ */
+function updateCompareTab() {
+    populateComparisonTable();
+    initHeadToHeadChart();
+}
+
+/**
+ * Populate Comparison Table
+ */
+function populateComparisonTable() {
+    const tbody = document.querySelector('#comparisonTable tbody');
+    if (!tbody) return;
+
+    tbody.innerHTML = '';
+
+    habits.forEach(habit => {
+        const rate7 = calculatePeriodRate(habit.id, 7);
+        const rate30 = calculatePeriodRate(habit.id, 30);
+        const bestStreak = calculateBestStreakAllTime(habit.id);
+
+        // Current streak
+        let currentStreak = 0;
+        const today = new Date();
+        for (let i = 0; i < 365; i++) {
+            const date = new Date(today);
+            date.setDate(date.getDate() - i);
+            const dateStr = date.toISOString().split('T')[0];
+            if (habitData[dateStr] && habitData[dateStr][habit.id]) {
+                currentStreak++;
+            } else {
+                break;
+            }
+        }
+
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td style="font-weight: 600;">${habit.name}</td>
+            <td>${rate7}%</td>
+            <td>${rate30}%</td>
+            <td>${currentStreak}</td>
+            <td>${bestStreak}</td>
+        `;
+        tbody.appendChild(row);
+    });
+}
+
+/**
+ * Initialize Head-to-Head Comparison Chart
+ */
+function initHeadToHeadChart() {
+    const ctx = document.getElementById('headToHeadChart');
+    if (!ctx) return;
+
+    const select1 = document.getElementById('compareHabit1');
+    const select2 = document.getElementById('compareHabit2');
+
+    // Populate selects
+    select1.innerHTML = '';
+    select2.innerHTML = '';
+
+    habits.forEach((habit, index) => {
+        const option1 = document.createElement('option');
+        option1.value = habit.id;
+        option1.textContent = habit.name;
+        if (index === 0) option1.selected = true;
+        select1.appendChild(option1);
+
+        const option2 = document.createElement('option');
+        option2.value = habit.id;
+        option2.textContent = habit.name;
+        if (index === 1 || (index === 0 && habits.length === 1)) option2.selected = true;
+        select2.appendChild(option2);
+    });
+
+    // Draw chart
+    drawHeadToHeadChart();
+}
+
+/**
+ * Draw Head-to-Head Chart
+ */
+function drawHeadToHeadChart() {
+    const ctx = document.getElementById('headToHeadChart');
+    if (!ctx) return;
+
+    const select1 = document.getElementById('compareHabit1');
+    const select2 = document.getElementById('compareHabit2');
+
+    const habit1 = habits.find(h => h.id === select1.value);
+    const habit2 = habits.find(h => h.id === select2.value);
+
+    if (!habit1 || !habit2) return;
+
+    const labels = [];
+    const data1 = [];
+    const data2 = [];
+    const today = new Date();
+
+    for (let i = 13; i >= 0; i--) {
+        const date = new Date(today);
+        date.setDate(date.getDate() - i);
+        const dateStr = date.toISOString().split('T')[0];
+
+        labels.push(date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
+        data1.push(habitData[dateStr] && habitData[dateStr][habit1.id] ? 1 : 0);
+        data2.push(habitData[dateStr] && habitData[dateStr][habit2.id] ? 1 : 0);
+    }
+
+    if (headToHeadChart) {
+        headToHeadChart.destroy();
+    }
+
+    headToHeadChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    label: habit1.name,
+                    data: data1,
+                    borderColor: 'rgb(103, 80, 164)',
+                    backgroundColor: 'rgba(103, 80, 164, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 5,
+                    pointBackgroundColor: 'rgb(103, 80, 164)'
+                },
+                {
+                    label: habit2.name,
+                    data: data2,
+                    borderColor: 'rgb(233, 30, 99)',
+                    backgroundColor: 'rgba(233, 30, 99, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 5,
+                    pointBackgroundColor: 'rgb(233, 30, 99)'
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'top'
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 1,
+                    ticks: {
+                        stepSize: 1,
+                        callback: function (value) {
+                            return value === 1 ? 'Done' : 'Not Done';
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+/**
+ * Update all analytics
+ */
+function updateAllAnalytics() {
+    if (currentAnalyticsTab) {
+        updateAnalyticsTab(currentAnalyticsTab);
+    }
+}
+
+// Add event listeners for filters
+document.addEventListener('DOMContentLoaded', function () {
+    const heatmapPeriodFilter = document.getElementById('heatmapPeriodFilter');
+    const heatmapHabitFilter = document.getElementById('heatmapHabitFilter');
+    const compareHabit1 = document.getElementById('compareHabit1');
+    const compareHabit2 = document.getElementById('compareHabit2');
+
+    if (heatmapPeriodFilter) {
+        heatmapPeriodFilter.addEventListener('change', updateEnhancedHeatmap);
+    }
+    if (heatmapHabitFilter) {
+        heatmapHabitFilter.addEventListener('change', updateEnhancedHeatmap);
+    }
+    if (compareHabit1) {
+        compareHabit1.addEventListener('change', drawHeadToHeadChart);
+    }
+    if (compareHabit2) {
+        compareHabit2.addEventListener('change', drawHeadToHeadChart);
+    }
+});
+
+init();
