@@ -3031,6 +3031,159 @@ window.switchTab = function (tabName) {
     if (tabName === 'analytics') {
         renderProgressView();
     }
+
+    // Render profile when switching to profile tab
+    if (tabName === 'profile') {
+        renderProfile();
+    }
+};
+
+// ========================================
+// PROFILE TAB: Render Profile Data
+// ========================================
+function renderProfile() {
+    // Get user info from Firebase auth
+    if (auth.currentUser) {
+        const displayName = auth.currentUser.displayName || 'User';
+        const email = auth.currentUser.email || 'user@example.com';
+        const avatar = displayName.charAt(0).toUpperCase();
+
+        document.getElementById('profileName').textContent = displayName;
+        document.getElementById('profileEmail').textContent = email;
+        document.getElementById('profileAvatar').textContent = avatar;
+    }
+
+    // Calculate stats
+    const totalHabits = habits.length;
+    const totalReps = calculateTotalReps();
+    const bestStreak = calculateBestStreak();
+
+    document.getElementById('profileTotalHabits').textContent = totalHabits;
+    document.getElementById('profileTotalReps').textContent = totalReps;
+    document.getElementById('profileBestStreak').textContent = bestStreak;
+
+    // Update toggle states
+    updateProfileToggles();
+}
+
+// ========================================
+// PROFILE TAB: Calculate Best Streak
+// ========================================
+function calculateBestStreak() {
+    let bestStreak = 0;
+
+    habits.forEach(habit => {
+        const streak = getHabitCompletionCount(habit.id);
+        if (streak > bestStreak) {
+            bestStreak = streak;
+        }
+    });
+
+    return bestStreak;
+}
+
+// ========================================
+// PROFILE TAB: Update Toggle States
+// ========================================
+function updateProfileToggles() {
+    // Theme toggle
+    const themeToggle = document.getElementById('themeToggle');
+    const isDarkMode = document.body.classList.contains('dark-mode');
+    if (themeToggle) {
+        themeToggle.classList.toggle('active', isDarkMode);
+    }
+
+    // Haptics toggle
+    const hapticsToggle = document.getElementById('hapticsToggle');
+    if (hapticsToggle && window.haptics) {
+        hapticsToggle.classList.toggle('active', window.haptics.isEnabled());
+    }
+
+    // Celebrations toggle
+    const celebrationsToggle = document.getElementById('celebrationsToggle');
+    if (celebrationsToggle && window.celebrationModal) {
+        celebrationsToggle.classList.toggle('active', window.celebrationModal.isEnabled());
+    }
+}
+
+// ========================================
+// PROFILE TAB: Toggle Theme
+// ========================================
+window.toggleTheme = function () {
+    document.body.classList.toggle('dark-mode');
+    const isDarkMode = document.body.classList.contains('dark-mode');
+    localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
+
+    // Update toggle UI
+    const themeToggle = document.getElementById('themeToggle');
+    if (themeToggle) {
+        themeToggle.classList.toggle('active', isDarkMode);
+    }
+
+    // Trigger haptic feedback
+    if (window.haptics) {
+        window.haptics.tapComplete();
+    }
+};
+
+// ========================================
+// PROFILE TAB: Toggle Haptics
+// ========================================
+window.toggleHaptics = function () {
+    if (!window.haptics) return;
+
+    const newState = !window.haptics.isEnabled();
+    window.haptics.setEnabled(newState);
+
+    // Update toggle UI
+    const hapticsToggle = document.getElementById('hapticsToggle');
+    if (hapticsToggle) {
+        hapticsToggle.classList.toggle('active', newState);
+    }
+
+    // Trigger haptic feedback if enabling
+    if (newState) {
+        window.haptics.tapComplete();
+    }
+};
+
+// ========================================
+// PROFILE TAB: Toggle Celebrations
+// ========================================
+window.toggleCelebrations = function () {
+    if (!window.celebrationModal) return;
+
+    const newState = !window.celebrationModal.isEnabled();
+    window.celebrationModal.setEnabled(newState);
+
+    // Update toggle UI
+    const celebrationsToggle = document.getElementById('celebrationsToggle');
+    if (celebrationsToggle) {
+        celebrationsToggle.classList.toggle('active', newState);
+    }
+
+    // Trigger haptic feedback
+    if (window.haptics) {
+        window.haptics.tapComplete();
+    }
+};
+
+// ========================================
+// PROFILE TAB: Handle Logout
+// ========================================
+window.handleLogout = async function () {
+    if (!confirm('Are you sure you want to log out?')) {
+        return;
+    }
+
+    try {
+        await signOut(auth);
+        // Redirect to login (auth state change listener will handle UI update)
+        window.location.reload();
+    } catch (error) {
+        console.error('Error signing out:', error);
+        alert('Failed to log out. Please try again.');
+    }
 };
 
 init();
