@@ -1566,7 +1566,10 @@ window.updateWelcomeMessage = function() {
 
     if (window.auth && window.auth.currentUser) {
         const user = window.auth.currentUser;
-        const displayName = user.displayName || user.email?.split('@')[0] || 'there';
+
+        // Try to get display name from user details first
+        const userDetails = getUserDetails();
+        const displayName = userDetails.displayName || user.displayName || user.email?.split('@')[0] || 'there';
         const firstName = displayName.split(' ')[0];
 
         const hour = new Date().getHours();
@@ -1575,6 +1578,98 @@ window.updateWelcomeMessage = function() {
         else if (hour < 18) greeting = 'Good afternoon';
 
         welcomeGreeting.textContent = `${greeting}, ${firstName}!`;
+    }
+};
+
+// ==========================================
+// USER DETAILS FUNCTIONS
+// ==========================================
+
+window.getUserDetails = function() {
+    const userId = window.auth?.currentUser?.uid;
+    if (!userId) return { displayName: '', bio: '', avatar: '👤' };
+
+    const key = `userDetails_${userId}`;
+    const stored = localStorage.getItem(key);
+
+    if (stored) {
+        try {
+            return JSON.parse(stored);
+        } catch (e) {
+            return { displayName: '', bio: '', avatar: '👤' };
+        }
+    }
+
+    return { displayName: '', bio: '', avatar: '👤' };
+};
+
+window.saveUserDetails = function(event) {
+    event.preventDefault();
+
+    const userId = window.auth?.currentUser?.uid;
+    if (!userId) {
+        alert('User not authenticated');
+        return;
+    }
+
+    const displayName = document.getElementById('userDisplayName').value.trim();
+    const bio = document.getElementById('userBio').value.trim();
+    const avatar = document.getElementById('selectedAvatar').value;
+
+    const userDetails = {
+        displayName,
+        bio,
+        avatar
+    };
+
+    const key = `userDetails_${userId}`;
+    localStorage.setItem(key, JSON.stringify(userDetails));
+
+    // Update welcome message with new name
+    if (window.updateWelcomeMessage) {
+        window.updateWelcomeMessage();
+    }
+
+    // Update profile display
+    renderProfile();
+
+    // Show success feedback
+    const btn = event.target.querySelector('button[type="submit"]');
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<span class="material-symbols-outlined">check</span> Saved!';
+    btn.style.background = 'var(--color-tertiary)';
+
+    setTimeout(() => {
+        btn.innerHTML = originalText;
+        btn.style.background = '';
+    }, 2000);
+};
+
+window.selectAvatar = function(emoji) {
+    // Update hidden input
+    document.getElementById('selectedAvatar').value = emoji;
+
+    // Update visual selection
+    document.querySelectorAll('.avatar-option').forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.dataset.avatar === emoji) {
+            btn.classList.add('active');
+        }
+    });
+};
+
+window.loadUserDetailsForm = function() {
+    const userDetails = getUserDetails();
+
+    const displayNameInput = document.getElementById('userDisplayName');
+    const bioInput = document.getElementById('userBio');
+    const avatarInput = document.getElementById('selectedAvatar');
+
+    if (displayNameInput) displayNameInput.value = userDetails.displayName || '';
+    if (bioInput) bioInput.value = userDetails.bio || '';
+    if (avatarInput) {
+        avatarInput.value = userDetails.avatar || '👤';
+        selectAvatar(userDetails.avatar || '👤');
     }
 };
 
@@ -3054,11 +3149,12 @@ function generateMilestoneBadges(reps) {
 // PROFILE TAB: Render Profile Data
 // ========================================
 function renderProfile() {
-    // Get user info from Firebase auth
+    // Get user info from Firebase auth and user details
     if (window.auth && window.auth.currentUser) {
-        const displayName = window.auth.currentUser.displayName || 'User';
+        const userDetails = getUserDetails();
+        const displayName = userDetails.displayName || window.auth.currentUser.displayName || 'User';
         const email = window.auth.currentUser.email || 'user@example.com';
-        const avatar = displayName.charAt(0).toUpperCase();
+        const avatar = userDetails.avatar || displayName.charAt(0).toUpperCase();
 
         document.getElementById('profileName').textContent = displayName;
         document.getElementById('profileEmail').textContent = email;
@@ -3076,6 +3172,9 @@ function renderProfile() {
 
     // Update toggle states
     updateProfileToggles();
+
+    // Load user details form
+    loadUserDetailsForm();
 }
 
 // ========================================

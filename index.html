@@ -2944,6 +2944,77 @@
             color: var(--color-on-surface-variant);
             font-weight: 500;
         }
+
+        /* Form Elements */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--color-on-surface);
+            margin-bottom: 8px;
+        }
+
+        .form-input, .form-textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid var(--color-outline);
+            border-radius: 12px;
+            font-size: 15px;
+            color: var(--color-on-surface);
+            background: var(--color-surface);
+            transition: border-color 200ms ease;
+            box-sizing: border-box;
+        }
+
+        .form-input:focus, .form-textarea:focus {
+            outline: none;
+            border-color: var(--color-primary);
+        }
+
+        .form-textarea {
+            resize: vertical;
+            font-family: inherit;
+        }
+
+        .form-hint {
+            font-size: 12px;
+            color: var(--color-on-surface-variant);
+            margin: 6px 0 0 0;
+        }
+
+        .avatar-picker {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+        }
+
+        .avatar-option {
+            width: 100%;
+            aspect-ratio: 1;
+            font-size: 32px;
+            border: 2px solid var(--color-outline);
+            border-radius: 12px;
+            background: var(--color-surface);
+            cursor: pointer;
+            transition: all 200ms ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .avatar-option:hover {
+            border-color: var(--color-primary);
+            transform: scale(1.05);
+        }
+
+        .avatar-option.active {
+            border-color: var(--color-primary);
+            background: var(--color-primary-container);
+        }
     </style>
 </head>
 
@@ -3428,6 +3499,60 @@
                     <div class="profile-avatar" id="profileAvatar">👤</div>
                     <h2 class="profile-name" id="profileName">User</h2>
                     <p class="profile-email" id="profileEmail">user@example.com</p>
+                </div>
+
+                <!-- Personal Details Section -->
+                <div class="profile-section">
+                    <h3 class="profile-section-title">Personal Details</h3>
+                    <p style="font-size: 13px; color: var(--color-on-surface-variant); margin: 0 0 16px;">
+                        Help us personalize your experience
+                    </p>
+
+                    <form id="userDetailsForm" onsubmit="saveUserDetails(event)">
+                        <div class="form-group">
+                            <label for="userDisplayName">Display Name</label>
+                            <input
+                                type="text"
+                                id="userDisplayName"
+                                name="displayName"
+                                placeholder="How should we call you?"
+                                class="form-input"
+                            />
+                            <p class="form-hint">Used in welcome messages and profile</p>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="userBio">Bio (Optional)</label>
+                            <textarea
+                                id="userBio"
+                                name="bio"
+                                placeholder="Tell us a bit about yourself..."
+                                class="form-textarea"
+                                rows="3"
+                            ></textarea>
+                            <p class="form-hint">Share your motivation or goals</p>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="userAvatar">Choose Avatar</label>
+                            <div class="avatar-picker" id="avatarPicker">
+                                <button type="button" class="avatar-option active" data-avatar="👤" onclick="selectAvatar('👤')">👤</button>
+                                <button type="button" class="avatar-option" data-avatar="😊" onclick="selectAvatar('😊')">😊</button>
+                                <button type="button" class="avatar-option" data-avatar="🚀" onclick="selectAvatar('🚀')">🚀</button>
+                                <button type="button" class="avatar-option" data-avatar="💪" onclick="selectAvatar('💪')">💪</button>
+                                <button type="button" class="avatar-option" data-avatar="⚡" onclick="selectAvatar('⚡')">⚡</button>
+                                <button type="button" class="avatar-option" data-avatar="🎯" onclick="selectAvatar('🎯')">🎯</button>
+                                <button type="button" class="avatar-option" data-avatar="🌟" onclick="selectAvatar('🌟')">🌟</button>
+                                <button type="button" class="avatar-option" data-avatar="🔥" onclick="selectAvatar('🔥')">🔥</button>
+                            </div>
+                            <input type="hidden" id="selectedAvatar" name="avatar" value="👤" />
+                        </div>
+
+                        <button type="submit" class="profile-action-btn primary">
+                            <span class="material-symbols-outlined">save</span>
+                            Save Details
+                        </button>
+                    </form>
                 </div>
 
                 <!-- Stats Summary -->
