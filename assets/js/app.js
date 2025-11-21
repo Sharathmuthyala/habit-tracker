@@ -385,7 +385,7 @@ window.goToToday = function () {
     window.updateDisplay();
 }
 
-// Render concentric rings (limit to 5 habits)
+// Render concentric rings (dynamically based on habit count)
 window.renderConcentricRings = function () {
     const svg = document.getElementById('concentricRings');
     const centerText = document.getElementById('ringsCenterText');
@@ -394,24 +394,44 @@ window.renderConcentricRings = function () {
     // Clear existing rings
     svg.innerHTML = '';
 
-    // Get top 5 habits by streak or creation order
-    const topHabits = habits.slice(0, 5);
     const dateStr = getDateString(currentViewDate);
     const dayData = habitData[dateStr] || {};
 
+    // Filter applicable habits for current date
+    const applicableHabits = habits.filter(habit => {
+        return !(habit.schedule === 'weekdays' && !isWeekday(currentViewDate));
+    });
+
+    // Calculate dynamic ring parameters based on number of habits
+    const habitCount = applicableHabits.length;
+
+    if (habitCount === 0) {
+        centerText.textContent = '0/0';
+        return;
+    }
+
+    // Dynamic ring sizing
+    const maxRadius = 90;
+    const minRadius = 20;
+    const centerSize = 15; // Reserved space in center for text
+
+    // Calculate spacing between rings
+    let ringSpacing;
+    if (habitCount === 1) {
+        ringSpacing = 0; // Single ring at max radius
+    } else {
+        ringSpacing = (maxRadius - minRadius - centerSize) / (habitCount - 1);
+    }
+
     let completedCount = 0;
-    let totalCount = 0;
+    const strokeWidth = Math.max(8, Math.min(14, 100 / habitCount)); // Dynamic stroke width
 
-    topHabits.forEach((habit, index) => {
-        const isApplicable = !(habit.schedule === 'weekdays' && !isWeekday(currentViewDate));
-        if (!isApplicable) return;
-
-        totalCount++;
+    applicableHabits.forEach((habit, index) => {
         const isCompleted = dayData[habit.id] || false;
         if (isCompleted) completedCount++;
 
-        // Calculate ring parameters
-        const radius = 90 - (index * 15); // Decreasing radius for each ring
+        // Calculate radius (outermost ring first)
+        const radius = habitCount === 1 ? maxRadius : maxRadius - (index * ringSpacing);
         const circumference = 2 * Math.PI * radius;
         const progress = isCompleted ? 1 : 0;
         const dashOffset = circumference * (1 - progress);
@@ -441,22 +461,39 @@ window.renderConcentricRings = function () {
         gradient.appendChild(stop2);
         defs.appendChild(gradient);
 
-        // Create ring path
+        // Create background ring (gray)
+        const bgCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        bgCircle.setAttribute('class', 'ring-bg');
+        bgCircle.setAttribute('cx', '100');
+        bgCircle.setAttribute('cy', '100');
+        bgCircle.setAttribute('r', radius);
+        bgCircle.setAttribute('stroke', 'var(--color-outline)');
+        bgCircle.setAttribute('stroke-width', strokeWidth);
+        bgCircle.setAttribute('fill', 'none');
+        bgCircle.setAttribute('opacity', '0.3');
+
+        svg.appendChild(bgCircle);
+
+        // Create progress ring
         const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
         circle.setAttribute('class', 'ring-path');
         circle.setAttribute('cx', '100');
         circle.setAttribute('cy', '100');
         circle.setAttribute('r', radius);
         circle.setAttribute('stroke', `url(#${gradientId})`);
+        circle.setAttribute('stroke-width', strokeWidth);
+        circle.setAttribute('fill', 'none');
+        circle.setAttribute('stroke-linecap', 'round');
         circle.setAttribute('stroke-dasharray', circumference);
         circle.setAttribute('stroke-dashoffset', dashOffset);
         circle.setAttribute('transform', 'rotate(-90 100 100)');
+        circle.setAttribute('style', `transition: stroke-dashoffset 0.5s ease-out;`);
 
         svg.appendChild(circle);
     });
 
     // Update center text
-    centerText.textContent = `${completedCount}/${totalCount}`;
+    centerText.textContent = `${completedCount}/${habitCount}`;
 }
 
 // Display motivational quote
@@ -730,14 +767,16 @@ window.saveHabit = async function () {
         schedule,
         color,
         why: why || '', // Save the "why"
-        createdAt: window.fb.serverTimestamp() // Add/update server timestamp
+        createdAt: window.fb ? window.fb.serverTimestamp() : new Date().toISOString() // Add/update timestamp
     };
 
     if (id) {
         // --- Update existing habit ---
         try {
             const habitRef = window.fb.doc(window.db, 'users', userId, 'userHabits', id);
-            await window.fb.setDoc(habitRef, habitData, { merge: true }); // Use setDoc with merge
+            // Don't update createdAt for existing habits
+            const { createdAt: _, ...updateData } = habitData;
+            await window.fb.setDoc(habitRef, updateData, { merge: true }); // Use setDoc with merge
             showSnackbar("Habit updated!");
         } catch (error) {
             console.error("Error updating habit:", error);
@@ -900,6 +939,36 @@ window.handleHabitTap = async function (habitId) {
     const habit = habits.find(h => h.id === habitId);
 
     if (!habit || !card || !checkbox) return;
+
+    // Prevent checking habits for past dates if habit was created after that date
+    let habitCreationDate = null;
+    if (habit.createdAt) {
+        // Handle both Firebase Timestamp and ISO string
+        if (habit.createdAt.toDate) {
+            // Firebase Timestamp object
+            habitCreationDate = habit.createdAt.toDate();
+        } else if (habit.createdAt.seconds) {
+            // Firebase Timestamp as plain object
+            habitCreationDate = new Date(habit.createdAt.seconds * 1000);
+        } else {
+            // ISO string
+            habitCreationDate = new Date(habit.createdAt);
+        }
+    }
+
+    const viewingDate = new Date(currentViewDate);
+
+    // Normalize dates to midnight for comparison
+    if (habitCreationDate) {
+        habitCreationDate.setHours(0, 0, 0, 0);
+    }
+    viewingDate.setHours(0, 0, 0, 0);
+
+    // Check if trying to complete a habit before it was created
+    if (habitCreationDate && viewingDate < habitCreationDate) {
+        showSnackbar(`Cannot check "${habit.name}" - it was created after this date`, true);
+        return;
+    }
 
     const wasCompleted = checkbox.checked;
     const willBeCompleted = !wasCompleted;
