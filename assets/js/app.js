@@ -14,6 +14,7 @@ setTimeout(() => {
                 if (appContainer) appContainer.classList.add('show');
 
                 if (window.loadAllData) window.loadAllData();
+                if (window.updateWelcomeMessage) window.updateWelcomeMessage();
             } else {
                 window.currentUser = null;
                 console.log('User is signed out');
@@ -1553,7 +1554,30 @@ function init() {
     applyInitialTheme();
     populateColorPicker();
     goToToday(); // Sets initial date and calls updateDisplay
+    updateWelcomeMessage(); // Update welcome with user's name
 }
+
+// ==========================================
+// WELCOME MESSAGE
+// ==========================================
+window.updateWelcomeMessage = function() {
+    const welcomeGreeting = document.getElementById('welcomeGreeting');
+    if (!welcomeGreeting) return;
+
+    if (window.auth && window.auth.currentUser) {
+        const user = window.auth.currentUser;
+        const displayName = user.displayName || user.email?.split('@')[0] || 'there';
+        const firstName = displayName.split(' ')[0];
+
+        const hour = new Date().getHours();
+        let greeting = 'Good evening';
+        if (hour < 12) greeting = 'Good morning';
+        else if (hour < 18) greeting = 'Good afternoon';
+
+        welcomeGreeting.textContent = `${greeting}, ${firstName}!`;
+    }
+};
+
 // ==========================================
 // ANALYTICS FUNCTIONS
 // ==========================================

@@ -418,85 +418,39 @@
             display: block;
         }
 
-        /* App Bar */
-        .app-bar {
-            background: var(--color-primary);
-            color: var(--color-on-primary);
-            padding: 24px 20px;
-            /* Use shadow for depth */
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            transition: box-shadow var(--motion-fast);
+        /* Welcome Message */
+        .welcome-message {
+            padding: 24px 16px 16px;
+            text-align: center;
         }
 
-        /* NEW: Dynamic app bar shadow on scroll */
-        .app-bar.scrolled {
-            box-shadow: 0 2px 6px rgba(60, 64, 67, 0.25);
-            /* elevation-2 */
+        .welcome-greeting {
+            font-size: 28px;
+            font-weight: 600;
+            color: var(--color-on-surface);
+            margin: 0 0 8px 0;
         }
 
-        .app-bar-content {
-            max-width: 1200px;
-            margin: 0 auto;
-            display: flex;
-            justify-content: space-between;
+        .welcome-subtitle {
+            font-size: 15px;
+            color: var(--color-on-surface-variant);
+            margin: 0 0 12px 0;
+        }
+
+        .sync-status-inline {
+            display: inline-flex;
             align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            background: var(--color-primary-container);
+            color: var(--color-on-primary-container);
+            border-radius: 16px;
+            font-size: 13px;
+            font-weight: 500;
         }
 
-        .app-title {
-            /* 5. Typography: --font-headline */
-            font: var(--font-headline);
-            letter-spacing: 0;
-            margin-bottom: 8px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .app-title .material-symbols-outlined {
-            color: var(--color-on-primary);
-            font-size: 32px;
-        }
-
-        .app-subtitle {
-            font: var(--font-label);
+        .sync-status-inline .material-symbols-outlined {
             font-size: 16px;
-            opacity: 0.9;
-            font-weight: var(--font-weight-regular);
-        }
-
-        .app-bar-actions {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            /* Reduced gap */
-        }
-
-        .sync-status {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            /* Center the icon */
-            gap: 8px;
-            padding: 8px;
-            /* Reduced padding for icon-only */
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: var(--radius-full);
-            font: var(--font-label);
-            backdrop-filter: blur(10px);
-            width: 40px;
-            /* Fixed size for circle */
-            height: 40px;
-        }
-
-        .sync-status .material-symbols-outlined {
-            color: var(--color-on-primary);
-            font-size: 20px;
-            /* Slightly smaller icon */
-            margin: 0;
-            /* Remove potential margins */
         }
 
         .sync-status.syncing .material-symbols-outlined {
@@ -2545,6 +2499,15 @@
             box-shadow: 0 2px 6px rgba(26, 115, 232, 0.3);
         }
 
+        /* Progress View Toggle */
+        .progress-view {
+            display: none;
+        }
+
+        .progress-view.active {
+            display: block;
+        }
+
         /* Total Reps Card */
         .total-reps-card {
             background: var(--color-surface);
@@ -3021,36 +2984,18 @@
     <!-- Main App Content -->
     <div class="app-container" id="appContainer">
         <!-- App Bar -->
-        <div class="app-bar" id="appBar">
-            <div class="app-bar-content">
-                <div>
-                    <div class="app-title">
-                        <span class="material-symbols-outlined">task_alt</span>
-                        Habit Tracker
-                    </div>
-                    <div class="app-subtitle">Build consistency, one day at a time</div>
-                </div>
-                <div class="app-bar-actions">
-                    <!-- REFINEMENT: Principle #2 - Replace "Synced" with icon -->
-                    <div class="sync-status" id="syncStatus" title="Sync Status">
-                        <span class="material-symbols-outlined">cloud_done</span>
-                    </div>
-
-                    <!-- REFINEMENT: Principle #7 - Add Dark Mode Toggle -->
-                    <button class="theme-toggle-button state-layer-on-primary" onclick="toggleDarkMode()"
-                        aria-label="Toggle dark mode">
-                        <span class="material-symbols-outlined" id="icon-light-mode">light_mode</span>
-                        <span class="material-symbols-outlined" id="icon-dark-mode">dark_mode</span>
-                    </button>
-
-                    <button class="text-button state-layer-on-primary" onclick="handleSignOut()">Sign Out</button>
-                </div>
-            </div>
-        </div>
-
         <!-- TAB 1: HABITS -->
         <div class="tab-content active" id="habits-tab">
             <div class="container">
+                <!-- Welcome Message -->
+                <div class="welcome-message" id="welcomeMessage">
+                    <h2 class="welcome-greeting" id="welcomeGreeting">Welcome back!</h2>
+                    <p class="welcome-subtitle">Let's build great habits today</p>
+                    <div class="sync-status-inline" id="syncStatus" title="Sync Status">
+                        <span class="material-symbols-outlined">cloud_done</span>
+                        <span>Synced</span>
+                    </div>
+                </div>
                 <!-- Setup Banner (for Firebase config) -->
             <div class="setup-banner" id="setupBanner">
                 <h3>
