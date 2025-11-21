@@ -3055,22 +3055,6 @@ function renderProfile() {
 }
 
 // ========================================
-// PROFILE TAB: Calculate Best Streak
-// ========================================
-function calculateBestStreak() {
-    let bestStreak = 0;
-
-    habits.forEach(habit => {
-        const streak = getHabitCompletionCount(habit.id);
-        if (streak > bestStreak) {
-            bestStreak = streak;
-        }
-    });
-
-    return bestStreak;
-}
-
-// ========================================
 // PROFILE TAB: Update Toggle States
 // ========================================
 function updateProfileToggles() {
