@@ -874,19 +874,29 @@ window.renderHabits = function () {
                 ${whyHtml}
             </div>
             <div class="habit-menu dropdown">
-                <button class="icon-button state-layer-secondary" onclick="toggleDropdown(event, '${habit.id}'); event.stopPropagation();">
+                <button class="icon-button state-layer-secondary"
+                        onclick="toggleDropdown(event, '${habit.id}'); event.stopPropagation();"
+                        aria-expanded="false"
+                        aria-label="Habit options menu"
+                        aria-haspopup="true">
                     <span class="material-symbols-outlined">more_vert</span>
                 </button>
-                <div class="dropdown-content" id="dropdown-${habit.id}">
-                    <button class="dropdown-item state-layer-secondary" onclick="openHeatmapModal(event, '${habit.id}', '${habit.name}', '${habit.color}'); event.stopPropagation();">
+                <div class="dropdown-content" id="dropdown-${habit.id}" role="menu">
+                    <button class="dropdown-item state-layer-secondary"
+                            onclick="openHeatmapModal(event, '${habit.id}', '${habit.name}', '${habit.color}'); event.stopPropagation();"
+                            role="menuitem">
                         <span class="material-symbols-outlined">insights</span>
                         View Details
                     </button>
-                    <button class="dropdown-item state-layer-secondary" onclick="openHabitModal('${habit.id}'); event.stopPropagation();">
+                    <button class="dropdown-item state-layer-secondary"
+                            onclick="openHabitModal('${habit.id}'); event.stopPropagation();"
+                            role="menuitem">
                         <span class="material-symbols-outlined">edit</span>
                         Edit
                     </button>
-                    <button class="dropdown-item delete state-layer-secondary" onclick="deleteHabit('${habit.id}', '${habit.name.replace(/'/g, "\\'")}'); event.stopPropagation();">
+                    <button class="dropdown-item delete state-layer-secondary"
+                            onclick="deleteHabit('${habit.id}', '${habit.name.replace(/'/g, "\\'")}'); event.stopPropagation();"
+                            role="menuitem">
                         <span class="material-symbols-outlined">delete</span>
                         Delete
                     </button>
@@ -910,16 +920,25 @@ window.renderHabits = function () {
 window.toggleDropdown = function (event, habitId) {
     event.stopPropagation(); // Prevent card click
 
-    // Close all other dropdowns
+    const button = event.currentTarget;
+    const dropdown = document.getElementById(`dropdown-${habitId}`);
+    const isOpening = !dropdown.classList.contains('show');
+
+    // Close all other dropdowns and reset their buttons
     document.querySelectorAll('.dropdown-content.show').forEach(openDropdown => {
         if (openDropdown.id !== `dropdown-${habitId}`) {
             openDropdown.classList.remove('show');
+            // Find and reset the corresponding button
+            const otherButton = openDropdown.previousElementSibling;
+            if (otherButton) {
+                otherButton.setAttribute('aria-expanded', 'false');
+            }
         }
     });
 
     // Toggle the clicked one
-    const dropdown = document.getElementById(`dropdown-${habitId}`);
     dropdown.classList.toggle('show');
+    button.setAttribute('aria-expanded', isOpening ? 'true' : 'false');
 }
 
 // Close dropdowns if clicking outside
@@ -927,6 +946,11 @@ window.addEventListener('click', function (event) {
     if (!event.target.closest('.dropdown')) {
         document.querySelectorAll('.dropdown-content.show').forEach(openDropdown => {
             openDropdown.classList.remove('show');
+            // Reset the corresponding button's aria-expanded
+            const button = openDropdown.previousElementSibling;
+            if (button) {
+                button.setAttribute('aria-expanded', 'false');
+            }
         });
     }
 });
