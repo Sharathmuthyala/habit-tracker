@@ -14,6 +14,7 @@ setTimeout(() => {
                 if (appContainer) appContainer.classList.add('show');
 
                 if (window.loadAllData) window.loadAllData();
+                if (window.updateWelcomeMessage) window.updateWelcomeMessage();
             } else {
                 window.currentUser = null;
                 console.log('User is signed out');
@@ -123,20 +124,39 @@ const habitSuggestions = [
 // REFINEMENT: Principle #8 - Motivational Quotes
 // REFINEMENT: Principle #8 - Motivational Quotes
 let motivationalQuotes = []; // Will be loaded from JSON
+let quoteSource = "James Clear"; // Default source
 let todayQuote = "Loading motivation...";
 
 async function loadQuotes() {
     try {
         const response = await fetch('assets/data/quotes.json');
         if (!response.ok) throw new Error('Failed to load quotes');
-        motivationalQuotes = await response.json();
+
+        const data = await response.json();
+
+        // Handle new format with categories
+        if (data.categories) {
+            quoteSource = data.source || "James Clear";
+            motivationalQuotes = [];
+
+            // Flatten all categories into one array
+            Object.values(data.categories).forEach(category => {
+                if (Array.isArray(category.quotes)) {
+                    motivationalQuotes.push(...category.quotes);
+                }
+            });
+        } else if (Array.isArray(data)) {
+            // Handle legacy array format
+            motivationalQuotes = data;
+        }
+
         window.displayQuote(); // Refresh quote after loading
     } catch (error) {
         console.error('Error loading quotes:', error);
         // Fallback quotes if fetch fails
         motivationalQuotes = [
-            { text: "The secret of getting ahead is getting started.", author: "Mark Twain" },
-            { text: "Motivation is what gets you started. Habit is what keeps you going.", author: "Jim Ryun" }
+            "The secret of getting ahead is getting started.",
+            "Motivation is what gets you started. Habit is what keeps you going."
         ];
         window.displayQuote();
     }
@@ -149,6 +169,18 @@ loadQuotes();
 const habitColors = [
     '#EA4335', '#FBBC04', '#34A853', '#1A73E8', '#673AB7',
     '#E91E63', '#009688', '#FF9800', '#607D8B', '#795548'
+];
+
+// PHASE 2: Gradient palette for icon badges
+const habitGradients = [
+    'linear-gradient(135deg, #FFD166 0%, #FF9B42 100%)', // Warm yellow-orange
+    'linear-gradient(135deg, #FF6B6B 0%, #FF4757 100%)', // Coral-red
+    'linear-gradient(135deg, #A78BFA 0%, #8B5CF6 100%)', // Soft purple
+    'linear-gradient(135deg, #4ECDC4 0%, #06B6D4 100%)', // Cyan-turquoise
+    'linear-gradient(135deg, #6EE7B7 0%, #10B981 100%)', // Fresh green
+    'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)', // Amber
+    'linear-gradient(135deg, #EC4899 0%, #DB2777 100%)', // Pink
+    'linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%)', // Deep purple
 ];
 
 // === UTILITY FUNCTIONS ===
@@ -353,52 +385,115 @@ window.goToToday = function () {
     window.updateDisplay();
 }
 
-// Render Apple-inspired activity ring
-window.renderActivityRing = function () {
-    const ringProgress = document.getElementById('habitRingProgress');
-    const ringNumber = document.getElementById('ringNumber');
-    const ringTotal = document.getElementById('ringTotal');
+// Render concentric rings (dynamically based on habit count)
+window.renderConcentricRings = function () {
+    const svg = document.getElementById('concentricRings');
+    const centerText = document.getElementById('ringsCenterText');
+    if (!svg || !centerText) return;
 
-    if (!ringProgress || !ringNumber || !ringTotal) return;
+    // Clear existing rings
+    svg.innerHTML = '';
 
     const dateStr = getDateString(currentViewDate);
     const dayData = habitData[dateStr] || {};
 
-    let completedCount = 0;
-    let totalCount = 0;
-
-    habits.forEach(habit => {
-        // Check if habit is scheduled for today
-        const isApplicable = !(habit.schedule === 'weekdays' && !isWeekday(currentViewDate));
-        if (!isApplicable) return;
-
-        totalCount++;
-        if (dayData[habit.id]) {
-            completedCount++;
-        }
+    // Filter applicable habits for current date
+    const applicableHabits = habits.filter(habit => {
+        return !(habit.schedule === 'weekdays' && !isWeekday(currentViewDate));
     });
 
-    // Update text
-    ringNumber.textContent = completedCount;
-    ringTotal.textContent = `/${totalCount}`;
+    // Calculate dynamic ring parameters based on number of habits
+    const habitCount = applicableHabits.length;
 
-    // Update ring progress
-    // Circumference = 2 * PI * 52 ≈ 326.73
-    const circumference = 326.73;
-    const percentage = totalCount === 0 ? 0 : (completedCount / totalCount);
-
-    // Cap at 100% for visual ring (or allow overlap if desired, but simple 100% cap is cleaner)
-    const visualPercentage = Math.min(percentage, 1);
-    const offset = circumference * (1 - visualPercentage);
-
-    ringProgress.style.strokeDashoffset = offset;
-
-    // Optional: Add completion effect
-    if (percentage >= 1 && totalCount > 0) {
-        ringProgress.setAttribute('data-progress', '100');
-    } else {
-        ringProgress.removeAttribute('data-progress');
+    if (habitCount === 0) {
+        centerText.textContent = '0/0';
+        return;
     }
+
+    // Dynamic ring sizing
+    const maxRadius = 90;
+    const minRadius = 20;
+    const centerSize = 15; // Reserved space in center for text
+
+    // Calculate spacing between rings
+    let ringSpacing;
+    if (habitCount === 1) {
+        ringSpacing = 0; // Single ring at max radius
+    } else {
+        ringSpacing = (maxRadius - minRadius - centerSize) / (habitCount - 1);
+    }
+
+    let completedCount = 0;
+    const strokeWidth = Math.max(8, Math.min(14, 100 / habitCount)); // Dynamic stroke width
+
+    applicableHabits.forEach((habit, index) => {
+        const isCompleted = dayData[habit.id] || false;
+        if (isCompleted) completedCount++;
+
+        // Calculate radius (outermost ring first)
+        const radius = habitCount === 1 ? maxRadius : maxRadius - (index * ringSpacing);
+        const circumference = 2 * Math.PI * radius;
+        const progress = isCompleted ? 1 : 0;
+        const dashOffset = circumference * (1 - progress);
+
+        // Create gradient for this ring
+        const gradientId = `gradient-${habit.id}`;
+        const defs = svg.querySelector('defs') || document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+        if (!svg.querySelector('defs')) svg.appendChild(defs);
+
+        const gradient = document.createElementNS('http://www.w3.org/2000/svg', 'linearGradient');
+        gradient.setAttribute('id', gradientId);
+        gradient.setAttribute('x1', '0%');
+        gradient.setAttribute('y1', '0%');
+        gradient.setAttribute('x2', '100%');
+        gradient.setAttribute('y2', '100%');
+
+        const stop1 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+        stop1.setAttribute('offset', '0%');
+        stop1.setAttribute('stop-color', habit.color || '#1A73E8');
+
+        const stop2 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+        stop2.setAttribute('offset', '100%');
+        stop2.setAttribute('stop-color', habit.color || '#1A73E8');
+        stop2.setAttribute('stop-opacity', '0.7');
+
+        gradient.appendChild(stop1);
+        gradient.appendChild(stop2);
+        defs.appendChild(gradient);
+
+        // Create background ring (gray)
+        const bgCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        bgCircle.setAttribute('class', 'ring-bg');
+        bgCircle.setAttribute('cx', '100');
+        bgCircle.setAttribute('cy', '100');
+        bgCircle.setAttribute('r', radius);
+        bgCircle.setAttribute('stroke', 'var(--color-outline)');
+        bgCircle.setAttribute('stroke-width', strokeWidth);
+        bgCircle.setAttribute('fill', 'none');
+        bgCircle.setAttribute('opacity', '0.3');
+
+        svg.appendChild(bgCircle);
+
+        // Create progress ring
+        const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        circle.setAttribute('class', 'ring-path');
+        circle.setAttribute('cx', '100');
+        circle.setAttribute('cy', '100');
+        circle.setAttribute('r', radius);
+        circle.setAttribute('stroke', `url(#${gradientId})`);
+        circle.setAttribute('stroke-width', strokeWidth);
+        circle.setAttribute('fill', 'none');
+        circle.setAttribute('stroke-linecap', 'round');
+        circle.setAttribute('stroke-dasharray', circumference);
+        circle.setAttribute('stroke-dashoffset', dashOffset);
+        circle.setAttribute('transform', 'rotate(-90 100 100)');
+        circle.setAttribute('style', `transition: stroke-dashoffset 0.5s ease-out;`);
+
+        svg.appendChild(circle);
+    });
+
+    // Update center text
+    centerText.textContent = `${completedCount}/${habitCount}`;
 }
 
 // Display motivational quote
@@ -418,10 +513,10 @@ window.displayQuote = function () {
     const quoteIndex = dayOfYear % motivationalQuotes.length;
     const quote = motivationalQuotes[quoteIndex];
 
-    // Handle both string (legacy) and object formats
+    // Handle both string (new format) and object (legacy) formats
     if (typeof quote === 'string') {
         quoteText.textContent = `"${quote}"`;
-        quoteAuthor.textContent = '— James Clear';
+        quoteAuthor.textContent = `— ${quoteSource}`;
     } else {
         quoteText.textContent = `"${quote.text}"`;
         quoteAuthor.textContent = `— ${quote.author}`;
@@ -672,14 +767,16 @@ window.saveHabit = async function () {
         schedule,
         color,
         why: why || '', // Save the "why"
-        createdAt: window.fb.serverTimestamp() // Add/update server timestamp
+        createdAt: window.fb ? window.fb.serverTimestamp() : new Date().toISOString() // Add/update timestamp
     };
 
     if (id) {
         // --- Update existing habit ---
         try {
             const habitRef = window.fb.doc(window.db, 'users', userId, 'userHabits', id);
-            await window.fb.setDoc(habitRef, habitData, { merge: true }); // Use setDoc with merge
+            // Don't update createdAt for existing habits
+            const { createdAt: _, ...updateData } = habitData;
+            await window.fb.setDoc(habitRef, updateData, { merge: true }); // Use setDoc with merge
             showSnackbar("Habit updated!");
         } catch (error) {
             console.error("Error updating habit:", error);
@@ -738,114 +835,110 @@ window.renderHabits = function () {
 
     emptyState.style.display = 'none';
 
-    // Calculate streak helper
-    const calculateStreak = (habitId) => {
-        let streak = 0;
-        const today = new Date();
-        // Check up to 365 days back
-        for (let i = 0; i < 365; i++) {
-            const d = new Date(today);
-            d.setDate(d.getDate() - i);
-            const dateStr = getDateString(d);
+    habits.forEach((habit, index) => {
+        const scheduleText = habit.schedule === 'weekdays' ? 'Weekdays' : 'Daily';
 
-            // If today is not checked, don't break streak yet (unless it's yesterday)
-            if (i === 0 && (!habitData[dateStr] || !habitData[dateStr][habitId])) {
-                continue;
-            }
+        // Calculate current streak for this habit
+        const currentStreak = calculateStreak(habit.id);
 
-            if (habitData[dateStr] && habitData[dateStr][habitId]) {
-                streak++;
-            } else {
-                break;
-            }
-        }
-        return streak;
-    };
-
-    habits.forEach(habit => {
-        const dateStr = getDateString(currentViewDate);
-        const isCompleted = habitData[dateStr] && habitData[dateStr][habit.id];
-        const streak = calculateStreak(habit.id);
+        // Get gradient for this habit (cycle through gradients if more habits than gradients)
+        const gradientIndex = index % habitGradients.length;
+        const gradient = habitGradients[gradientIndex];
 
         const card = document.createElement('div');
-        card.className = `habit-card ${isCompleted ? 'completed' : ''}`;
-        card.style = `--habit-color: ${habit.color};`;
+        card.className = 'habit-card';
+        card.style = `--habit-color: ${habit.color}; --habit-gradient: ${gradient};`;
         card.id = `card-${habit.id}`; // Add ID for flash animation
 
-        // Full card tap to toggle
+        // PHASE 2.2: Full card tap instead of clicking card for heatmap
+        // Click menu button for dropdown, otherwise toggle completion
         card.onclick = (e) => {
-            // Prevent if clicking menu
-            if (e.target.closest('.icon-button-small') || e.target.closest('.dropdown-content')) return;
-
-            // Toggle check-in
-            const newStatus = !isCompleted;
-            updateHabitData(habit.id, newStatus);
-
-            // Visual feedback
-            if (newStatus) {
-                card.classList.add('completed');
-                triggerConfetti();
-            } else {
-                card.classList.remove('completed');
+            // Don't toggle if clicking menu button
+            if (e.target.closest('.habit-menu')) {
+                return;
             }
+            // PHASE 2.2: Toggle habit completion with full card tap
+            handleHabitTap(habit.id);
         };
 
+        let whyHtml = habit.why ? `<div class="habit-why">...so I can ${habit.why}</div>` : '';
+
         card.innerHTML = `
-            <div class="check-overlay"></div>
-            
-            <!-- Gradient Icon Badge -->
-            <div class="habit-icon-badge" style="background: ${habit.color};">
-                <span class="material-symbols-outlined">${habit.icon}</span>
-                <div class="habit-streak-badge">
-                    <span class="material-symbols-outlined" style="font-size: 14px; color: #FF9800;">local_fire_department</span>
-                    ${streak}
-                </div>
+            <div class="habit-icon-badge" style="background: ${gradient};">
+                <div class="habit-icon-emoji">${habit.icon}</div>
+                <div class="habit-streak-number">${currentStreak}</div>
             </div>
-            
-            <!-- Habit Info -->
-            <div class="habit-info">
-                <h3 class="habit-title">${habit.name}</h3>
-                <p class="habit-why">${habit.why || 'Build a better you'}</p>
+            <div class="habit-content">
+                <div class="habit-name">${habit.name}</div>
+                <div class="habit-schedule">${scheduleText}</div>
+                ${whyHtml}
             </div>
-            
-            <!-- Context Menu -->
             <div class="habit-menu dropdown">
-                <button class="icon-button-small" onclick="toggleDropdown(event, '${habit.id}')" style="background: transparent; box-shadow: none;">
+                <button class="icon-button state-layer-secondary"
+                        onclick="toggleDropdown(event, '${habit.id}'); event.stopPropagation();"
+                        aria-expanded="false"
+                        aria-label="Habit options menu"
+                        aria-haspopup="true">
                     <span class="material-symbols-outlined">more_vert</span>
                 </button>
-                <div class="dropdown-content" id="dropdown-${habit.id}">
-                    <button class="dropdown-item state-layer-secondary" onclick="openHabitModal('${habit.id}')">
+                <div class="dropdown-content" id="dropdown-${habit.id}" role="menu">
+                    <button class="dropdown-item state-layer-secondary"
+                            onclick="openHeatmapModal(event, '${habit.id}', '${habit.name}', '${habit.color}'); event.stopPropagation();"
+                            role="menuitem">
+                        <span class="material-symbols-outlined">insights</span>
+                        View Details
+                    </button>
+                    <button class="dropdown-item state-layer-secondary"
+                            onclick="openHabitModal('${habit.id}'); event.stopPropagation();"
+                            role="menuitem">
                         <span class="material-symbols-outlined">edit</span>
                         Edit
                     </button>
-                    <button class="dropdown-item delete state-layer-secondary" onclick="deleteHabit('${habit.id}', '${habit.name.replace(/'/g, "\\'")}')">
+                    <button class="dropdown-item delete state-layer-secondary"
+                            onclick="deleteHabit('${habit.id}', '${habit.name.replace(/'/g, "\\'")}'); event.stopPropagation();"
+                            role="menuitem">
                         <span class="material-symbols-outlined">delete</span>
                         Delete
                     </button>
                 </div>
+            </div>
+            <!-- Hidden checkbox for state tracking -->
+            <input type="checkbox" class="habit-checkbox" id="habit-${habit.id}" data-habit-id="${habit.id}" style="display: none;">
+            <!-- REFINEMENT: Principle 3 - Progress Bar -->
+            <div class="habit-progress-bar-container">
+                <div class="habit-progress-bar" id="progress-${habit.id}" style="background-color: ${habit.color};"></div>
             </div>
         `;
 
         list.appendChild(card);
     });
 
-    // After rendering, update progress bars (if any logic remains for them, though we removed the bars from HTML)
-    // updateAllProgressBars(); // Removed as we don't use linear bars anymore
+    // After rendering, update progress bars
+    updateAllProgressBars();
 }
 
 window.toggleDropdown = function (event, habitId) {
     event.stopPropagation(); // Prevent card click
 
-    // Close all other dropdowns
+    const button = event.currentTarget;
+    const dropdown = document.getElementById(`dropdown-${habitId}`);
+    const isOpening = !dropdown.classList.contains('show');
+
+    // Close all other dropdowns and reset their buttons
     document.querySelectorAll('.dropdown-content.show').forEach(openDropdown => {
         if (openDropdown.id !== `dropdown-${habitId}`) {
             openDropdown.classList.remove('show');
+            // Find and reset the corresponding button
+            const otherButton = openDropdown.previousElementSibling;
+            if (otherButton) {
+                otherButton.setAttribute('aria-expanded', 'false');
+            }
         }
     });
 
     // Toggle the clicked one
-    const dropdown = document.getElementById(`dropdown-${habitId}`);
     dropdown.classList.toggle('show');
+    button.setAttribute('aria-expanded', isOpening ? 'true' : 'false');
 }
 
 // Close dropdowns if clicking outside
@@ -853,19 +946,170 @@ window.addEventListener('click', function (event) {
     if (!event.target.closest('.dropdown')) {
         document.querySelectorAll('.dropdown-content.show').forEach(openDropdown => {
             openDropdown.classList.remove('show');
+            // Reset the corresponding button's aria-expanded
+            const button = openDropdown.previousElementSibling;
+            if (button) {
+                button.setAttribute('aria-expanded', 'false');
+            }
         });
     }
 });
 
 
-window.updateHabitData = async function (habitId, status) {
+// PHASE 2.2: Handle full card tap interaction
+window.handleHabitTap = async function (habitId) {
+    const card = document.getElementById(`card-${habitId}`);
+    const checkbox = document.getElementById(`habit-${habitId}`);
+    const habit = habits.find(h => h.id === habitId);
+
+    if (!habit || !card || !checkbox) return;
+
+    // Prevent checking habits for past dates if habit was created after that date
+    let habitCreationDate = null;
+    if (habit.createdAt) {
+        // Handle both Firebase Timestamp and ISO string
+        if (habit.createdAt.toDate) {
+            // Firebase Timestamp object
+            habitCreationDate = habit.createdAt.toDate();
+        } else if (habit.createdAt.seconds) {
+            // Firebase Timestamp as plain object
+            habitCreationDate = new Date(habit.createdAt.seconds * 1000);
+        } else {
+            // ISO string
+            habitCreationDate = new Date(habit.createdAt);
+        }
+    }
+
+    const viewingDate = new Date(currentViewDate);
+
+    // Normalize dates to midnight for comparison
+    if (habitCreationDate) {
+        habitCreationDate.setHours(0, 0, 0, 0);
+    }
+    viewingDate.setHours(0, 0, 0, 0);
+
+    // Check if trying to complete a habit before it was created
+    if (habitCreationDate && viewingDate < habitCreationDate) {
+        showSnackbar(`Cannot check "${habit.name}" - it was created after this date`, true);
+        return;
+    }
+
+    const wasCompleted = checkbox.checked;
+    const willBeCompleted = !wasCompleted;
+
+    // Toggle the checkbox
+    checkbox.checked = willBeCompleted;
+
+    if (willBeCompleted) {
+        // === COMPLETING A HABIT ===
+
+        // 1. IMMEDIATE HAPTIC FEEDBACK (Atoms-style)
+        if (window.haptics) {
+            window.haptics.tapComplete();
+        }
+
+        // 2. CARD FILL ANIMATION
+        const gradientIndex = habits.indexOf(habit) % habitGradients.length;
+        const gradient = habitGradients[gradientIndex];
+        card.style.setProperty('--fill-color', gradient);
+        card.classList.add('filling');
+
+        // Remove filling class after animation
+        setTimeout(() => {
+            card.classList.remove('filling');
+        }, 400);
+
+        // 3. Add completed class for checkmark
+        card.classList.add('completed');
+
+        // 4. Update habit data
+        await updateHabitData(habitId);
+
+        // 5. Calculate current streak for celebration
+        const currentStreak = calculateStreak(habitId);
+        const completionCount = getHabitCompletionCount(habitId);
+
+        // 6. SHOW CELEBRATION MODAL (after card fill animation)
+        setTimeout(() => {
+            if (window.celebrationModal) {
+                window.celebrationModal.show({
+                    name: habit.name,
+                    icon: habit.icon,
+                    gradient: gradient,
+                    streak: currentStreak,
+                    reps: completionCount
+                });
+            }
+        }, 300);
+
+        // 7. Check for milestone haptic
+        const milestones = [1, 7, 14, 30, 60, 100];
+        if (milestones.includes(currentStreak) && window.haptics) {
+            setTimeout(() => window.haptics.milestone(), 1000);
+        }
+
+        // 8. Check if all habits complete
+        setTimeout(() => {
+            if (checkAllHabitsComplete() && window.haptics) {
+                window.haptics.allComplete();
+            }
+        }, 1400);
+
+    } else {
+        // === UNCOMPLETING A HABIT ===
+
+        // 1. Undo haptic
+        if (window.haptics) {
+            window.haptics.undo();
+        }
+
+        // 2. Press animation
+        card.style.transform = 'scale(0.98)';
+        setTimeout(() => card.style.transform = 'scale(1)', 150);
+
+        // 3. Remove completed class
+        card.classList.remove('completed');
+
+        // 4. Update habit data
+        await updateHabitData(habitId);
+    }
+};
+
+// Helper function to check if all habits are complete
+function checkAllHabitsComplete() {
     const dateStr = getDateString(currentViewDate);
+    const dayData = habitData[dateStr] || {};
+
+    for (const habit of habits) {
+        const isApplicable = !(habit.schedule === 'weekdays' && !isWeekday(currentViewDate));
+        if (isApplicable && !dayData[habit.id]) {
+            return false;
+        }
+    }
+
+    return habits.length > 0;
+}
+
+// Helper function to get total completion count for a habit
+function getHabitCompletionCount(habitId) {
+    let count = 0;
+    for (const dateStr in habitData) {
+        if (habitData[dateStr][habitId]) {
+            count++;
+        }
+    }
+    return count;
+}
+
+window.updateHabitData = async function (habitId) {
+    const dateStr = getDateString(currentViewDate);
+    const checkbox = document.getElementById(`habit-${habitId}`);
 
     // Get current data for the day
     let dayData = habitData[dateStr] || {};
 
     // Update the specific habit
-    dayData[habitId] = status;
+    dayData[habitId] = checkbox.checked;
 
     // Put it back into the main data object
     habitData[dateStr] = dayData;
@@ -873,28 +1117,39 @@ window.updateHabitData = async function (habitId, status) {
     // Save locally
     window.saveHabitDataLocal();
 
-    // === SYNC UPDATES ===
-    // 1. Update the Activity Ring immediately
-    window.renderActivityRing();
+    // --- REFINEMENTS: Principle 1 & 7 ---
+    // 1. Pop the progress ring
+    const ring = document.querySelector('.progress-ring-container');
+    if (ring) {
+        ring.classList.add('pop');
+        ring.addEventListener('animationend', () => ring.classList.remove('pop'), { once: true });
+    }
 
-    // 2. Recalculate streaks if needed (optional, but good for consistency)
-    // For now, we rely on renderHabits to update streaks on next full render
+    // 2. Flash the habit card
+    const card = document.getElementById(`card-${habitId}`);
+    if (card && checkbox.checked) { // Only flash on completion
+        card.classList.add('flash');
+        card.addEventListener('animationend', () => card.classList.remove('flash'), { once: true });
+    }
+    // --- End Refinements ---
 
-    // 3. Sync to Firestore
+    // Save to Firebase
     const userId = getUserId();
-    if (userId) {
+    if (window.firebaseEnabled && userId) {
         try {
-            const checkinRef = window.fb.doc(window.db, 'users', userId, 'checkins', dateStr);
-            await window.fb.setDoc(checkinRef, dayData, { merge: true });
+            updateSyncStatus('syncing');
+            // Path: /users/{userId}/habitData/{dateString}
+            const dateRef = window.fb.doc(window.db, 'users', userId, 'habitData', dateStr);
+            await window.fb.setDoc(dateRef, dayData, { merge: true }); // Use setDoc with merge
+            updateSyncStatus('synced');
         } catch (error) {
-            console.error("Error syncing habit data:", error);
-            showSnackbar("Error syncing. Changes saved locally.", true);
+            console.error('Error saving to Firebase:', error);
+            updateSyncStatus('error');
         }
     }
-}
 
-// Check for all-done celebration
-checkForCelebration();
+    window.updateDisplay();
+    checkForCelebration();
 }
 
 window.checkForCelebration = function () {
@@ -960,7 +1215,7 @@ window.updateDisplay = function () {
     // === ATOMS-INSPIRED UI UPDATES ===
     // Render new components
     window.renderDateStrip();
-    window.renderActivityRing();
+    window.renderConcentricRings();
     window.displayQuote();
 
     // Update date display (for old components, if still present)
@@ -1392,7 +1647,125 @@ function init() {
     applyInitialTheme();
     populateColorPicker();
     goToToday(); // Sets initial date and calls updateDisplay
+    updateWelcomeMessage(); // Update welcome with user's name
 }
+
+// ==========================================
+// WELCOME MESSAGE
+// ==========================================
+window.updateWelcomeMessage = function() {
+    const welcomeGreeting = document.getElementById('welcomeGreeting');
+    if (!welcomeGreeting) return;
+
+    if (window.auth && window.auth.currentUser) {
+        const user = window.auth.currentUser;
+
+        // Try to get display name from user details first
+        const userDetails = getUserDetails();
+        const displayName = userDetails.displayName || user.displayName || user.email?.split('@')[0] || 'there';
+        const firstName = displayName.split(' ')[0];
+
+        const hour = new Date().getHours();
+        let greeting = 'Good evening';
+        if (hour < 12) greeting = 'Good morning';
+        else if (hour < 18) greeting = 'Good afternoon';
+
+        welcomeGreeting.textContent = `${greeting}, ${firstName}!`;
+    }
+};
+
+// ==========================================
+// USER DETAILS FUNCTIONS
+// ==========================================
+
+window.getUserDetails = function() {
+    const userId = window.auth?.currentUser?.uid;
+    if (!userId) return { displayName: '', bio: '', avatar: '👤' };
+
+    const key = `userDetails_${userId}`;
+    const stored = localStorage.getItem(key);
+
+    if (stored) {
+        try {
+            return JSON.parse(stored);
+        } catch (e) {
+            return { displayName: '', bio: '', avatar: '👤' };
+        }
+    }
+
+    return { displayName: '', bio: '', avatar: '👤' };
+};
+
+window.saveUserDetails = function(event) {
+    event.preventDefault();
+
+    const userId = window.auth?.currentUser?.uid;
+    if (!userId) {
+        alert('User not authenticated');
+        return;
+    }
+
+    const displayName = document.getElementById('userDisplayName').value.trim();
+    const bio = document.getElementById('userBio').value.trim();
+    const avatar = document.getElementById('selectedAvatar').value;
+
+    const userDetails = {
+        displayName,
+        bio,
+        avatar
+    };
+
+    const key = `userDetails_${userId}`;
+    localStorage.setItem(key, JSON.stringify(userDetails));
+
+    // Update welcome message with new name
+    if (window.updateWelcomeMessage) {
+        window.updateWelcomeMessage();
+    }
+
+    // Update profile display
+    renderProfile();
+
+    // Show success feedback
+    const btn = event.target.querySelector('button[type="submit"]');
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<span class="material-symbols-outlined">check</span> Saved!';
+    btn.style.background = 'var(--color-tertiary)';
+
+    setTimeout(() => {
+        btn.innerHTML = originalText;
+        btn.style.background = '';
+    }, 2000);
+};
+
+window.selectAvatar = function(emoji) {
+    // Update hidden input
+    document.getElementById('selectedAvatar').value = emoji;
+
+    // Update visual selection
+    document.querySelectorAll('.avatar-option').forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.dataset.avatar === emoji) {
+            btn.classList.add('active');
+        }
+    });
+};
+
+window.loadUserDetailsForm = function() {
+    const userDetails = getUserDetails();
+
+    const displayNameInput = document.getElementById('userDisplayName');
+    const bioInput = document.getElementById('userBio');
+    const avatarInput = document.getElementById('selectedAvatar');
+
+    if (displayNameInput) displayNameInput.value = userDetails.displayName || '';
+    if (bioInput) bioInput.value = userDetails.bio || '';
+    if (avatarInput) {
+        avatarInput.value = userDetails.avatar || '👤';
+        selectAvatar(userDetails.avatar || '👤');
+    }
+};
+
 // ==========================================
 // ANALYTICS FUNCTIONS
 // ==========================================
@@ -2557,5 +2930,448 @@ document.addEventListener('DOMContentLoaded', function () {
         compareHabit2.addEventListener('change', drawHeadToHeadChart);
     }
 });
+
+// ==========================================
+// 3-TAB NAVIGATION SYSTEM
+// ==========================================
+
+/**
+ * Switch between tabs: habits, analytics, profile
+ */
+window.switchTab = function (tabName) {
+    // Update nav button states
+    document.querySelectorAll('.nav-tab').forEach(tab => {
+        tab.classList.toggle('active', tab.dataset.tab === tabName);
+    });
+
+    // Update tab content visibility
+    document.querySelectorAll('.tab-content').forEach(content => {
+        content.classList.toggle('active', content.id === `${tabName}-tab`);
+    });
+
+    // Load data when switching to analytics tab
+    if (tabName === 'analytics') {
+        renderProgressView();
+    }
+
+    // Render profile when switching to profile tab
+    if (tabName === 'profile') {
+        renderProfile();
+    }
+
+    // Save current tab to localStorage
+    localStorage.setItem('currentTab', tabName);
+};
+
+// Restore last active tab on page load
+window.addEventListener('DOMContentLoaded', () => {
+    const lastTab = localStorage.getItem('currentTab') || 'habits';
+    if (lastTab !== 'habits') {
+        switchTab(lastTab);
+    }
+});
+
+// ========================================
+// ANALYTICS TAB: Sub-tab Switching
+// ========================================
+window.switchAnalyticsSubTab = function (subtabName) {
+    // Update sub-tab button states
+    document.querySelectorAll('.sub-tab').forEach(tab => {
+        tab.classList.toggle('active', tab.dataset.subtab === subtabName);
+    });
+
+    // Update sub-tab content visibility
+    document.querySelectorAll('.sub-tab-content').forEach(content => {
+        content.classList.toggle('active', content.id === `${subtabName}-subtab`);
+    });
+
+    // Load data when switching to progress sub-tab
+    if (subtabName === 'progress') {
+        renderProgressView();
+    }
+};
+
+// ========================================
+// ANALYTICS TAB: Progress/Milestones Toggle
+// ========================================
+window.switchProgressView = function (viewName) {
+    // Update toggle button states
+    document.querySelectorAll('.toggle-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.view === viewName);
+    });
+
+    // Update view visibility
+    document.querySelectorAll('.progress-view').forEach(view => {
+        view.classList.toggle('active', view.id === `${viewName}-view`);
+    });
+
+    // Render appropriate content
+    if (viewName === 'milestones') {
+        renderMilestoneCards();
+    }
+};
+
+// ========================================
+// ANALYTICS TAB: Calculate Total Reps
+// ========================================
+function calculateTotalReps() {
+    let total = 0;
+    for (const dateStr in habitData) {
+        for (const habitId in habitData[dateStr]) {
+            if (habitData[dateStr][habitId]) {
+                total++;
+            }
+        }
+    }
+    return total;
+}
+
+// ========================================
+// ANALYTICS TAB: Render Progress View
+// ========================================
+function renderProgressView() {
+    const totalReps = calculateTotalReps();
+
+    // Update total reps number
+    const totalRepsNumber = document.getElementById('totalRepsNumber');
+    if (totalRepsNumber) {
+        totalRepsNumber.textContent = totalReps.toLocaleString();
+    }
+
+    // Update votes message
+    const votesCount = document.getElementById('votesCount');
+    if (votesCount) {
+        votesCount.textContent = totalReps.toLocaleString();
+    }
+
+    // Render breakdown bar and stats list
+    renderHabitBreakdownBar();
+    renderHabitStatsList();
+}
+
+// ========================================
+// ANALYTICS TAB: Render Habit Breakdown Bar
+// ========================================
+function renderHabitBreakdownBar() {
+    const breakdownBar = document.getElementById('habitBreakdownBar');
+    if (!breakdownBar) return;
+
+    // Calculate reps per habit
+    const habitReps = {};
+    let totalReps = 0;
+
+    for (const dateStr in habitData) {
+        for (const habitId in habitData[dateStr]) {
+            if (habitData[dateStr][habitId]) {
+                habitReps[habitId] = (habitReps[habitId] || 0) + 1;
+                totalReps++;
+            }
+        }
+    }
+
+    // If no data, show empty state
+    if (totalReps === 0) {
+        breakdownBar.innerHTML = '<div style="text-align: center; padding: 16px; color: var(--color-on-surface-variant);">No habit data yet</div>';
+        return;
+    }
+
+    // Create segments
+    let html = '';
+    habits.forEach((habit, index) => {
+        const reps = habitReps[habit.id] || 0;
+        if (reps === 0) return;
+
+        const percentage = (reps / totalReps) * 100;
+        const gradient = habitGradients[index % habitGradients.length];
+
+        html += `
+            <div class="bar-segment"
+                 style="width: ${percentage}%; background: ${gradient};"
+                 title="${habit.name}: ${reps} reps (${percentage.toFixed(1)}%)">
+            </div>
+        `;
+    });
+
+    breakdownBar.innerHTML = html;
+}
+
+// ========================================
+// ANALYTICS TAB: Render Habit Stats List
+// ========================================
+function renderHabitStatsList() {
+    const statsList = document.getElementById('habitStatsList');
+    if (!statsList) return;
+
+    // Calculate reps per habit
+    const habitReps = {};
+    let totalReps = 0;
+
+    for (const dateStr in habitData) {
+        for (const habitId in habitData[dateStr]) {
+            if (habitData[dateStr][habitId]) {
+                habitReps[habitId] = (habitReps[habitId] || 0) + 1;
+                totalReps++;
+            }
+        }
+    }
+
+    // If no data, show empty state
+    if (totalReps === 0) {
+        statsList.innerHTML = '<div style="text-align: center; padding: 32px; color: var(--color-on-surface-variant);">No habit data yet</div>';
+        return;
+    }
+
+    // Sort habits by reps (descending)
+    const sortedHabits = habits
+        .map((habit, index) => ({
+            habit,
+            reps: habitReps[habit.id] || 0,
+            gradient: habitGradients[index % habitGradients.length]
+        }))
+        .filter(item => item.reps > 0)
+        .sort((a, b) => b.reps - a.reps);
+
+    // Create stat items
+    let html = '';
+    sortedHabits.forEach(item => {
+        const percentage = ((item.reps / totalReps) * 100).toFixed(1);
+
+        html += `
+            <div class="habit-stat-item">
+                <div class="habit-stat-left">
+                    <div class="habit-stat-icon" style="background: ${item.gradient};">
+                        ${item.habit.icon}
+                    </div>
+                    <div class="habit-stat-info">
+                        <h4 class="habit-stat-name">${item.habit.name}</h4>
+                        <p class="habit-stat-percentage">${percentage}% of total</p>
+                    </div>
+                </div>
+                <div class="habit-stat-count">${item.reps}</div>
+            </div>
+        `;
+    });
+
+    statsList.innerHTML = html;
+}
+
+// ========================================
+// ANALYTICS TAB: Render Milestone Cards
+// ========================================
+function renderMilestoneCards() {
+    const container = document.getElementById('milestoneCardsContainer');
+    if (!container) return;
+
+    // Calculate reps per habit
+    const habitReps = {};
+    for (const dateStr in habitData) {
+        for (const habitId in habitData[dateStr]) {
+            if (habitData[dateStr][habitId]) {
+                habitReps[habitId] = (habitReps[habitId] || 0) + 1;
+            }
+        }
+    }
+
+    // If no data, show empty state
+    if (Object.keys(habitReps).length === 0) {
+        container.innerHTML = '<div style="text-align: center; padding: 32px; color: var(--color-on-surface-variant);">Complete habits to unlock milestones!</div>';
+        return;
+    }
+
+    // Generate milestone cards for each habit
+    let html = '';
+    habits.forEach((habit, index) => {
+        const reps = habitReps[habit.id] || 0;
+        if (reps === 0) return;
+
+        const gradient = habitGradients[index % habitGradients.length];
+        const badges = generateMilestoneBadges(reps);
+
+        html += `
+            <div class="milestone-card">
+                <div class="milestone-header">
+                    <div class="milestone-icon" style="background: ${gradient};">
+                        ${habit.icon}
+                    </div>
+                    <div class="milestone-title">
+                        <h3>${habit.name}</h3>
+                        <p>${reps} total reps</p>
+                    </div>
+                </div>
+                <div class="milestone-badges">
+                    ${badges}
+                </div>
+            </div>
+        `;
+    });
+
+    container.innerHTML = html;
+}
+
+// ========================================
+// ANALYTICS TAB: Generate Milestone Badges
+// ========================================
+function generateMilestoneBadges(reps) {
+    const milestones = [
+        { count: 1, icon: '🎯', label: '1st Rep' },
+        { count: 7, icon: '🔥', label: '7 Days' },
+        { count: 14, icon: '💪', label: '2 Weeks' },
+        { count: 30, icon: '⭐', label: '30 Days' },
+        { count: 60, icon: '👑', label: '2 Months' },
+        { count: 100, icon: '💎', label: '100 Days' },
+        { count: 365, icon: '🏆', label: '1 Year' }
+    ];
+
+    let html = '';
+    milestones.forEach(milestone => {
+        const earned = reps >= milestone.count;
+        const className = earned ? 'badge-icon earned' : 'badge-icon locked';
+
+        html += `
+            <div class="${className}" title="${milestone.label}${earned ? ' - Earned!' : ' - Locked'}">
+                <span>${milestone.icon}</span>
+                <span class="badge-count">${milestone.count}</span>
+            </div>
+        `;
+    });
+
+    return html;
+}
+
+// ========================================
+// PROFILE TAB: Render Profile Data
+// ========================================
+function renderProfile() {
+    // Get user info from Firebase auth and user details
+    if (window.auth && window.auth.currentUser) {
+        const userDetails = getUserDetails();
+        const displayName = userDetails.displayName || window.auth.currentUser.displayName || 'User';
+        const email = window.auth.currentUser.email || 'user@example.com';
+        const avatar = userDetails.avatar || displayName.charAt(0).toUpperCase();
+
+        document.getElementById('profileName').textContent = displayName;
+        document.getElementById('profileEmail').textContent = email;
+        document.getElementById('profileAvatar').textContent = avatar;
+    }
+
+    // Calculate stats
+    const totalHabits = habits.length;
+    const totalReps = calculateTotalReps();
+    const bestStreak = calculateBestStreak();
+
+    document.getElementById('profileTotalHabits').textContent = totalHabits;
+    document.getElementById('profileTotalReps').textContent = totalReps;
+    document.getElementById('profileBestStreak').textContent = bestStreak;
+
+    // Update toggle states
+    updateProfileToggles();
+
+    // Load user details form
+    loadUserDetailsForm();
+}
+
+// ========================================
+// PROFILE TAB: Update Toggle States
+// ========================================
+function updateProfileToggles() {
+    // Theme toggle
+    const themeToggle = document.getElementById('themeToggle');
+    const isDarkMode = document.body.classList.contains('dark-mode');
+    if (themeToggle) {
+        themeToggle.classList.toggle('active', isDarkMode);
+    }
+
+    // Haptics toggle
+    const hapticsToggle = document.getElementById('hapticsToggle');
+    if (hapticsToggle && window.haptics) {
+        hapticsToggle.classList.toggle('active', window.haptics.isEnabled());
+    }
+
+    // Celebrations toggle
+    const celebrationsToggle = document.getElementById('celebrationsToggle');
+    if (celebrationsToggle && window.celebrationModal) {
+        celebrationsToggle.classList.toggle('active', window.celebrationModal.isEnabled());
+    }
+}
+
+// ========================================
+// PROFILE TAB: Toggle Theme
+// ========================================
+window.toggleTheme = function () {
+    document.body.classList.toggle('dark-mode');
+    const isDarkMode = document.body.classList.contains('dark-mode');
+    localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
+
+    // Update toggle UI
+    const themeToggle = document.getElementById('themeToggle');
+    if (themeToggle) {
+        themeToggle.classList.toggle('active', isDarkMode);
+    }
+
+    // Trigger haptic feedback
+    if (window.haptics) {
+        window.haptics.tapComplete();
+    }
+};
+
+// ========================================
+// PROFILE TAB: Toggle Haptics
+// ========================================
+window.toggleHaptics = function () {
+    if (!window.haptics) return;
+
+    const newState = !window.haptics.isEnabled();
+    window.haptics.setEnabled(newState);
+
+    // Update toggle UI
+    const hapticsToggle = document.getElementById('hapticsToggle');
+    if (hapticsToggle) {
+        hapticsToggle.classList.toggle('active', newState);
+    }
+
+    // Trigger haptic feedback if enabling
+    if (newState) {
+        window.haptics.tapComplete();
+    }
+};
+
+// ========================================
+// PROFILE TAB: Toggle Celebrations
+// ========================================
+window.toggleCelebrations = function () {
+    if (!window.celebrationModal) return;
+
+    const newState = !window.celebrationModal.isEnabled();
+    window.celebrationModal.setEnabled(newState);
+
+    // Update toggle UI
+    const celebrationsToggle = document.getElementById('celebrationsToggle');
+    if (celebrationsToggle) {
+        celebrationsToggle.classList.toggle('active', newState);
+    }
+
+    // Trigger haptic feedback
+    if (window.haptics) {
+        window.haptics.tapComplete();
+    }
+};
+
+// ========================================
+// PROFILE TAB: Handle Logout
+// ========================================
+window.handleLogout = async function () {
+    if (!confirm('Are you sure you want to log out?')) {
+        return;
+    }
+
+    try {
+        await window.fb.signOut(window.auth);
+        // Redirect to login (auth state change listener will handle UI update)
+        window.location.reload();
+    } catch (error) {
+        console.error('Error signing out:', error);
+        alert('Failed to log out. Please try again.');
+    }
+};
 
 init();

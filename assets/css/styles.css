@@ -804,8 +804,9 @@ body.dark-mode #icon-light-mode {
     transition: all var(--motion-fast);
     cursor: pointer;
     position: relative;
-    overflow: hidden;
+    overflow: visible;
     box-shadow: 0 1px 2px rgba(60, 64, 67, 0.2);
+    isolation: isolate;
 }
 
 /* REFINEMENT: Principle 7 - Flash animation */
@@ -856,6 +857,7 @@ body.dark-mode .habit-card.flash {
     width: 4px;
     background: var(--habit-color);
     border-radius: 4px 0 0 4px;
+    z-index: 0;
 }
 
 /* Custom Checkbox */
@@ -927,6 +929,32 @@ body.dark-mode .habit-card.flash {
     pointer-events: none;
 }
 
+.habit-icon-badge {
+    position: relative;
+    width: 60px;
+    height: 60px;
+    border-radius: var(--radius-medium);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    pointer-events: none;
+}
+
+.habit-icon-emoji {
+    font-size: 28px;
+    line-height: 1;
+}
+
+.habit-streak-number {
+    font: var(--font-label);
+    font-size: 11px;
+    font-weight: var(--font-weight-medium);
+    color: white;
+    margin-top: 2px;
+}
+
 .habit-content {
     flex: 1;
     min-width: 0;
@@ -981,16 +1009,43 @@ body.dark-mode .habit-card.flash {
 }
 
 .habit-menu {
-    z-index: 2;
+    position: relative;
+    z-index: 100;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
 }
 
 .habit-menu .icon-button {
     background: transparent;
     box-shadow: none;
+    width: 40px;
+    height: 40px;
+    pointer-events: all;
+    transition: all var(--motion-fast);
 }
 
 .habit-menu .icon-button:hover {
     background: var(--color-surface-tone-3);
+    transform: scale(1.05);
+}
+
+.habit-menu .icon-button:active {
+    transform: scale(0.95);
+}
+
+.habit-menu .icon-button .material-symbols-outlined {
+    color: var(--color-on-surface-variant);
+    font-size: 24px;
+}
+
+/* Make menu button more visible when dropdown is open */
+.habit-menu .icon-button[aria-expanded="true"] {
+    background: var(--color-primary-container);
+}
+
+.habit-menu .icon-button[aria-expanded="true"] .material-symbols-outlined {
+    color: var(--color-primary);
 }
 
 /* Dropdown Menu */
@@ -1002,17 +1057,27 @@ body.dark-mode .habit-card.flash {
     display: none;
     position: absolute;
     right: 0;
-    top: 44px;
+    top: calc(100% + 4px);
     background-color: var(--color-surface);
-    min-width: 160px;
-    box-shadow: 0 4px 8px rgba(60, 64, 67, 0.25);
-    /* elevation-3 */
+    min-width: 180px;
+    box-shadow: 0 8px 16px rgba(60, 64, 67, 0.3), 0 0 0 1px rgba(60, 64, 67, 0.1);
     border-radius: var(--radius-large);
-    /* 12px */
-    z-index: 100;
-    padding: 8px;
+    z-index: 9999;
+    padding: 4px;
     border: 1px solid var(--color-outline);
-    animation: fadeIn 100ms ease-out;
+    animation: dropdownSlideIn 200ms cubic-bezier(0.4, 0, 0.2, 1);
+    transform-origin: top right;
+}
+
+@keyframes dropdownSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-8px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
 }
 
 .dropdown-content.show {
@@ -1024,8 +1089,9 @@ body.dark-mode .habit-card.flash {
     align-items: center;
     gap: 12px;
     font: var(--font-label);
+    font-size: 15px;
     color: var(--color-on-surface);
-    padding: 12px;
+    padding: 12px 16px;
     border-radius: var(--radius-medium);
     cursor: pointer;
     background: none;
@@ -1033,19 +1099,41 @@ body.dark-mode .habit-card.flash {
     width: 100%;
     text-align: left;
     position: relative;
-    overflow: hidden;
+    transition: all var(--motion-fast);
+    user-select: none;
 }
 
 .dropdown-item .material-symbols-outlined {
     color: var(--color-on-surface-variant);
+    font-size: 20px;
+    transition: transform var(--motion-fast);
 }
 
 .dropdown-item:hover {
     background-color: var(--color-surface-tone-2);
 }
 
+.dropdown-item:hover .material-symbols-outlined {
+    transform: scale(1.1);
+}
+
+.dropdown-item:active {
+    transform: scale(0.98);
+}
+
 .dropdown-item.delete {
     color: var(--color-error);
+    margin-top: 4px;
+}
+
+.dropdown-item.delete::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: 8px;
+    right: 8px;
+    height: 1px;
+    background: var(--color-outline);
 }
 
 .dropdown-item.delete .material-symbols-outlined {
@@ -1053,7 +1141,21 @@ body.dark-mode .habit-card.flash {
 }
 
 .dropdown-item.delete:hover {
-    background-color: rgba(234, 67, 53, 0.1);
+    background-color: rgba(234, 67, 53, 0.08);
+}
+
+/* Dark mode dropdown support */
+body.dark-mode .dropdown-content {
+    background-color: var(--color-surface-elevated);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(232, 234, 237, 0.1);
+}
+
+body.dark-mode .dropdown-item:hover {
+    background-color: var(--color-surface-tone-3);
+}
+
+body.dark-mode .dropdown-item.delete:hover {
+    background-color: rgba(234, 67, 53, 0.15);
 }
 
 /* Export Section */

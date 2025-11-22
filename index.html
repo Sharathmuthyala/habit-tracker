@@ -418,85 +418,39 @@
             display: block;
         }
 
-        /* App Bar */
-        .app-bar {
-            background: var(--color-primary);
-            color: var(--color-on-primary);
-            padding: 24px 20px;
-            /* Use shadow for depth */
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            transition: box-shadow var(--motion-fast);
+        /* Welcome Message */
+        .welcome-message {
+            padding: 24px 16px 16px;
+            text-align: center;
         }
 
-        /* NEW: Dynamic app bar shadow on scroll */
-        .app-bar.scrolled {
-            box-shadow: 0 2px 6px rgba(60, 64, 67, 0.25);
-            /* elevation-2 */
+        .welcome-greeting {
+            font-size: 28px;
+            font-weight: 600;
+            color: var(--color-on-surface);
+            margin: 0 0 8px 0;
         }
 
-        .app-bar-content {
-            max-width: 1200px;
-            margin: 0 auto;
-            display: flex;
-            justify-content: space-between;
+        .welcome-subtitle {
+            font-size: 15px;
+            color: var(--color-on-surface-variant);
+            margin: 0 0 12px 0;
+        }
+
+        .sync-status-inline {
+            display: inline-flex;
             align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            background: var(--color-primary-container);
+            color: var(--color-on-primary-container);
+            border-radius: 16px;
+            font-size: 13px;
+            font-weight: 500;
         }
 
-        .app-title {
-            /* 5. Typography: --font-headline */
-            font: var(--font-headline);
-            letter-spacing: 0;
-            margin-bottom: 8px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .app-title .material-symbols-outlined {
-            color: var(--color-on-primary);
-            font-size: 32px;
-        }
-
-        .app-subtitle {
-            font: var(--font-label);
+        .sync-status-inline .material-symbols-outlined {
             font-size: 16px;
-            opacity: 0.9;
-            font-weight: var(--font-weight-regular);
-        }
-
-        .app-bar-actions {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            /* Reduced gap */
-        }
-
-        .sync-status {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            /* Center the icon */
-            gap: 8px;
-            padding: 8px;
-            /* Reduced padding for icon-only */
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: var(--radius-full);
-            font: var(--font-label);
-            backdrop-filter: blur(10px);
-            width: 40px;
-            /* Fixed size for circle */
-            height: 40px;
-        }
-
-        .sync-status .material-symbols-outlined {
-            color: var(--color-on-primary);
-            font-size: 20px;
-            /* Slightly smaller icon */
-            margin: 0;
-            /* Remove potential margins */
         }
 
         .sync-status.syncing .material-symbols-outlined {
@@ -823,72 +777,34 @@
             background: none;
         }
 
-        /* Apple-Inspired Activity Ring */
-        .ring-wrapper {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 16px 0;
-        }
-
-        .ring-container {
+        /* Concentric Rings */
+        .rings-container {
             position: relative;
-            width: 200px;
-            height: 200px;
-            border-radius: 50%;
-            background: #000000;
-            /* Pure black - REQUIRED */
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 12px;
-            /* Minimum margin = ring gap */
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            width: 240px;
+            height: 240px;
+            margin: 0 auto 24px;
         }
 
-        .habit-ring {
-            position: absolute;
+        .concentric-rings {
             width: 100%;
             height: 100%;
         }
 
-        .habit-ring-progress {
-            stroke-dasharray: 326.73;
-            /* 2π * 52 */
-            stroke-dashoffset: 326.73;
-            transition: stroke-dashoffset 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .ring-content {
-            position: relative;
-            z-index: 1;
-            text-align: center;
-            color: #FFFFFF;
-            display: flex;
-            align-items: baseline;
-            gap: 2px;
-        }
-
-        .ring-number {
-            font-size: 48px;
+        .rings-center-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 28px;
             font-weight: 600;
-            line-height: 1;
-            letter-spacing: -1px;
+            color: var(--color-on-surface);
         }
 
-        .ring-total {
-            font-size: 24px;
-            font-weight: 500;
-            opacity: 0.6;
-        }
-
-        .ring-label {
-            margin-top: 8px;
-            font-size: 14px;
-            font-weight: 500;
-            color: var(--color-on-surface-variant);
-            letter-spacing: 0.5px;
-            text-transform: uppercase;
+        .ring-path {
+            fill: none;
+            stroke-width: 12;
+            stroke-linecap: round;
+            transition: stroke-dashoffset 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         /* Motivational Quote Card */
@@ -1035,10 +951,14 @@
 
         .habit-card {
             background: var(--color-surface);
-            border-radius: var(--radius-medium);
-            /* 8px */
+            border-radius: var(--radius-extra);
+            /* PHASE 2.3: Softer 16px corners */
             padding: 20px;
-            margin: 8px;
+            /* PHASE 2.3: More breathing room */
+            margin: 16px 8px;
+            /* PHASE 2.3: 16px vertical spacing */
+            min-height: 100px;
+            /* PHASE 2.3: Taller cards */
             display: flex;
             align-items: center;
             gap: 16px;
@@ -1046,7 +966,8 @@
             cursor: pointer;
             position: relative;
             overflow: hidden;
-            box-shadow: 0 1px 2px rgba(60, 64, 67, 0.2);
+            box-shadow: 0 2px 8px rgba(60, 64, 67, 0.08);
+            /* PHASE 2.3: Softer shadow */
         }
 
         /* REFINEMENT: Principle 7 - Flash animation */
@@ -1078,160 +999,79 @@
             }
         }
 
-        /* REFINEMENT: Phase 2 - Habit Card Redesign */
-        .habit-card {
-            background: var(--color-surface);
-            border-radius: var(--radius-large);
-            padding: 16px;
-            display: flex;
-            align-items: center;
-            gap: 20px;
-            margin-bottom: 16px;
-            cursor: pointer;
-            transition: all var(--motion-medium);
-            position: relative;
-            overflow: hidden;
-            border: 1px solid transparent;
-            min-height: 100px;
-            /* Taller cards */
-        }
-
         .habit-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            box-shadow: 0 2px 6px rgba(60, 64, 67, 0.25);
+            /* elevation-2 */
+            transform: translateY(-1px);
         }
 
-        .habit-card:active {
-            transform: scale(0.98);
-        }
-
-        /* Completed State */
         .habit-card.completed {
-            background: var(--color-surface-tone-1);
-            border-color: rgba(0, 0, 0, 0.05);
+            background: var(--color-surface-tone-3);
         }
 
-        /* Gradient Icon Badge (80px) */
-        .habit-icon-badge {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-            position: relative;
-            color: white;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-            transition: transform var(--motion-medium);
-        }
-
-        .habit-card:hover .habit-icon-badge {
-            transform: scale(1.05);
-        }
-
-        .habit-icon-badge .material-symbols-outlined {
-            font-size: 36px;
-        }
-
-        /* Streak Badge */
-        .habit-streak-badge {
+        .habit-card::before {
+            content: '';
             position: absolute;
-            bottom: -4px;
-            background: #FFFFFF;
-            color: var(--color-on-surface);
-            font-size: 12px;
-            font-weight: 700;
-            padding: 4px 8px;
-            border-radius: 12px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            display: flex;
-            align-items: center;
-            gap: 2px;
-            white-space: nowrap;
-        }
-
-        /* Habit Info */
-        .habit-info {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-
-        .habit-title {
-            font-size: 18px;
-            font-weight: 600;
-            color: var(--color-on-surface);
-            margin: 0;
-            line-height: 1.3;
-        }
-
-        .habit-why {
-            font-size: 14px;
-            color: var(--color-on-surface-variant);
-            margin: 0;
-            line-height: 1.4;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-        }
-
-        /* Checkmark Overlay for Completed State */
-        .check-overlay {
-            position: absolute;
-            top: 0;
             left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(255, 255, 255, 0.2);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            opacity: 0;
-            transition: opacity var(--motion-fast);
-            pointer-events: none;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: var(--habit-color);
+            border-radius: 4px 0 0 4px;
         }
 
-        .habit-card.completed .check-overlay {
-            opacity: 1;
+        /* Custom Checkbox */
+        .habit-checkbox-wrapper {
+            width: 28px;
+            height: 28px;
+            flex-shrink: 0;
+            z-index: 2;
         }
 
-        .habit-card.completed .habit-icon-badge::after {
-            content: 'check';
-            font-family: 'Material Symbols Outlined';
+        .habit-checkbox {
+            appearance: none;
+            width: 28px;
+            height: 28px;
+            border: 2px solid var(--color-outline);
+            border-radius: var(--radius-medium);
+            /* 8px */
+            cursor: pointer;
+            position: relative;
+            transition: all var(--motion-fast);
+            background: var(--color-surface);
+        }
+
+        .habit-checkbox:checked {
+            background: var(--habit-color);
+            border-color: var(--habit-color);
+        }
+
+        .habit-checkbox:checked::after {
+            content: '✓';
             position: absolute;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.4);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 40px;
             color: white;
+            font-size: 18px;
+            font-weight: bold;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            /* REFINEMENT: Principle #5 - Check animation */
             animation: checkPop 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
+        /* REFINEMENT: Principle #5 - Keyframes for check */
         @keyframes checkPop {
             0% {
-                transform: scale(0);
-                opacity: 0;
+                transform: translate(-50%, -50%) scale(0);
             }
 
             50% {
-                transform: scale(1.2);
+                transform: translate(-50%, -50%) scale(1.2);
             }
 
             100% {
-                transform: scale(1);
-                opacity: 1;
+                transform: translate(-50%, -50%) scale(1);
             }
-        }
-
-        100% {
-            transform: translate(-50%, -50%) scale(1);
-        }
         }
 
         .habit-checkbox:hover {
@@ -1247,6 +1087,69 @@
             font-size: 32px;
             flex-shrink: 0;
             pointer-events: none;
+        }
+
+        /* PHASE 2: Gradient Icon Badge with Streak */
+        .habit-icon-badge {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            flex-shrink: 0;
+            pointer-events: none;
+            transition: transform var(--motion-fast);
+        }
+
+        .habit-icon-emoji {
+            font-size: 40px;
+            margin-bottom: -4px;
+            line-height: 1;
+        }
+
+        .habit-streak-number {
+            font-size: 20px;
+            font-weight: 700;
+            color: white;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+            line-height: 1;
+            margin-top: 2px;
+        }
+
+        /* PHASE 2.2: Checkmark overlay for completed habits */
+        .habit-card.completed .habit-icon-badge::after {
+            content: '✓';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 28px;
+            height: 28px;
+            background: var(--color-success);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: bold;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+            animation: checkPop 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes checkPop {
+            0% {
+                transform: scale(0);
+            }
+            50% {
+                transform: scale(1.2);
+            }
+            100% {
+                transform: scale(1);
+            }
         }
 
         .habit-content {
@@ -2230,6 +2133,888 @@
                 padding: 8px;
             }
         }
+
+        /* ==========================================
+           ATOMS-STYLE ENHANCEMENTS
+           ========================================== */
+
+        /* Card Fill Animation - preserves existing card functionality */
+        .habit-card.filling::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 0%;
+            height: 100%;
+            background: var(--fill-color, var(--color-primary));
+            transition: width 400ms cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 0;
+            pointer-events: none;
+            animation: cardFillAnimation 400ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        @keyframes cardFillAnimation {
+            0% {
+                width: 0%;
+            }
+
+            100% {
+                width: 100%;
+            }
+        }
+
+        /* Celebration Modal */
+        .celebration-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 300ms ease-out;
+            opacity: 1;
+        }
+
+        .celebration-modal.closing {
+            animation: fadeOut 200ms ease-out forwards;
+        }
+
+        .celebration-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #1a1a1a;
+            background-image: radial-gradient(circle,
+                    rgba(255, 255, 255, 0.05) 1px,
+                    transparent 1px);
+            background-size: 20px 20px;
+        }
+
+        .celebration-content {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            color: white;
+            padding: 40px 24px;
+            max-width: 400px;
+            width: 100%;
+        }
+
+        .celebration-title {
+            font-size: 28px;
+            font-weight: 600;
+            margin: 0 0 32px 0;
+            color: white;
+        }
+
+        .celebration-ring-container {
+            position: relative;
+            width: 200px;
+            height: 200px;
+            margin: 0 auto 40px;
+        }
+
+        .celebration-ring-svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .celebration-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .celebration-icon {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+            transform: scale(0);
+        }
+
+        @keyframes celebrationIconPop {
+            0% {
+                transform: scale(0);
+            }
+
+            50% {
+                transform: scale(1.1);
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        .celebration-emoji {
+            font-size: 48px;
+            margin-bottom: 4px;
+        }
+
+        .celebration-number {
+            font-size: 24px;
+            font-weight: 700;
+            color: white;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .celebration-milestone {
+            margin-bottom: 32px;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        @keyframes celebrationSlideUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .celebration-milestone h3 {
+            font-size: 24px;
+            font-weight: 600;
+            margin: 0 0 8px 0;
+            color: white;
+        }
+
+        .celebration-milestone p {
+            font-size: 16px;
+            color: rgba(255, 255, 255, 0.8);
+            margin: 0;
+        }
+
+        .celebration-milestone strong {
+            color: var(--color-primary);
+            font-weight: 600;
+        }
+
+        .celebration-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .celebration-btn-primary,
+        .celebration-btn-secondary {
+            padding: 16px 32px;
+            border: none;
+            border-radius: var(--radius-medium);
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all var(--motion-fast);
+        }
+
+        .celebration-btn-primary {
+            background: var(--color-primary);
+            color: var(--color-on-primary);
+        }
+
+        .celebration-btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .celebration-btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeOut {
+            to {
+                opacity: 0;
+            }
+        }
+
+        /* ==========================================
+           3-TAB NAVIGATION SYSTEM
+           ========================================== */
+
+        /* Bottom Navigation */
+        .bottom-navigation {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            display: flex;
+            background: var(--color-surface);
+            border-top: 1px solid var(--color-outline-variant);
+            padding: 8px 0 calc(8px + env(safe-area-inset-bottom));
+            z-index: 1000;
+            box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .nav-tab {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            padding: 8px;
+            border: none;
+            background: transparent;
+            color: var(--color-on-surface-variant);
+            cursor: pointer;
+            transition: color 200ms ease;
+            font-family: var(--font-label);
+        }
+
+        .nav-tab.active {
+            color: var(--color-primary);
+        }
+
+        .nav-tab .material-symbols-outlined {
+            font-size: 24px;
+        }
+
+        .nav-label {
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        /* Tab Content Containers */
+        .tab-content {
+            display: none;
+            padding-bottom: calc(80px + env(safe-area-inset-bottom));
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Adjust FAB position for bottom nav */
+        .fab {
+            bottom: calc(72px + env(safe-area-inset-bottom)) !important;
+        }
+
+        /* ==========================================
+           ANALYTICS TAB - ATOMS-INSPIRED PROGRESS VIEW
+           ========================================== */
+
+        /* Sub-tabs in Analytics */
+        .sub-tabs {
+            display: flex;
+            gap: 8px;
+            padding: 16px;
+            background: var(--color-background);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .sub-tab {
+            flex: 1;
+            padding: 12px 24px;
+            border-radius: 24px;
+            border: none;
+            background: var(--color-surface-variant);
+            color: var(--color-on-surface-variant);
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 200ms ease;
+        }
+
+        .sub-tab.active {
+            background: var(--color-surface);
+            color: var(--color-on-surface);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .sub-tab-content {
+            display: none;
+        }
+
+        .sub-tab-content.active {
+            display: block;
+        }
+
+        /* Progress Hero Section */
+        .progress-hero {
+            padding: 24px 16px;
+            text-align: center;
+            background: var(--color-background);
+        }
+
+        .progress-hero h2 {
+            font-size: 28px;
+            font-weight: 600;
+            margin: 0 0 12px 0;
+        }
+
+        .progress-quote {
+            font-size: 15px;
+            color: var(--color-on-surface-variant);
+            line-height: 1.6;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        /* Progress Toggle */
+        .progress-toggle {
+            display: flex;
+            gap: 8px;
+            padding: 0 16px 16px;
+            background: var(--color-background);
+        }
+
+        .toggle-btn {
+            flex: 1;
+            padding: 12px 24px;
+            border-radius: 24px;
+            border: none;
+            background: var(--color-surface-variant);
+            color: var(--color-on-surface-variant);
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 200ms ease;
+        }
+
+        .toggle-btn.active {
+            background: var(--color-primary);
+            color: var(--color-on-primary);
+            box-shadow: 0 2px 6px rgba(26, 115, 232, 0.3);
+        }
+
+        /* Progress View Toggle */
+        .progress-view {
+            display: none;
+        }
+
+        .progress-view.active {
+            display: block;
+        }
+
+        /* Total Reps Card */
+        .total-reps-card {
+            background: var(--color-surface);
+            border-radius: 16px;
+            padding: 24px;
+            margin: 0 16px 16px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .card-header h3 {
+            font-size: 16px;
+            font-weight: 500;
+            color: var(--color-on-surface-variant);
+            margin: 0;
+        }
+
+        .share-btn {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 8px 16px;
+            border: 1px solid var(--color-outline);
+            border-radius: 20px;
+            background: transparent;
+            color: var(--color-primary);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 200ms ease;
+        }
+
+        .share-btn:hover {
+            background: var(--color-primary-container);
+        }
+
+        .share-btn .material-symbols-outlined {
+            font-size: 18px;
+        }
+
+        .total-number {
+            font-size: 56px;
+            font-weight: 700;
+            margin: 16px 0;
+            color: var(--color-on-surface);
+        }
+
+        .votes-message {
+            font-size: 16px;
+            line-height: 1.5;
+            margin-bottom: 24px;
+            color: var(--color-on-surface-variant);
+        }
+
+        .votes-message strong {
+            color: var(--color-on-surface);
+            font-weight: 600;
+        }
+
+        /* Habit Breakdown Bar */
+        .habit-breakdown-bar {
+            display: flex;
+            height: 48px;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 16px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .bar-segment {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            transition: transform 200ms ease;
+            position: relative;
+        }
+
+        .bar-segment:hover {
+            transform: scaleY(1.1);
+            z-index: 1;
+        }
+
+        .bar-label {
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Habit Stats List */
+        .habit-stats-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .habit-stat-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: var(--color-surface-variant);
+            border-radius: 8px;
+        }
+
+        .habit-color-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .habit-stat-name {
+            flex: 1;
+            font-size: 15px;
+            font-weight: 500;
+            color: var(--color-on-surface);
+        }
+
+        .habit-stat-count {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--color-on-surface-variant);
+        }
+
+        /* Milestone Cards */
+        .milestones-view {
+            padding: 0 16px;
+        }
+
+        .milestone-card {
+            background: var(--color-surface);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        .milestone-header h4 {
+            font-size: 18px;
+            font-weight: 600;
+            margin: 0 0 4px 0;
+        }
+
+        .milestone-identity {
+            font-size: 14px;
+            color: var(--color-on-surface-variant);
+            margin: 0 0 16px 0;
+        }
+
+        .milestone-current-streak {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .streak-number {
+            font-size: 48px;
+            font-weight: 700;
+            color: var(--color-primary);
+        }
+
+        .streak-label {
+            font-size: 14px;
+            color: var(--color-on-surface-variant);
+            display: block;
+            margin-top: 4px;
+        }
+
+        .milestone-badges {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+
+        .milestone-badge {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .badge-icon {
+            width: 64px;
+            height: 64px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: 700;
+            color: white;
+        }
+
+        .badge-label {
+            font-size: 12px;
+            color: var(--color-on-surface-variant);
+            text-align: center;
+        }
+
+        .milestone-badge.upcoming .badge-icon {
+            background: var(--color-surface-variant);
+            color: var(--color-on-surface-variant);
+            opacity: 0.5;
+        }
+
+        .view-all-btn {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--color-outline);
+            border-radius: 8px;
+            background: transparent;
+            color: var(--color-primary);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 200ms ease;
+        }
+
+        .view-all-btn:hover {
+            background: var(--color-primary-container);
+        }
+
+        /* ========================================
+         * PROFILE TAB STYLES
+         * ======================================== */
+
+        /* Profile Header */
+        .profile-header {
+            background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+            padding: 32px 16px;
+            text-align: center;
+            color: white;
+            margin-bottom: 16px;
+        }
+
+        .profile-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 16px;
+            font-size: 36px;
+        }
+
+        .profile-name {
+            font-size: 24px;
+            font-weight: 600;
+            margin: 0 0 4px 0;
+        }
+
+        .profile-email {
+            font-size: 14px;
+            opacity: 0.9;
+            margin: 0;
+        }
+
+        /* Profile Sections */
+        .profile-section {
+            background: var(--color-surface);
+            border-radius: 16px;
+            padding: 16px;
+            margin: 0 16px 16px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        .profile-section-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin: 0 0 16px 0;
+            color: var(--color-on-surface);
+        }
+
+        /* Settings List */
+        .settings-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .setting-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 0;
+        }
+
+        .setting-item:not(:last-child) {
+            border-bottom: 1px solid var(--color-outline-variant);
+        }
+
+        .setting-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+        }
+
+        .setting-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--color-primary-container);
+            color: var(--color-on-primary-container);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .setting-info h4 {
+            margin: 0 0 4px 0;
+            font-size: 16px;
+            font-weight: 500;
+            color: var(--color-on-surface);
+        }
+
+        .setting-info p {
+            margin: 0;
+            font-size: 13px;
+            color: var(--color-on-surface-variant);
+        }
+
+        /* Toggle Switch */
+        .toggle-switch {
+            position: relative;
+            width: 48px;
+            height: 28px;
+            background: var(--color-outline-variant);
+            border-radius: 14px;
+            cursor: pointer;
+            transition: background 200ms ease;
+        }
+
+        .toggle-switch.active {
+            background: var(--color-primary);
+        }
+
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 22px;
+            height: 22px;
+            background: white;
+            border-radius: 50%;
+            transition: transform 200ms ease;
+        }
+
+        .toggle-switch.active::after {
+            transform: translateX(20px);
+        }
+
+        /* Action Buttons */
+        .profile-action-btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 200ms ease;
+        }
+
+        .profile-action-btn.primary {
+            background: var(--color-primary);
+            color: var(--color-on-primary);
+        }
+
+        .profile-action-btn.primary:hover {
+            background: var(--color-primary);
+            opacity: 0.9;
+        }
+
+        .profile-action-btn.secondary {
+            background: var(--color-surface-variant);
+            color: var(--color-on-surface-variant);
+        }
+
+        .profile-action-btn.secondary:hover {
+            background: var(--color-surface-tone-3);
+        }
+
+        .profile-action-btn.danger {
+            background: var(--color-error-container);
+            color: var(--color-error);
+            margin-top: 8px;
+        }
+
+        .profile-action-btn.danger:hover {
+            background: var(--color-error);
+            color: white;
+        }
+
+        /* Stats Summary */
+        .profile-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .profile-stat-card {
+            background: var(--color-surface-variant);
+            border-radius: 12px;
+            padding: 16px 12px;
+            text-align: center;
+        }
+
+        .profile-stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--color-primary);
+            margin-bottom: 4px;
+        }
+
+        .profile-stat-label {
+            font-size: 12px;
+            color: var(--color-on-surface-variant);
+            font-weight: 500;
+        }
+
+        /* Form Elements */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--color-on-surface);
+            margin-bottom: 8px;
+        }
+
+        .form-input, .form-textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid var(--color-outline);
+            border-radius: 12px;
+            font-size: 15px;
+            color: var(--color-on-surface);
+            background: var(--color-surface);
+            transition: border-color 200ms ease;
+            box-sizing: border-box;
+        }
+
+        .form-input:focus, .form-textarea:focus {
+            outline: none;
+            border-color: var(--color-primary);
+        }
+
+        .form-textarea {
+            resize: vertical;
+            font-family: inherit;
+        }
+
+        .form-hint {
+            font-size: 12px;
+            color: var(--color-on-surface-variant);
+            margin: 6px 0 0 0;
+        }
+
+        .avatar-picker {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+        }
+
+        .avatar-option {
+            width: 100%;
+            aspect-ratio: 1;
+            font-size: 32px;
+            border: 2px solid var(--color-outline);
+            border-radius: 12px;
+            background: var(--color-surface);
+            cursor: pointer;
+            transition: all 200ms ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .avatar-option:hover {
+            border-color: var(--color-primary);
+            transform: scale(1.05);
+        }
+
+        .avatar-option.active {
+            border-color: var(--color-primary);
+            background: var(--color-primary-container);
+        }
     </style>
 </head>
 
@@ -2270,35 +3055,19 @@
     <!-- Main App Content -->
     <div class="app-container" id="appContainer">
         <!-- App Bar -->
-        <div class="app-bar" id="appBar">
-            <div class="app-bar-content">
-                <div>
-                    <div class="app-title">
-                        <span class="material-symbols-outlined">task_alt</span>
-                        Habit Tracker
-                    </div>
-                    <div class="app-subtitle">Build consistency, one day at a time</div>
-                </div>
-                <div class="app-bar-actions">
-                    <!-- REFINEMENT: Principle #2 - Replace "Synced" with icon -->
-                    <div class="sync-status" id="syncStatus" title="Sync Status">
+        <!-- TAB 1: HABITS -->
+        <div class="tab-content active" id="habits-tab">
+            <div class="container">
+                <!-- Welcome Message -->
+                <div class="welcome-message" id="welcomeMessage">
+                    <h2 class="welcome-greeting" id="welcomeGreeting">Welcome back!</h2>
+                    <p class="welcome-subtitle">Let's build great habits today</p>
+                    <div class="sync-status-inline" id="syncStatus" title="Sync Status">
                         <span class="material-symbols-outlined">cloud_done</span>
+                        <span>Synced</span>
                     </div>
-
-                    <!-- REFINEMENT: Principle #7 - Add Dark Mode Toggle -->
-                    <button class="theme-toggle-button state-layer-on-primary" onclick="toggleDarkMode()"
-                        aria-label="Toggle dark mode">
-                        <span class="material-symbols-outlined" id="icon-light-mode">light_mode</span>
-                        <span class="material-symbols-outlined" id="icon-dark-mode">dark_mode</span>
-                    </button>
-
-                    <button class="text-button state-layer-on-primary" onclick="handleSignOut()">Sign Out</button>
                 </div>
-            </div>
-        </div>
-
-        <div class="container">
-            <!-- Setup Banner (for Firebase config) -->
+                <!-- Setup Banner (for Firebase config) -->
             <div class="setup-banner" id="setupBanner">
                 <h3>
                     <span class="material-symbols-outlined">settings</span>
@@ -2347,34 +3116,12 @@
                 </div>
             </div>
 
-            <!-- Apple-Inspired Activity Ring -->
-            <div class="ring-wrapper">
-                <div class="ring-container">
-                    <svg class="habit-ring" viewBox="0 0 120 120">
-                        <!-- Background ring -->
-                        <circle cx="60" cy="60" r="52" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="12" />
-
-                        <!-- Progress ring -->
-                        <circle cx="60" cy="60" r="52" fill="none" stroke="url(#habitGradient)" stroke-width="12"
-                            stroke-linecap="round" class="habit-ring-progress" id="habitRingProgress"
-                            transform="rotate(-90 60 60)" />
-
-                        <!-- Gradient definition -->
-                        <defs>
-                            <linearGradient id="habitGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                                <stop offset="0%" style="stop-color:#5B9BD5" />
-                                <stop offset="100%" style="stop-color:#7CB342" />
-                            </linearGradient>
-                        </defs>
-                    </svg>
-
-                    <!-- Center content -->
-                    <div class="ring-content">
-                        <span class="ring-number" id="ringNumber">0</span>
-                        <span class="ring-total" id="ringTotal">/0</span>
-                    </div>
-                </div>
-                <p class="ring-label">Today's Progress</p>
+            <!-- Concentric Rings Progress -->
+            <div class="rings-container">
+                <svg class="concentric-rings" id="concentricRings" viewBox="0 0 200 200">
+                    <!-- Rings will be generated by JavaScript -->
+                </svg>
+                <div class="rings-center-text" id="ringsCenterText">0/0</div>
             </div>
 
             <!-- Motivational Quote Card -->
@@ -2393,288 +3140,529 @@
                 </div>
                 <!-- Habits will be rendered here by JavaScript -->
             </div>
-
-
-            <!-- Stats Grid (Hidden - will be in Progress tab) -->
-            <div class="stats-grid" style="display: none;">
-                <!-- Added style for stagger animation -->
-                <div class="stat-card" style="--index: 1;">
-                    <!-- REFINEMENT: Principle #2 & 4 - Semantic/Colored Icons -->
-                    <div class="stat-icon" id="weekProgressIcon">
-                        <span class="material-symbols-outlined">calendar_month</span>
-                    </div>
-                    <div class="stat-value" id="weekProgress">0%</div>
-                    <div class="stat-label">This Week</div>
-                </div>
-                <div class="stat-card" style="--index: 2;">
-                    <div class="stat-icon" id="totalCheckinsIcon">
-                        <span class="material-symbols-outlined">task_alt</span>
-                    </div>
-                    <div class="stat-value" id="totalCheckins">0</div>
-                    <div class="stat-label">Total Check-ins</div>
-                </div>
-                <div class="stat-card" style="--index: 3;">
-                    <div class="stat-icon" id="bestStreakIcon">
-                        <span class="material-symbols-outlined">local_fire_department</span>
-                    </div>
-                    <div class="stat-value" id="bestStreak">0</div>
-                    <div class="stat-label">Best Streak</div>
-                </div>
-                <div class="stat-card" style="--index: 4;">
-                    <div class="stat-icon" id="avgCompletionIcon">
-                        <span class="material-symbols-outlined">leaderboard</span>
-                    </div>
-                    <div class="stat-value" id="avgCompletion">0%</div>
-                    <div class="stat-label">Avg Rate</div>
-                </div>
-            </div>
-
-            <!-- Analytics Dashboard -->
-            <div class="analytics-tabs">
-                <button class="analytics-tab active" onclick="switchAnalyticsTab('overview')">
-                    <span class="material-symbols-outlined">dashboard</span>
-                    Overview
-                </button>
-                <button class="analytics-tab" onclick="switchAnalyticsTab('heatmap')">
-                    <span class="material-symbols-outlined">grid_on</span>
-                    Heatmap
-                </button>
-                <button class="analytics-tab" onclick="switchAnalyticsTab('trends')">
-                    <span class="material-symbols-outlined">trending_up</span>
-                    Trends
-                </button>
-                <button class="analytics-tab" onclick="switchAnalyticsTab('insights')">
-                    <span class="material-symbols-outlined">lightbulb</span>
-                    Insights
-                </button>
-                <button class="analytics-tab" onclick="switchAnalyticsTab('compare')">
-                    <span class="material-symbols-outlined">compare_arrows</span>
-                    Compare
-                </button>
-            </div>
-
-            <!-- Analytics Content Sections -->
-
-            <!-- Overview Tab -->
-            <div class="analytics-content active" id="overview-content">
-                <div class="analytics-mini-stats">
-                    <div class="mini-stat-card">
-                        <div class="mini-stat-value" id="miniTotalHabits">0</div>
-                        <div class="mini-stat-label">Active Habits</div>
-                    </div>
-                    <div class="mini-stat-card">
-                        <div class="mini-stat-value" id="miniTodayCompleted">0</div>
-                        <div class="mini-stat-label">Today Completed</div>
-                    </div>
-                    <div class="mini-stat-card">
-                        <div class="mini-stat-value" id="miniTodayRate">0%</div>
-                        <div class="mini-stat-label">Today's Rate</div>
-                    </div>
-                    <div class="mini-stat-card">
-                        <div class="mini-stat-value" id="miniCurrentStreak">0</div>
-                        <div class="mini-stat-label">Current Streak</div>
-                    </div>
-                    <div class="mini-stat-card">
-                        <div class="mini-stat-value" id="miniMonthProgress">0%</div>
-                        <div class="mini-stat-label">This Month</div>
-                    </div>
-                    <div class="mini-stat-card">
-                        <div class="mini-stat-value" id="miniConsistency">0%</div>
-                        <div class="mini-stat-label">Consistency</div>
-                    </div>
-                </div>
-
-                <div class="chart-card">
-                    <h3>
-                        <span class="material-symbols-outlined">show_chart</span>
-                        7-Day Trend
-                    </h3>
-                    <div class="chart-wrapper">
-                        <canvas id="sevenDayTrendChart"></canvas>
-                    </div>
-                </div>
-
-                <div class="chart-card">
-                    <h3>
-                        <span class="material-symbols-outlined">donut_small</span>
-                        Today's Progress
-                    </h3>
-                    <div class="chart-wrapper small">
-                        <canvas id="todayDonutChart"></canvas>
-                    </div>
-                </div>
-
-                <div class="chart-card">
-                    <h3>
-                        <span class="material-symbols-outlined">bar_chart</span>
-                        Monthly Performance (Last 6 Months)
-                    </h3>
-                    <div class="chart-wrapper">
-                        <canvas id="monthlyPerformanceChart"></canvas>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Enhanced Heatmap Tab -->
-            <div class="analytics-content" id="heatmap-content">
-                <div class="heatmap-filters">
-                    <div class="filter-group">
-                        <label>Period:</label>
-                        <select id="heatmapPeriodFilter" class="filter-select" onchange="updateEnhancedHeatmap()">
-                            <option value="3">3 Months</option>
-                            <option value="6" selected>6 Months</option>
-                            <option value="12">1 Year</option>
-                        </select>
-                    </div>
-                    <div class="filter-group">
-                        <label>Habit:</label>
-                        <select id="heatmapHabitFilter" class="filter-select" onchange="updateEnhancedHeatmap()">
-                            <option value="all">All Habits</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="chart-card">
-                    <div id="enhancedHeatmapGrid"></div>
-                    <div class="heatmap-legend">
-                        <div class="legend-item">
-                            <div class="legend-color" style="background: var(--color-surface-tone-3); opacity: 0.25;">
-                            </div>
-                            <span>0-25%</span>
-                        </div>
-                        <div class="legend-item">
-                            <div class="legend-color" style="background: var(--color-primary); opacity: 0.5;"></div>
-                            <span>26-50%</span>
-                        </div>
-                        <div class="legend-item">
-                            <div class="legend-color" style="background: var(--color-primary); opacity: 0.75;"></div>
-                            <span>51-75%</span>
-                        </div>
-                        <div class="legend-item">
-                            <div class="legend-color" style="background: var(--color-primary); opacity: 1;"></div>
-                            <span>76-100%</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Trends Tab -->
-            <div class="analytics-content" id="trends-content">
-                <div class="chart-card">
-                    <h3>
-                        <span class="material-symbols-outlined">timeline</span>
-                        30-Day Completion Trend
-                    </h3>
-                    <div class="chart-wrapper">
-                        <canvas id="thirtyDayTrendChart"></canvas>
-                    </div>
-                </div>
-
-                <div class="chart-card">
-                    <h3>
-                        <span class="material-symbols-outlined">local_fire_department</span>
-                        Streak Timeline
-                    </h3>
-                    <div class="chart-wrapper large">
-                        <canvas id="streakTimelineChart"></canvas>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Insights Tab -->
-            <div class="analytics-content" id="insights-content">
-                <div class="insights-grid">
-                    <div id="topPerformersContainer" style="display: flex; flex-direction: column; gap: 16px;">
-                        <!-- Generated by JS -->
-                    </div>
-
-                    <div id="needsAttentionContainer" style="display: flex; flex-direction: column; gap: 16px;">
-                        <!-- Generated by JS -->
-                    </div>
-                </div>
-
-                <div class="chart-card">
-                    <h3>
-                        <span class="material-symbols-outlined">calendar_view_week</span>
-                        Best Days of the Week
-                    </h3>
-                    <div class="chart-wrapper">
-                        <canvas id="bestDaysChart"></canvas>
-                    </div>
-                </div>
-
-                <div id="patternRecognitionContainer" style="display: flex; flex-direction: column; gap: 16px;">
-                    <!-- Generated by JS -->
-                </div>
-            </div>
-
-            <!-- Compare Tab -->
-            <div class="analytics-content" id="compare-content">
-                <div class="chart-card">
-                    <h3>
-                        <span class="material-symbols-outlined">table_chart</span>
-                        Habit Comparison
-                    </h3>
-                    <table class="comparison-table" id="comparisonTable">
-                        <thead>
-                            <tr>
-                                <th>Habit</th>
-                                <th>This Week</th>
-                                <th>This Month</th>
-                                <th>Current Streak</th>
-                                <th>Best Streak</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <!-- Generated by JS -->
-                        </tbody>
-                    </table>
-                </div>
-
-                <div class="chart-card">
-                    <h3>
-                        <span class="material-symbols-outlined">stacked_line_chart</span>
-                        Head-to-Head (Last 14 Days)
-                    </h3>
-                    <div class="compare-selects"
-                        style="display: flex; gap: 16px; margin-bottom: 16px; align-items: center;">
-                        <div style="flex: 1;">
-                            <label style="display: block; margin-bottom: 8px; font-weight: 500;">Habit 1:</label>
-                            <select id="compareHabit1" class="filter-select" style="width: 100%;">
-                                <!-- Generated by JS -->
-                            </select>
-                        </div>
-                        <div style="flex: 1;">
-                            <label style="display: block; margin-bottom: 8px; font-weight: 500;">Habit 2:</label>
-                            <select id="compareHabit2" class="filter-select" style="width: 100%;">
-                                <!-- Generated by JS -->
-                            </select>
-                        </div>
-                    </div>
-                    <div class="chart-wrapper large">
-                        <canvas id="headToHeadChart"></canvas>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Export Section -->
-            <div class="export-section">
-                <h3>
-                    <!-- REFINEMENT: Principle #6 - Change icon -->
-                    <span class="material-symbols-outlined" style="vertical-align: middle;">cloud_download</span>
-                    Export Your Data
-                </h3>
-                <p>Download your complete habit history as a CSV file</p>
-                <button class="filled-button state-layer-primary" onclick="exportToCSV()">
-                    <span class="material-symbols-outlined"
-                        style="font-size: 18px; vertical-align: middle;">file_download</span>
-                    Download CSV
-                </button>
-                <!-- REFINEMENT: Principle #6 - Add privacy note -->
-                <p class="export-privacy-note">Your data stays private—exported only to your device.</p>
             </div>
         </div>
-    </div>
+        <!-- End Habits Tab -->
+
+        <!-- TAB 2: ANALYTICS -->
+        <div class="tab-content" id="analytics-tab">
+            <div class="container">
+                <!-- Sub-tabs for Progress | Analytics -->
+                <div class="sub-tabs">
+                    <button class="sub-tab active" data-subtab="progress" onclick="switchAnalyticsSubTab('progress')">
+                        Progress
+                    </button>
+                    <button class="sub-tab" data-subtab="analytics" onclick="switchAnalyticsSubTab('analytics')">
+                        Analytics
+                    </button>
+                </div>
+
+                <!-- PROGRESS SUB-TAB -->
+                <div class="sub-tab-content active" id="progress-subtab">
+                    <!-- Hero Section -->
+                    <div class="progress-hero">
+                        <h2 class="progress-title">Habit progress</h2>
+                        <p class="progress-quote" id="progressQuote">
+                            "The secret of getting ahead is getting started." — Mark Twain
+                        </p>
+                    </div>
+
+                    <!-- Progress / Milestones Toggle -->
+                    <div class="progress-toggle">
+                        <button class="toggle-btn active" data-view="progress" onclick="switchProgressView('progress')">
+                            Progress
+                        </button>
+                        <button class="toggle-btn" data-view="milestones" onclick="switchProgressView('milestones')">
+                            Milestones
+                        </button>
+                    </div>
+
+                    <!-- PROGRESS VIEW -->
+                    <div class="progress-view active" id="progress-view">
+                        <!-- Total Reps Card -->
+                        <div class="total-reps-card">
+                            <p class="total-label">Total repetitions</p>
+                            <h1 class="total-number" id="totalRepsNumber">0</h1>
+                            <p class="votes-message" id="votesMessage">
+                                That's <strong id="votesCount">0</strong> votes for a better you!
+                            </p>
+                        </div>
+
+                        <!-- Habit Breakdown Bar -->
+                        <div style="padding: 0 16px;">
+                            <h3 style="font-size: 16px; font-weight: 600; margin: 24px 0 12px;">Breakdown</h3>
+                            <div class="habit-breakdown-bar" id="habitBreakdownBar">
+                                <!-- Segments will be generated by JS -->
+                            </div>
+                        </div>
+
+                        <!-- Habit Stats List -->
+                        <div class="habit-stats-list" id="habitStatsList">
+                            <!-- Individual habit stats will be generated by JS -->
+                        </div>
+                    </div>
+
+                    <!-- MILESTONES VIEW -->
+                    <div class="progress-view" id="milestones-view">
+                        <div id="milestoneCardsContainer">
+                            <!-- Milestone cards will be generated by JS -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ANALYTICS SUB-TAB -->
+                <div class="sub-tab-content" id="analytics-subtab">
+                    <!-- Stats Grid -->
+                    <div class="stats-grid">
+                        <div class="stat-card" style="--index: 1;">
+                            <div class="stat-icon" id="weekProgressIcon">
+                                <span class="material-symbols-outlined">calendar_month</span>
+                            </div>
+                            <div class="stat-value" id="weekProgress">0%</div>
+                            <div class="stat-label">This Week</div>
+                        </div>
+                        <div class="stat-card" style="--index: 2;">
+                            <div class="stat-icon" id="totalCheckinsIcon">
+                                <span class="material-symbols-outlined">task_alt</span>
+                            </div>
+                            <div class="stat-value" id="totalCheckins">0</div>
+                            <div class="stat-label">Total Check-ins</div>
+                        </div>
+                        <div class="stat-card" style="--index: 3;">
+                            <div class="stat-icon" id="bestStreakIcon">
+                                <span class="material-symbols-outlined">local_fire_department</span>
+                            </div>
+                            <div class="stat-value" id="bestStreak">0</div>
+                            <div class="stat-label">Best Streak</div>
+                        </div>
+                        <div class="stat-card" style="--index: 4;">
+                            <div class="stat-icon" id="avgCompletionIcon">
+                                <span class="material-symbols-outlined">leaderboard</span>
+                            </div>
+                            <div class="stat-value" id="avgCompletion">0%</div>
+                            <div class="stat-label">Avg Rate</div>
+                        </div>
+                    </div>
+
+                    <!-- Analytics Dashboard -->
+                    <div class="analytics-tabs">
+                        <button class="analytics-tab active" onclick="switchAnalyticsTab('overview')">
+                            <span class="material-symbols-outlined">dashboard</span>
+                            Overview
+                        </button>
+                        <button class="analytics-tab" onclick="switchAnalyticsTab('heatmap')">
+                            <span class="material-symbols-outlined">grid_on</span>
+                            Heatmap
+                        </button>
+                        <button class="analytics-tab" onclick="switchAnalyticsTab('trends')">
+                            <span class="material-symbols-outlined">trending_up</span>
+                            Trends
+                        </button>
+                        <button class="analytics-tab" onclick="switchAnalyticsTab('insights')">
+                            <span class="material-symbols-outlined">lightbulb</span>
+                            Insights
+                        </button>
+                        <button class="analytics-tab" onclick="switchAnalyticsTab('compare')">
+                            <span class="material-symbols-outlined">compare_arrows</span>
+                            Compare
+                        </button>
+                    </div>
+
+                    <!-- Analytics Content Sections -->
+
+                    <!-- Overview Tab -->
+                    <div class="analytics-content active" id="overview-content">
+                        <div class="analytics-mini-stats">
+                            <div class="mini-stat-card">
+                                <div class="mini-stat-value" id="miniTotalHabits">0</div>
+                                <div class="mini-stat-label">Active Habits</div>
+                            </div>
+                            <div class="mini-stat-card">
+                                <div class="mini-stat-value" id="miniTodayCompleted">0</div>
+                                <div class="mini-stat-label">Today Completed</div>
+                            </div>
+                            <div class="mini-stat-card">
+                                <div class="mini-stat-value" id="miniTodayRate">0%</div>
+                                <div class="mini-stat-label">Today's Rate</div>
+                            </div>
+                            <div class="mini-stat-card">
+                                <div class="mini-stat-value" id="miniCurrentStreak">0</div>
+                                <div class="mini-stat-label">Current Streak</div>
+                            </div>
+                            <div class="mini-stat-card">
+                                <div class="mini-stat-value" id="miniMonthProgress">0%</div>
+                                <div class="mini-stat-label">This Month</div>
+                            </div>
+                            <div class="mini-stat-card">
+                                <div class="mini-stat-value" id="miniConsistency">0</div>
+                                <div class="mini-stat-label">Consistency</div>
+                            </div>
+                        </div>
+
+                        <div class="chart-card">
+                            <h3>
+                                <span class="material-symbols-outlined">show_chart</span>
+                                7-Day Trend
+                            </h3>
+                            <div class="chart-wrapper">
+                                <canvas id="sevenDayTrendChart"></canvas>
+                            </div>
+                        </div>
+
+                        <div class="chart-card">
+                            <h3>
+                                <span class="material-symbols-outlined">donut_small</span>
+                                Today's Progress
+                            </h3>
+                            <div class="chart-wrapper small">
+                                <canvas id="todayDonutChart"></canvas>
+                            </div>
+                        </div>
+
+                        <div class="chart-card">
+                            <h3>
+                                <span class="material-symbols-outlined">bar_chart</span>
+                                Monthly Performance (Last 6 Months)
+                            </h3>
+                            <div class="chart-wrapper">
+                                <canvas id="monthlyPerformanceChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Enhanced Heatmap Tab -->
+                    <div class="analytics-content" id="heatmap-content">
+                        <div class="heatmap-filters">
+                            <div class="filter-group">
+                                <label>Period:</label>
+                                <select id="heatmapPeriodFilter" class="filter-select" onchange="updateEnhancedHeatmap()">
+                                    <option value="3">3 Months</option>
+                                    <option value="6" selected>6 Months</option>
+                                    <option value="12">1 Year</option>
+                                </select>
+                            </div>
+                            <div class="filter-group">
+                                <label>Habit:</label>
+                                <select id="heatmapHabitFilter" class="filter-select" onchange="updateEnhancedHeatmap()">
+                                    <option value="all">All Habits</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="chart-card">
+                            <div id="enhancedHeatmapGrid"></div>
+                            <div class="heatmap-legend">
+                                <div class="legend-item">
+                                    <div class="legend-color" style="background: var(--color-surface-tone-3); opacity: 0.25;">
+                                    </div>
+                                    <span>0-25%</span>
+                                </div>
+                                <div class="legend-item">
+                                    <div class="legend-color" style="background: var(--color-primary); opacity: 0.5;"></div>
+                                    <span>26-50%</span>
+                                </div>
+                                <div class="legend-item">
+                                    <div class="legend-color" style="background: var(--color-primary); opacity: 0.75;"></div>
+                                    <span>51-75%</span>
+                                </div>
+                                <div class="legend-item">
+                                    <div class="legend-color" style="background: var(--color-primary); opacity: 1;"></div>
+                                    <span>76-100%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Trends Tab -->
+                    <div class="analytics-content" id="trends-content">
+                        <div class="chart-card">
+                            <h3>
+                                <span class="material-symbols-outlined">timeline</span>
+                                30-Day Completion Trend
+                            </h3>
+                            <div class="chart-wrapper">
+                                <canvas id="thirtyDayTrendChart"></canvas>
+                            </div>
+                        </div>
+
+                        <div class="chart-card">
+                            <h3>
+                                <span class="material-symbols-outlined">local_fire_department</span>
+                                Streak Timeline
+                            </h3>
+                            <div class="chart-wrapper large">
+                                <canvas id="streakTimelineChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Insights Tab -->
+                    <div class="analytics-content" id="insights-content">
+                        <div class="insights-grid">
+                            <div id="topPerformersContainer" style="display: flex; flex-direction: column; gap: 16px;">
+                                <!-- Generated by JS -->
+                            </div>
+
+                            <div id="needsAttentionContainer" style="display: flex; flex-direction: column; gap: 16px;">
+                                <!-- Generated by JS -->
+                            </div>
+                        </div>
+
+                        <div class="chart-card">
+                            <h3>
+                                <span class="material-symbols-outlined">calendar_view_week</span>
+                                Best Days of the Week
+                            </h3>
+                            <div class="chart-wrapper">
+                                <canvas id="bestDaysChart"></canvas>
+                            </div>
+                        </div>
+
+                        <div id="patternRecognitionContainer" style="display: flex; flex-direction: column; gap: 16px;">
+                            <!-- Generated by JS -->
+                        </div>
+                    </div>
+
+                    <!-- Compare Tab -->
+                    <div class="analytics-content" id="compare-content">
+                        <div class="chart-card">
+                            <h3>
+                                <span class="material-symbols-outlined">table_chart</span>
+                                Habit Comparison
+                            </h3>
+                            <table class="comparison-table" id="comparisonTable">
+                                <thead>
+                                    <tr>
+                                        <th>Habit</th>
+                                        <th>This Week</th>
+                                        <th>This Month</th>
+                                        <th>Current Streak</th>
+                                        <th>Best Streak</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Generated by JS -->
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="chart-card">
+                            <h3>
+                                <span class="material-symbols-outlined">stacked_line_chart</span>
+                                Head-to-Head (Last 14 Days)
+                            </h3>
+                            <div class="compare-selects"
+                                style="display: flex; gap: 16px; margin-bottom: 16px; align-items: center;">
+                                <div style="flex: 1;">
+                                    <label style="display: block; margin-bottom: 8px; font-weight: 500;">Habit 1:</label>
+                                    <select id="compareHabit1" class="filter-select" style="width: 100%;">
+                                        <!-- Generated by JS -->
+                                    </select>
+                                </div>
+                                <div style="flex: 1;">
+                                    <label style="display: block; margin-bottom: 8px; font-weight: 500;">Habit 2:</label>
+                                    <select id="compareHabit2" class="filter-select" style="width: 100%;">
+                                        <!-- Generated by JS -->
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="chart-wrapper large">
+                                <canvas id="headToHeadChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Export Section -->
+                    <div class="export-section">
+                        <h3>
+                            <span class="material-symbols-outlined" style="vertical-align: middle;">cloud_download</span>
+                            Export Your Data
+                        </h3>
+                        <p>Download your complete habit history as a CSV file</p>
+                        <button class="filled-button state-layer-primary" onclick="exportToCSV()">
+                            <span class="material-symbols-outlined"
+                                style="font-size: 18px; vertical-align: middle;">file_download</span>
+                            Download CSV
+                        </button>
+                        <p class="export-privacy-note">Your data stays private—exported only to your device.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- End Analytics Tab -->
+
+        <!-- TAB 3: PROFILE -->
+        <div class="tab-content" id="profile-tab">
+            <div class="container">
+                <!-- Profile Header -->
+                <div class="profile-header">
+                    <div class="profile-avatar" id="profileAvatar">👤</div>
+                    <h2 class="profile-name" id="profileName">User</h2>
+                    <p class="profile-email" id="profileEmail">user@example.com</p>
+                </div>
+
+                <!-- Personal Details Section -->
+                <div class="profile-section">
+                    <h3 class="profile-section-title">Personal Details</h3>
+                    <p style="font-size: 13px; color: var(--color-on-surface-variant); margin: 0 0 16px;">
+                        Help us personalize your experience
+                    </p>
+
+                    <form id="userDetailsForm" onsubmit="saveUserDetails(event)">
+                        <div class="form-group">
+                            <label for="userDisplayName">Display Name</label>
+                            <input
+                                type="text"
+                                id="userDisplayName"
+                                name="displayName"
+                                placeholder="How should we call you?"
+                                class="form-input"
+                            />
+                            <p class="form-hint">Used in welcome messages and profile</p>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="userBio">Bio (Optional)</label>
+                            <textarea
+                                id="userBio"
+                                name="bio"
+                                placeholder="Tell us a bit about yourself..."
+                                class="form-textarea"
+                                rows="3"
+                            ></textarea>
+                            <p class="form-hint">Share your motivation or goals</p>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="userAvatar">Choose Avatar</label>
+                            <div class="avatar-picker" id="avatarPicker">
+                                <button type="button" class="avatar-option active" data-avatar="👤" onclick="selectAvatar('👤')">👤</button>
+                                <button type="button" class="avatar-option" data-avatar="😊" onclick="selectAvatar('😊')">😊</button>
+                                <button type="button" class="avatar-option" data-avatar="🚀" onclick="selectAvatar('🚀')">🚀</button>
+                                <button type="button" class="avatar-option" data-avatar="💪" onclick="selectAvatar('💪')">💪</button>
+                                <button type="button" class="avatar-option" data-avatar="⚡" onclick="selectAvatar('⚡')">⚡</button>
+                                <button type="button" class="avatar-option" data-avatar="🎯" onclick="selectAvatar('🎯')">🎯</button>
+                                <button type="button" class="avatar-option" data-avatar="🌟" onclick="selectAvatar('🌟')">🌟</button>
+                                <button type="button" class="avatar-option" data-avatar="🔥" onclick="selectAvatar('🔥')">🔥</button>
+                            </div>
+                            <input type="hidden" id="selectedAvatar" name="avatar" value="👤" />
+                        </div>
+
+                        <button type="submit" class="profile-action-btn primary">
+                            <span class="material-symbols-outlined">save</span>
+                            Save Details
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Stats Summary -->
+                <div class="profile-section">
+                    <h3 class="profile-section-title">Your Stats</h3>
+                    <div class="profile-stats">
+                        <div class="profile-stat-card">
+                            <div class="profile-stat-value" id="profileTotalHabits">0</div>
+                            <div class="profile-stat-label">Habits</div>
+                        </div>
+                        <div class="profile-stat-card">
+                            <div class="profile-stat-value" id="profileTotalReps">0</div>
+                            <div class="profile-stat-label">Total Reps</div>
+                        </div>
+                        <div class="profile-stat-card">
+                            <div class="profile-stat-value" id="profileBestStreak">0</div>
+                            <div class="profile-stat-label">Best Streak</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Settings Section -->
+                <div class="profile-section">
+                    <h3 class="profile-section-title">Settings</h3>
+                    <div class="settings-list">
+                        <!-- Theme Toggle -->
+                        <div class="setting-item">
+                            <div class="setting-left">
+                                <div class="setting-icon">
+                                    <span class="material-symbols-outlined">dark_mode</span>
+                                </div>
+                                <div class="setting-info">
+                                    <h4>Dark Mode</h4>
+                                    <p>Toggle dark theme</p>
+                                </div>
+                            </div>
+                            <div class="toggle-switch" id="themeToggle" onclick="toggleTheme()"></div>
+                        </div>
+
+                        <!-- Haptics Toggle -->
+                        <div class="setting-item">
+                            <div class="setting-left">
+                                <div class="setting-icon">
+                                    <span class="material-symbols-outlined">vibration</span>
+                                </div>
+                                <div class="setting-info">
+                                    <h4>Haptic Feedback</h4>
+                                    <p>Feel vibrations on actions</p>
+                                </div>
+                            </div>
+                            <div class="toggle-switch active" id="hapticsToggle" onclick="toggleHaptics()"></div>
+                        </div>
+
+                        <!-- Celebrations Toggle -->
+                        <div class="setting-item">
+                            <div class="setting-left">
+                                <div class="setting-icon">
+                                    <span class="material-symbols-outlined">celebration</span>
+                                </div>
+                                <div class="setting-info">
+                                    <h4>Celebrations</h4>
+                                    <p>Show celebration modals</p>
+                                </div>
+                            </div>
+                            <div class="toggle-switch active" id="celebrationsToggle" onclick="toggleCelebrations()"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Data Export Section -->
+                <div class="profile-section">
+                    <h3 class="profile-section-title">Data Management</h3>
+                    <button class="profile-action-btn secondary" onclick="exportToCSV()">
+                        <span class="material-symbols-outlined">download</span>
+                        Export Data (CSV)
+                    </button>
+                    <p style="font-size: 13px; color: var(--color-on-surface-variant); margin: 12px 0 0; text-align: center;">
+                        Your data stays private—exported only to your device
+                    </p>
+                </div>
+
+                <!-- Account Section -->
+                <div class="profile-section">
+                    <h3 class="profile-section-title">Account</h3>
+                    <button class="profile-action-btn danger" onclick="handleLogout()">
+                        <span class="material-symbols-outlined">logout</span>
+                        Log Out
+                    </button>
+                </div>
+            </div>
+        </div>
+        <!-- End Profile Tab -->
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-navigation">
+        <button class="nav-tab active" data-tab="habits" onclick="switchTab('habits')">
+            <span class="material-symbols-outlined">check_circle</span>
+            <span class="nav-label">Habits</span>
+        </button>
+
+        <button class="nav-tab" data-tab="analytics" onclick="switchTab('analytics')">
+            <span class="material-symbols-outlined">bar_chart</span>
+            <span class="nav-label">Analytics</span>
+        </button>
+
+        <button class="nav-tab" data-tab="profile" onclick="switchTab('profile')">
+            <span class="material-symbols-outlined">person</span>
+            <span class="nav-label">Profile</span>
+        </button>
+    </nav>
 
     <!-- FAB -->
     <button class="fab state-layer-on-primary" onclick="openHabitModal()" aria-label="Add new habit" id="fabButton">
@@ -2777,6 +3765,10 @@
         </div>
     </div>
 
+
+    <!-- Atoms-style Enhancement Scripts -->
+    <script src="assets/js/haptics.js"></script>
+    <script src="assets/js/celebrations.js"></script>
 
     <script type="module" src="assets/js/firebase-config.js"></script>
     <script type="module" src="assets/js/app.js"></script>

@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Test</title>
+    <style>
+        body { font-family: monospace; padding: 20px; background: #1a1a1a; color: #0f0; }
+        .error { color: #f00; }
+        .success { color: #0f0; }
+        .info { color: #ff0; }
+    </style>
+</head>
+<body>
+    <h1>Habit Tracker Debug Test</h1>
+    <div id="results"></div>
+
+    <script type="module">
+        const results = document.getElementById('results');
+
+        function log(message, type = 'info') {
+            const div = document.createElement('div');
+            div.className = type;
+            div.textContent = message;
+            results.appendChild(div);
+        }
+
+        log('Starting tests...', 'info');
+
+        // Test 1: Firebase Config Load
+        try {
+            const config = await import('./assets/js/firebase-config.js');
+            log('✓ firebase-config.js loaded', 'success');
+
+            setTimeout(() => {
+                if (window.auth) {
+                    log('✓ window.auth initialized', 'success');
+                } else {
+                    log('✗ window.auth NOT initialized', 'error');
+                }
+
+                if (window.db) {
+                    log('✓ window.db initialized', 'success');
+                } else {
+                    log('✗ window.db NOT initialized', 'error');
+                }
+
+                if (window.fb) {
+                    log('✓ window.fb initialized', 'success');
+                } else {
+                    log('✗ window.fb NOT initialized', 'error');
+                }
+            }, 500);
+
+        } catch(e) {
+            log('✗ firebase-config.js error: ' + e.message, 'error');
+        }
+
+        // Test 2: App.js Load
+        try {
+            const app = await import('./assets/js/app.js');
+            log('✓ app.js loaded', 'success');
+        } catch(e) {
+            log('✗ app.js error: ' + e.message, 'error');
+            log('Stack: ' + e.stack, 'error');
+        }
+
+        // Test 3: Check DOM elements
+        setTimeout(() => {
+            log('\n--- Checking main app DOM elements ---', 'info');
+
+            fetch('./index.html')
+                .then(r => r.text())
+                .then(html => {
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+
+                    const checks = [
+                        ['#authOverlay', 'Auth overlay'],
+                        ['#appContainer', 'App container'],
+                        ['.bottom-navigation', 'Bottom navigation'],
+                        ['#habits-tab', 'Habits tab'],
+                        ['#analytics-tab', 'Analytics tab'],
+                        ['#profile-tab', 'Profile tab']
+                    ];
+
+                    checks.forEach(([selector, name]) => {
+                        const el = doc.querySelector(selector);
+                        if (el) {
+                            log(`✓ Found: ${name}`, 'success');
+                        } else {
+                            log(`✗ Missing: ${name}`, 'error');
+                        }
+                    });
+                });
+        }, 1000);
+
+        // Test 4: Check critical functions
+        setTimeout(() => {
+            log('\n--- Checking critical functions ---', 'info');
+
+            const functions = [
+                'switchTab',
+                'renderProgressView',
+                'renderProfile',
+                'toggleTheme',
+                'toggleHaptics',
+                'toggleCelebrations',
+                'handleLogout'
+            ];
+
+            functions.forEach(fn => {
+                if (typeof window[fn] === 'function') {
+                    log(`✓ Function exists: ${fn}`, 'success');
+                } else {
+                    log(`✗ Function missing: ${fn}`, 'error');
+                }
+            });
+        }, 1500);
+    </script>
+</body>
+</html>
