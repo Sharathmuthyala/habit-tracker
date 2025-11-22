@@ -547,10 +547,13 @@ window.loadAllData = async function () {
         window.renderHabits();
         window.updateDisplay();
 
-        // 5. Re-render Analytics if it's the active tab (fixes zero data on refresh)
+        // 5. Re-render views if they are the active tab (fixes zero data on refresh)
         const currentTab = localStorage.getItem('currentTab');
-        if (currentTab === 'analytics') {
+        if (currentTab === 'progress') {
             renderProgressView();
+        } else if (currentTab === 'analytics') {
+            // Analytics content is already rendered
+            // No need to re-render on data load
         } else if (currentTab === 'profile') {
             renderProfile();
         }
@@ -2254,8 +2257,9 @@ function updateEnhancedHeatmap() {
 
     if (!grid) return;
 
-    // Update habit filter dropdown
+    // Update habit filter dropdown - preserve selected value
     const habitSelect = document.getElementById('heatmapHabitFilter');
+    const selectedValue = habitSelect.value; // Store current selection
     habitSelect.innerHTML = '<option value="all">All Habits</option>';
     habits.forEach(habit => {
         const option = document.createElement('option');
@@ -2263,6 +2267,7 @@ function updateEnhancedHeatmap() {
         option.textContent = habit.name;
         habitSelect.appendChild(option);
     });
+    habitSelect.value = selectedValue; // Restore selection
 
     // Calculate date range
     const months = parseInt(periodFilter);
@@ -2978,7 +2983,7 @@ document.addEventListener('DOMContentLoaded', function () {
 // ==========================================
 
 /**
- * Switch between tabs: habits, analytics, profile
+ * Switch between tabs: habits, progress, analytics, profile
  */
 window.switchTab = function (tabName) {
     // Update nav button states
@@ -2991,9 +2996,15 @@ window.switchTab = function (tabName) {
         content.classList.toggle('active', content.id === `${tabName}-tab`);
     });
 
+    // Load data when switching to progress tab
+    if (tabName === 'progress') {
+        renderProgressView();
+    }
+
     // Load data when switching to analytics tab
     if (tabName === 'analytics') {
-        renderProgressView();
+        // Analytics content is already rendered
+        // Charts initialize on page load
     }
 
     // Render profile when switching to profile tab
