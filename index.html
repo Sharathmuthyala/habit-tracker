@@ -71,6 +71,7 @@
 
             /* Outline */
             --color-outline: #DADCE0;
+            --color-outline-variant: #E0E0E0;
             --color-outline-faint: rgba(60, 64, 67, 0.1);
             /* For dots */
 
@@ -103,10 +104,12 @@
             --color-primary: #8AB4F8;
             --color-primary-hover: #a3c5f8;
             --color-primary-container: rgba(138, 180, 248, 0.1);
-            /* For flash */
-            --color-on-primary: #202124;
+            --color-on-primary-container: #8AB4F8;
 
             --color-secondary: #E8EAED;
+
+            /* CRITICAL: Dark background - was missing! */
+            --color-background: #121212;
 
             --color-surface: #202124;
             --color-on-surface: #E8EAED;
@@ -119,8 +122,8 @@
             --color-surface-elevated: #2A2B2F;
 
             --color-outline: #5F6368;
+            --color-outline-variant: #4A4D52;
             --color-outline-faint: rgba(232, 234, 237, 0.1);
-            /* For dots */
         }
 
         /* ---
@@ -965,9 +968,13 @@
             transition: all var(--motion-fast);
             cursor: pointer;
             position: relative;
-            overflow: hidden;
-            box-shadow: 0 2px 8px rgba(60, 64, 67, 0.08);
             /* PHASE 2.3: Softer shadow */
+            /* overflow: hidden;  <-- REMOVED to allow dropdown to show */
+        }
+
+        .habit-card.menu-open {
+            z-index: 1000;
+            /* Ensure open menu stays on top of other cards */
         }
 
         /* REFINEMENT: Principle 7 - Flash animation */
@@ -999,6 +1006,57 @@
             }
         }
 
+        /* Dark mode text contrast improvements for header */
+        body.dark-mode .welcome-greeting {
+            color: #FFFFFF;
+        }
+
+        body.dark-mode .welcome-subtitle {
+            color: #E8EAED;
+        }
+
+        body.dark-mode .week-range {
+            color: #FFFFFF;
+        }
+
+        body.dark-mode .date-day {
+            color: #E8EAED;
+        }
+
+        body.dark-mode .date-number {
+            color: #E8EAED;
+        }
+
+        body.dark-mode .date-number.selected {
+            color: #202124;
+        }
+
+        body.dark-mode .date-number.today {
+            color: var(--color-primary);
+        }
+
+        body.dark-mode .date-number.today.selected {
+            color: #202124;
+        }
+
+        /* Dark mode: Analytics tab buttons - subtler active state */
+        body.dark-mode .analytics-tab.active {
+            background: var(--color-surface-tone-3);
+            color: var(--color-primary);
+        }
+
+        /* Dark mode: Toggle buttons - subtler active state */
+        body.dark-mode .toggle-btn.active {
+            background: var(--color-primary-container);
+            color: var(--color-primary);
+            box-shadow: 0 2px 6px rgba(138, 180, 248, 0.2);
+        }
+
+        /* ---
+         * HABIT CARDS
+         * ---
+         */
+
         .habit-card:hover {
             box-shadow: 0 2px 6px rgba(60, 64, 67, 0.25);
             /* elevation-2 */
@@ -1018,6 +1076,8 @@
             width: 4px;
             background: var(--habit-color);
             border-radius: 4px 0 0 4px;
+            z-index: 1;
+            /* Ensure it stays below content but above background */
         }
 
         /* Custom Checkbox */
@@ -1144,9 +1204,11 @@
             0% {
                 transform: scale(0);
             }
+
             50% {
                 transform: scale(1.2);
             }
+
             100% {
                 transform: scale(1);
             }
@@ -1207,6 +1269,13 @@
 
         .habit-menu {
             z-index: 2;
+            flex-shrink: 0;
+            min-width: 48px;
+        }
+
+        .habit-menu .material-symbols-outlined {
+            white-space: nowrap;
+            direction: ltr;
         }
 
         .habit-menu .icon-button {
@@ -1234,7 +1303,9 @@
             /* elevation-3 */
             border-radius: var(--radius-large);
             /* 12px */
-            z-index: 10;
+            /* 12px */
+            z-index: 100;
+            /* Increased z-index */
             padding: 8px;
             border: 1px solid var(--color-outline);
             animation: fadeIn 100ms ease-out;
@@ -2151,6 +2222,8 @@
             z-index: 0;
             pointer-events: none;
             animation: cardFillAnimation 400ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
+            border-radius: inherit;
+            /* Ensure it respects card radius */
         }
 
         @keyframes cardFillAnimation {
@@ -2958,7 +3031,8 @@
             margin-bottom: 8px;
         }
 
-        .form-input, .form-textarea {
+        .form-input,
+        .form-textarea {
             width: 100%;
             padding: 12px 16px;
             border: 1px solid var(--color-outline);
@@ -2970,7 +3044,8 @@
             box-sizing: border-box;
         }
 
-        .form-input:focus, .form-textarea:focus {
+        .form-input:focus,
+        .form-textarea:focus {
             outline: none;
             border-color: var(--color-primary);
         }
@@ -2989,21 +3064,23 @@
         .avatar-picker {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: 8px;
+            gap: 6px;
+            margin-bottom: 16px;
         }
 
         .avatar-option {
             width: 100%;
-            aspect-ratio: 1;
-            font-size: 32px;
+            padding: 12px;
+            font-size: 24px;
             border: 2px solid var(--color-outline);
-            border-radius: 12px;
+            border-radius: 10px;
             background: var(--color-surface);
             cursor: pointer;
             transition: all 200ms ease;
             display: flex;
             align-items: center;
             justify-content: center;
+            min-height: 48px;
         }
 
         .avatar-option:hover {
@@ -3068,78 +3145,82 @@
                     </div>
                 </div>
                 <!-- Setup Banner (for Firebase config) -->
-            <div class="setup-banner" id="setupBanner">
-                <h3>
-                    <span class="material-symbols-outlined">settings</span>
-                    Firebase Setup Required
-                </h3>
-                <p><strong>This app won't work without a Firebase backend.</strong> Follow these steps to enable secure
-                    cloud sync:</p>
-                <ol>
-                    <li>Go to <a href="https://console.firebase.google.com" target="_blank">Firebase Console</a></li>
-                    <li>Create a new project (free)</li>
-                    <li>Enable <strong>Email/Password Authentication</strong> in Authentication → Sign-in method</li>
-                    <li>Create <strong>Firestore Database</strong> in production mode</li>
-                    <li>Go to Firestore's <strong>Rules</strong> tab and replace the default rules with the ones from
-                        the console warning.</li>
-                    <li>Add a Web App (in Project Settings) and copy your config object into the
-                        <code>firebaseConfig</code> variable in the code.
-                    </li>
-                </ol>
-                <p style="margin-top: 16px;"><strong>This banner will hide once you add your config.</strong></p>
-            </div>
+                <div class="setup-banner" id="setupBanner">
+                    <h3>
+                        <span class="material-symbols-outlined">settings</span>
+                        Firebase Setup Required
+                    </h3>
+                    <p><strong>This app won't work without a Firebase backend.</strong> Follow these steps to enable
+                        secure
+                        cloud sync:</p>
+                    <ol>
+                        <li>Go to <a href="https://console.firebase.google.com" target="_blank">Firebase Console</a>
+                        </li>
+                        <li>Create a new project (free)</li>
+                        <li>Enable <strong>Email/Password Authentication</strong> in Authentication → Sign-in method
+                        </li>
+                        <li>Create <strong>Firestore Database</strong> in production mode</li>
+                        <li>Go to Firestore's <strong>Rules</strong> tab and replace the default rules with the ones
+                            from
+                            the console warning.</li>
+                        <li>Add a Web App (in Project Settings) and copy your config object into the
+                            <code>firebaseConfig</code> variable in the code.
+                        </li>
+                    </ol>
+                    <p style="margin-top: 16px;"><strong>This banner will hide once you add your config.</strong></p>
+                </div>
 
 
 
-            <!-- Horizontal Date Strip (Fitbit-inspired) -->
-            <div class="date-strip-wrapper">
-                <div class="date-strip-header">
-                    <div class="week-range" id="weekRange">Nov 9-15</div>
-                    <div class="date-nav-buttons">
-                        <button class="icon-button-small" id="prevWeekBtn" onclick="changeWeek(-1)"
-                            aria-label="Previous week">
-                            <span class="material-symbols-outlined">chevron_left</span>
-                        </button>
-                        <button class="icon-button-small" id="nextWeekBtn" onclick="changeWeek(1)"
-                            aria-label="Next week">
-                            <span class="material-symbols-outlined">chevron_right</span>
-                        </button>
-                        <button class="icon-button-small" onclick="goToToday()" aria-label="Go to today">
-                            <span class="material-symbols-outlined">today</span>
-                        </button>
+                <!-- Horizontal Date Strip (Fitbit-inspired) -->
+                <div class="date-strip-wrapper">
+                    <div class="date-strip-header">
+                        <div class="week-range" id="weekRange">Nov 9-15</div>
+                        <div class="date-nav-buttons">
+                            <button class="icon-button-small" id="prevWeekBtn" onclick="changeWeek(-1)"
+                                aria-label="Previous week">
+                                <span class="material-symbols-outlined">chevron_left</span>
+                            </button>
+                            <button class="icon-button-small" id="nextWeekBtn" onclick="changeWeek(1)"
+                                aria-label="Next week">
+                                <span class="material-symbols-outlined">chevron_right</span>
+                            </button>
+                            <button class="icon-button-small" onclick="goToToday()" aria-label="Go to today">
+                                <span class="material-symbols-outlined">today</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="date-strip-container">
+                        <div class="date-strip" id="dateStrip">
+                            <!-- Week dates will be generated by JavaScript -->
+                        </div>
                     </div>
                 </div>
-                <div class="date-strip-container">
-                    <div class="date-strip" id="dateStrip">
-                        <!-- Week dates will be generated by JavaScript -->
+
+                <!-- Concentric Rings Progress -->
+                <div class="rings-container">
+                    <svg class="concentric-rings" id="concentricRings" viewBox="0 0 200 200">
+                        <!-- Rings will be generated by JavaScript -->
+                    </svg>
+                    <div class="rings-center-text" id="ringsCenterText">0/0</div>
+                </div>
+
+                <!-- Motivational Quote Card -->
+                <div class="quote-card" id="quoteCard">
+                    <span class="quote-icon">💡</span>
+                    <p class="quote-text" id="quoteText"></p>
+                    <p class="quote-author" id="quoteAuthor"></p>
+                </div>
+
+                <!-- Habits Section -->
+                <div class="habits-section" id="habitsList">
+                    <div class="habits-list-empty-state" id="emptyState">
+                        <span class="material-symbols-outlined">add_task</span>
+                        <h3>Your habit list is empty</h3>
+                        <p>Click the <strong>+</strong> button in the corner to add your first habit!</p>
                     </div>
+                    <!-- Habits will be rendered here by JavaScript -->
                 </div>
-            </div>
-
-            <!-- Concentric Rings Progress -->
-            <div class="rings-container">
-                <svg class="concentric-rings" id="concentricRings" viewBox="0 0 200 200">
-                    <!-- Rings will be generated by JavaScript -->
-                </svg>
-                <div class="rings-center-text" id="ringsCenterText">0/0</div>
-            </div>
-
-            <!-- Motivational Quote Card -->
-            <div class="quote-card" id="quoteCard">
-                <span class="quote-icon">💡</span>
-                <p class="quote-text" id="quoteText"></p>
-                <p class="quote-author" id="quoteAuthor"></p>
-            </div>
-
-            <!-- Habits Section -->
-            <div class="habits-section" id="habitsList">
-                <div class="habits-list-empty-state" id="emptyState">
-                    <span class="material-symbols-outlined">add_task</span>
-                    <h3>Your habit list is empty</h3>
-                    <p>Click the <strong>+</strong> button in the corner to add your first habit!</p>
-                </div>
-                <!-- Habits will be rendered here by JavaScript -->
-            </div>
             </div>
         </div>
         <!-- End Habits Tab -->
@@ -3335,7 +3416,8 @@
                         <div class="heatmap-filters">
                             <div class="filter-group">
                                 <label>Period:</label>
-                                <select id="heatmapPeriodFilter" class="filter-select" onchange="updateEnhancedHeatmap()">
+                                <select id="heatmapPeriodFilter" class="filter-select"
+                                    onchange="updateEnhancedHeatmap()">
                                     <option value="3">3 Months</option>
                                     <option value="6" selected>6 Months</option>
                                     <option value="12">1 Year</option>
@@ -3343,7 +3425,8 @@
                             </div>
                             <div class="filter-group">
                                 <label>Habit:</label>
-                                <select id="heatmapHabitFilter" class="filter-select" onchange="updateEnhancedHeatmap()">
+                                <select id="heatmapHabitFilter" class="filter-select"
+                                    onchange="updateEnhancedHeatmap()">
                                     <option value="all">All Habits</option>
                                 </select>
                             </div>
@@ -3353,20 +3436,24 @@
                             <div id="enhancedHeatmapGrid"></div>
                             <div class="heatmap-legend">
                                 <div class="legend-item">
-                                    <div class="legend-color" style="background: var(--color-surface-tone-3); opacity: 0.25;">
+                                    <div class="legend-color"
+                                        style="background: var(--color-surface-tone-3); opacity: 0.25;">
                                     </div>
                                     <span>0-25%</span>
                                 </div>
                                 <div class="legend-item">
-                                    <div class="legend-color" style="background: var(--color-primary); opacity: 0.5;"></div>
+                                    <div class="legend-color" style="background: var(--color-primary); opacity: 0.5;">
+                                    </div>
                                     <span>26-50%</span>
                                 </div>
                                 <div class="legend-item">
-                                    <div class="legend-color" style="background: var(--color-primary); opacity: 0.75;"></div>
+                                    <div class="legend-color" style="background: var(--color-primary); opacity: 0.75;">
+                                    </div>
                                     <span>51-75%</span>
                                 </div>
                                 <div class="legend-item">
-                                    <div class="legend-color" style="background: var(--color-primary); opacity: 1;"></div>
+                                    <div class="legend-color" style="background: var(--color-primary); opacity: 1;">
+                                    </div>
                                     <span>76-100%</span>
                                 </div>
                             </div>
@@ -3454,13 +3541,15 @@
                             <div class="compare-selects"
                                 style="display: flex; gap: 16px; margin-bottom: 16px; align-items: center;">
                                 <div style="flex: 1;">
-                                    <label style="display: block; margin-bottom: 8px; font-weight: 500;">Habit 1:</label>
+                                    <label style="display: block; margin-bottom: 8px; font-weight: 500;">Habit
+                                        1:</label>
                                     <select id="compareHabit1" class="filter-select" style="width: 100%;">
                                         <!-- Generated by JS -->
                                     </select>
                                 </div>
                                 <div style="flex: 1;">
-                                    <label style="display: block; margin-bottom: 8px; font-weight: 500;">Habit 2:</label>
+                                    <label style="display: block; margin-bottom: 8px; font-weight: 500;">Habit
+                                        2:</label>
                                     <select id="compareHabit2" class="filter-select" style="width: 100%;">
                                         <!-- Generated by JS -->
                                     </select>
@@ -3475,7 +3564,8 @@
                     <!-- Export Section -->
                     <div class="export-section">
                         <h3>
-                            <span class="material-symbols-outlined" style="vertical-align: middle;">cloud_download</span>
+                            <span class="material-symbols-outlined"
+                                style="vertical-align: middle;">cloud_download</span>
                             Export Your Data
                         </h3>
                         <p>Download your complete habit history as a CSV file</p>
@@ -3511,39 +3601,37 @@
                     <form id="userDetailsForm" onsubmit="saveUserDetails(event)">
                         <div class="form-group">
                             <label for="userDisplayName">Display Name</label>
-                            <input
-                                type="text"
-                                id="userDisplayName"
-                                name="displayName"
-                                placeholder="How should we call you?"
-                                class="form-input"
-                            />
+                            <input type="text" id="userDisplayName" name="displayName"
+                                placeholder="How should we call you?" class="form-input" />
                             <p class="form-hint">Used in welcome messages and profile</p>
                         </div>
 
                         <div class="form-group">
                             <label for="userBio">Bio (Optional)</label>
-                            <textarea
-                                id="userBio"
-                                name="bio"
-                                placeholder="Tell us a bit about yourself..."
-                                class="form-textarea"
-                                rows="3"
-                            ></textarea>
+                            <textarea id="userBio" name="bio" placeholder="Tell us a bit about yourself..."
+                                class="form-textarea" rows="3"></textarea>
                             <p class="form-hint">Share your motivation or goals</p>
                         </div>
 
                         <div class="form-group">
                             <label for="userAvatar">Choose Avatar</label>
                             <div class="avatar-picker" id="avatarPicker">
-                                <button type="button" class="avatar-option active" data-avatar="👤" onclick="selectAvatar('👤')">👤</button>
-                                <button type="button" class="avatar-option" data-avatar="😊" onclick="selectAvatar('😊')">😊</button>
-                                <button type="button" class="avatar-option" data-avatar="🚀" onclick="selectAvatar('🚀')">🚀</button>
-                                <button type="button" class="avatar-option" data-avatar="💪" onclick="selectAvatar('💪')">💪</button>
-                                <button type="button" class="avatar-option" data-avatar="⚡" onclick="selectAvatar('⚡')">⚡</button>
-                                <button type="button" class="avatar-option" data-avatar="🎯" onclick="selectAvatar('🎯')">🎯</button>
-                                <button type="button" class="avatar-option" data-avatar="🌟" onclick="selectAvatar('🌟')">🌟</button>
-                                <button type="button" class="avatar-option" data-avatar="🔥" onclick="selectAvatar('🔥')">🔥</button>
+                                <button type="button" class="avatar-option active" data-avatar="👤"
+                                    onclick="selectAvatar('👤')">👤</button>
+                                <button type="button" class="avatar-option" data-avatar="😊"
+                                    onclick="selectAvatar('😊')">😊</button>
+                                <button type="button" class="avatar-option" data-avatar="🚀"
+                                    onclick="selectAvatar('🚀')">🚀</button>
+                                <button type="button" class="avatar-option" data-avatar="💪"
+                                    onclick="selectAvatar('💪')">💪</button>
+                                <button type="button" class="avatar-option" data-avatar="⚡"
+                                    onclick="selectAvatar('⚡')">⚡</button>
+                                <button type="button" class="avatar-option" data-avatar="🎯"
+                                    onclick="selectAvatar('🎯')">🎯</button>
+                                <button type="button" class="avatar-option" data-avatar="🌟"
+                                    onclick="selectAvatar('🌟')">🌟</button>
+                                <button type="button" class="avatar-option" data-avatar="🔥"
+                                    onclick="selectAvatar('🔥')">🔥</button>
                             </div>
                             <input type="hidden" id="selectedAvatar" name="avatar" value="👤" />
                         </div>
@@ -3617,7 +3705,8 @@
                                     <p>Show celebration modals</p>
                                 </div>
                             </div>
-                            <div class="toggle-switch active" id="celebrationsToggle" onclick="toggleCelebrations()"></div>
+                            <div class="toggle-switch active" id="celebrationsToggle" onclick="toggleCelebrations()">
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -3629,7 +3718,8 @@
                         <span class="material-symbols-outlined">download</span>
                         Export Data (CSV)
                     </button>
-                    <p style="font-size: 13px; color: var(--color-on-surface-variant); margin: 12px 0 0; text-align: center;">
+                    <p
+                        style="font-size: 13px; color: var(--color-on-surface-variant); margin: 12px 0 0; text-align: center;">
                         Your data stays private—exported only to your device
                     </p>
                 </div>
@@ -3637,7 +3727,7 @@
                 <!-- Account Section -->
                 <div class="profile-section">
                     <h3 class="profile-section-title">Account</h3>
-                    <button class="profile-action-btn danger" onclick="handleLogout()">
+                    <button class="profile-action-btn danger" onclick="handleLogout(); event.stopPropagation();">
                         <span class="material-symbols-outlined">logout</span>
                         Log Out
                     </button>
@@ -3646,132 +3736,135 @@
         </div>
         <!-- End Profile Tab -->
 
-    <!-- Bottom Navigation -->
-    <nav class="bottom-navigation">
-        <button class="nav-tab active" data-tab="habits" onclick="switchTab('habits')">
-            <span class="material-symbols-outlined">check_circle</span>
-            <span class="nav-label">Habits</span>
+        <!-- Bottom Navigation -->
+        <nav class="bottom-navigation">
+            <button class="nav-tab active" data-tab="habits" onclick="switchTab('habits')">
+                <span class="material-symbols-outlined">check_circle</span>
+                <span class="nav-label">Habits</span>
+            </button>
+
+            <button class="nav-tab" data-tab="analytics" onclick="switchTab('analytics')">
+                <span class="material-symbols-outlined">bar_chart</span>
+                <span class="nav-label">Analytics</span>
+            </button>
+
+            <button class="nav-tab" data-tab="profile" onclick="switchTab('profile')">
+                <span class="material-symbols-outlined">person</span>
+                <span class="nav-label">Profile</span>
+            </button>
+        </nav>
+
+        <!-- FAB -->
+        <button class="fab state-layer-on-primary" onclick="openHabitModal()" aria-label="Add new habit" id="fabButton">
+            <span class="material-symbols-outlined">add</span>
         </button>
 
-        <button class="nav-tab" data-tab="analytics" onclick="switchTab('analytics')">
-            <span class="material-symbols-outlined">bar_chart</span>
-            <span class="nav-label">Analytics</span>
-        </button>
+        <!-- Celebration Overlay -->
+        <div class="celebration" id="celebration">
+            <div class="celebration-emoji">🎉</div>
+            <div class="celebration-text">All habits completed!</div>
+            <div class="celebration-subtext">Keep up the amazing work!</div>
+        </div>
 
-        <button class="nav-tab" data-tab="profile" onclick="switchTab('profile')">
-            <span class="material-symbols-outlined">person</span>
-            <span class="nav-label">Profile</span>
-        </button>
-    </nav>
+        <!-- REFINEMENT: Principle 7 - Confetti Container -->
+        <div class="confetti-container" id="confettiContainer"></div>
 
-    <!-- FAB -->
-    <button class="fab state-layer-on-primary" onclick="openHabitModal()" aria-label="Add new habit" id="fabButton">
-        <span class="material-symbols-outlined">add</span>
-    </button>
+        <!-- Snackbar -->
+        <div class="snackbar" id="snackbar">
+            <span class="material-symbols-outlined" id="snackbarIcon">check_circle</span>
+            <span id="snackbarText"></span>
+        </div>
 
-    <!-- Celebration Overlay -->
-    <div class="celebration" id="celebration">
-        <div class="celebration-emoji">🎉</div>
-        <div class="celebration-text">All habits completed!</div>
-        <div class="celebration-subtext">Keep up the amazing work!</div>
-    </div>
+        <!-- Add/Edit Habit Modal -->
+        <div class="modal-overlay" id="habitModal">
+            <div class="modal">
+                <div class="modal-header">
+                    <h3 class="modal-title" id="habitModalTitle">Add New Habit</h3>
+                    <button class="icon-button state-layer-secondary" onclick="closeHabitModal()"
+                        style="box-shadow: none;">
+                        <span class="material-symbols-outlined">close</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="habitForm">
+                        <input type="hidden" id="habitIdInput">
 
-    <!-- REFINEMENT: Principle 7 - Confetti Container -->
-    <div class="confetti-container" id="confettiContainer"></div>
+                        <!-- REFINEMENT: Principle 4 - "I will..." -->
+                        <div class="form-group">
+                            <label for="habitName" class="form-label">I will...</label>
+                            <input type="text" id="habitName" class="form-input" placeholder="e.g., Read 10 pages"
+                                required>
+                        </div>
 
-    <!-- Snackbar -->
-    <div class="snackbar" id="snackbar">
-        <span class="material-symbols-outlined" id="snackbarIcon">check_circle</span>
-        <span id="snackbarText"></span>
-    </div>
+                        <div class="form-group">
+                            <label for="habitIcon" class="form-label">Icon (Emoji)</label>
+                            <input type="text" id="habitIcon" class="form-input" placeholder="e.g., 📚" required>
+                        </div>
 
-    <!-- Add/Edit Habit Modal -->
-    <div class="modal-overlay" id="habitModal">
-        <div class="modal">
-            <div class="modal-header">
-                <h3 class="modal-title" id="habitModalTitle">Add New Habit</h3>
-                <button class="icon-button state-layer-secondary" onclick="closeHabitModal()" style="box-shadow: none;">
-                    <span class="material-symbols-outlined">close</span>
-                </button>
+                        <!-- REFINEMENT: Principle 4 - "so I become..." -->
+                        <div class="form-group">
+                            <label for="habitWhy" class="form-label">...so I can (Your 'Why' - Optional)</label>
+                            <input type="text" id="habitWhy" class="form-input" placeholder="e.g., learn a new skill">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="habitSchedule" class="form-label">Schedule</label>
+                            <select id="habitSchedule" class="form-select">
+                                <option value="daily">Daily</option>
+                                <option value="weekdays">Weekdays Only (Mon-Fri)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Color</label>
+                            <div class="color-picker" id="colorPicker">
+                                <!-- Swatches added by JS -->
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button class="outlined-button state-layer-primary" onclick="closeHabitModal()">Cancel</button>
+                    <button class="filled-button state-layer-primary" onclick="saveHabit()">Save Habit</button>
+                </div>
             </div>
-            <div class="modal-body">
-                <form id="habitForm">
-                    <input type="hidden" id="habitIdInput">
+        </div>
 
-                    <!-- REFINEMENT: Principle 4 - "I will..." -->
-                    <div class="form-group">
-                        <label for="habitName" class="form-label">I will...</label>
-                        <input type="text" id="habitName" class="form-input" placeholder="e.g., Read 10 pages" required>
+        <!-- Heatmap Modal -->
+        <div class="modal-overlay" id="heatmapModal">
+            <div class="modal">
+                <div class="modal-header">
+                    <h3 class="modal-title" id="heatmapTitle">Habit Consistency</h3>
+                    <button class="icon-button state-layer-secondary" onclick="closeHeatmapModal()"
+                        style="box-shadow: none;">
+                        <span class="material-symbols-outlined">close</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="heatmap-grid" id="heatmapGrid">
+                        <!-- Days will be generated by JS -->
                     </div>
-
-                    <div class="form-group">
-                        <label for="habitIcon" class="form-label">Icon (Emoji)</label>
-                        <input type="text" id="habitIcon" class="form-input" placeholder="e.g., 📚" required>
-                    </div>
-
-                    <!-- REFINEMENT: Principle 4 - "so I become..." -->
-                    <div class="form-group">
-                        <label for="habitWhy" class="form-label">...so I can (Your 'Why' - Optional)</label>
-                        <input type="text" id="habitWhy" class="form-input" placeholder="e.g., learn a new skill">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="habitSchedule" class="form-label">Schedule</label>
-                        <select id="habitSchedule" class="form-select">
-                            <option value="daily">Daily</option>
-                            <option value="weekdays">Weekdays Only (Mon-Fri)</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Color</label>
-                        <div class="color-picker" id="colorPicker">
-                            <!-- Swatches added by JS -->
+                    <div class="heatmap-legend">
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: var(--color-surface-tone-3);"></div>
+                            <span>Less</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: var(--habit-color);" id="heatmapLegendColor">
+                            </div>
+                            <span>More</span>
                         </div>
                     </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button class="outlined-button state-layer-primary" onclick="closeHabitModal()">Cancel</button>
-                <button class="filled-button state-layer-primary" onclick="saveHabit()">Save Habit</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Heatmap Modal -->
-    <div class="modal-overlay" id="heatmapModal">
-        <div class="modal">
-            <div class="modal-header">
-                <h3 class="modal-title" id="heatmapTitle">Habit Consistency</h3>
-                <button class="icon-button state-layer-secondary" onclick="closeHeatmapModal()"
-                    style="box-shadow: none;">
-                    <span class="material-symbols-outlined">close</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <div class="heatmap-grid" id="heatmapGrid">
-                    <!-- Days will be generated by JS -->
-                </div>
-                <div class="heatmap-legend">
-                    <div class="legend-item">
-                        <div class="legend-color" style="background: var(--color-surface-tone-3);"></div>
-                        <span>Less</span>
-                    </div>
-                    <div class="legend-item">
-                        <div class="legend-color" style="background: var(--habit-color);" id="heatmapLegendColor"></div>
-                        <span>More</span>
-                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
 
-    <!-- Atoms-style Enhancement Scripts -->
-    <script src="assets/js/haptics.js"></script>
-    <script src="assets/js/celebrations.js"></script>
+        <!-- Atoms-style Enhancement Scripts -->
+        <script src="assets/js/haptics.js"></script>
+        <script src="assets/js/celebrations.js"></script>
 
-    <script type="module" src="assets/js/firebase-config.js"></script>
-    <script type="module" src="assets/js/app.js"></script>
+        <script type="module" src="assets/js/firebase-config.js"></script>
+        <script type="module" src="assets/js/app.js"></script>
 </body>
 
 </html>

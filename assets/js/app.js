@@ -547,6 +547,14 @@ window.loadAllData = async function () {
         window.renderHabits();
         window.updateDisplay();
 
+        // 5. Re-render Analytics if it's the active tab (fixes zero data on refresh)
+        const currentTab = localStorage.getItem('currentTab');
+        if (currentTab === 'analytics') {
+            renderProgressView();
+        } else if (currentTab === 'profile') {
+            renderProfile();
+        }
+
     } catch (error) {
         console.error("Error loading all data:", error);
         showSnackbar("Error loading data. Please refresh.", true);
@@ -817,6 +825,30 @@ window.deleteHabit = async function (habitId, habitName) {
     // Realtime listener will handle UI update
 }
 
+window.duplicateHabit = async function (habitId) {
+    const userId = getUserId();
+    if (!userId) return;
+
+    const habit = habits.find(h => h.id === habitId);
+    if (!habit) return;
+
+    const newHabit = {
+        ...habit,
+        name: habit.name + ' (Copy)',
+        createdAt: window.fb ? window.fb.serverTimestamp() : new Date().toISOString()
+    };
+    delete newHabit.id; // Remove ID to let Firestore generate a new one
+
+    try {
+        const habitRef = window.fb.collection(window.db, 'users', userId, 'userHabits');
+        await window.fb.addDoc(habitRef, newHabit);
+        showSnackbar("Habit duplicated!");
+    } catch (error) {
+        console.error("Error duplicating habit:", error);
+        showSnackbar("Error duplicating habit.", true);
+    }
+}
+
 // === MAIN APP LOGIC ===
 
 window.renderHabits = function () {
@@ -894,6 +926,12 @@ window.renderHabits = function () {
                         <span class="material-symbols-outlined">edit</span>
                         Edit
                     </button>
+                    <button class="dropdown-item state-layer-secondary"
+                            onclick="duplicateHabit('${habit.id}'); event.stopPropagation();"
+                            role="menuitem">
+                        <span class="material-symbols-outlined">content_copy</span>
+                        Duplicate
+                    </button>
                     <button class="dropdown-item delete state-layer-secondary"
                             onclick="deleteHabit('${habit.id}', '${habit.name.replace(/'/g, "\\'")}'); event.stopPropagation();"
                             role="menuitem">
@@ -918,17 +956,26 @@ window.renderHabits = function () {
 }
 
 window.toggleDropdown = function (event, habitId) {
-    event.stopPropagation(); // Prevent card click
+    event.stopPropagation();
+    const dropdownId = `dropdown-${habitId}`;
+    const dropdown = document.getElementById(dropdownId);
 
-    const button = event.currentTarget;
-    const dropdown = document.getElementById(`dropdown-${habitId}`);
-    const isOpening = !dropdown.classList.contains('show');
+    if (!dropdown) return;
 
-    // Close all other dropdowns and reset their buttons
+    const button = dropdown.previousElementSibling;
+    const habitCard = dropdown.closest('.habit-card');
+
+    // Check current state
+    const wasShown = dropdown.classList.contains('show');
+
+    // Close all other dropdowns first
     document.querySelectorAll('.dropdown-content.show').forEach(openDropdown => {
-        if (openDropdown.id !== `dropdown-${habitId}`) {
+        if (openDropdown !== dropdown) {
             openDropdown.classList.remove('show');
-            // Find and reset the corresponding button
+            // Remove menu-open from other cards
+            const otherCard = openDropdown.closest('.habit-card');
+            if (otherCard) otherCard.classList.remove('menu-open');
+            // Reset the corresponding button's aria-expanded
             const otherButton = openDropdown.previousElementSibling;
             if (otherButton) {
                 otherButton.setAttribute('aria-expanded', 'false');
@@ -936,24 +983,19 @@ window.toggleDropdown = function (event, habitId) {
         }
     });
 
-    // Toggle the clicked one
-    dropdown.classList.toggle('show');
-    button.setAttribute('aria-expanded', isOpening ? 'true' : 'false');
-}
-
-// Close dropdowns if clicking outside
-window.addEventListener('click', function (event) {
-    if (!event.target.closest('.dropdown')) {
-        document.querySelectorAll('.dropdown-content.show').forEach(openDropdown => {
-            openDropdown.classList.remove('show');
-            // Reset the corresponding button's aria-expanded
-            const button = openDropdown.previousElementSibling;
-            if (button) {
-                button.setAttribute('aria-expanded', 'false');
-            }
-        });
+    // Now toggle the current dropdown
+    if (wasShown) {
+        // Close it
+        dropdown.classList.remove('show');
+        if (habitCard) habitCard.classList.remove('menu-open');
+        if (button) button.setAttribute('aria-expanded', 'false');
+    } else {
+        // Open it
+        dropdown.classList.add('show');
+        if (habitCard) habitCard.classList.add('menu-open');
+        if (button) button.setAttribute('aria-expanded', 'true');
     }
-});
+}
 
 
 // PHASE 2.2: Handle full card tap interaction
@@ -1515,8 +1557,8 @@ window.exportToCSV = function () {
 // === HEATMAP LOGIC ===
 
 window.openHeatmapModal = function (event, habitId, habitName, habitColor) {
-    // Stop if clicking checkbox or menu
-    if (event.target.matches('.habit-checkbox') || event.target.closest('.habit-menu')) {
+    // Stop if clicking checkbox  
+    if (event.target.matches('.habit-checkbox')) {
         return;
     }
 
@@ -1653,7 +1695,7 @@ function init() {
 // ==========================================
 // WELCOME MESSAGE
 // ==========================================
-window.updateWelcomeMessage = function() {
+window.updateWelcomeMessage = function () {
     const welcomeGreeting = document.getElementById('welcomeGreeting');
     if (!welcomeGreeting) return;
 
@@ -1678,7 +1720,7 @@ window.updateWelcomeMessage = function() {
 // USER DETAILS FUNCTIONS
 // ==========================================
 
-window.getUserDetails = function() {
+window.getUserDetails = function () {
     const userId = window.auth?.currentUser?.uid;
     if (!userId) return { displayName: '', bio: '', avatar: '👤' };
 
@@ -1696,7 +1738,7 @@ window.getUserDetails = function() {
     return { displayName: '', bio: '', avatar: '👤' };
 };
 
-window.saveUserDetails = function(event) {
+window.saveUserDetails = function (event) {
     event.preventDefault();
 
     const userId = window.auth?.currentUser?.uid;
@@ -1738,7 +1780,7 @@ window.saveUserDetails = function(event) {
     }, 2000);
 };
 
-window.selectAvatar = function(emoji) {
+window.selectAvatar = function (emoji) {
     // Update hidden input
     document.getElementById('selectedAvatar').value = emoji;
 
@@ -1751,7 +1793,7 @@ window.selectAvatar = function(emoji) {
     });
 };
 
-window.loadUserDetailsForm = function() {
+window.loadUserDetailsForm = function () {
     const userDetails = getUserDetails();
 
     const displayNameInput = document.getElementById('userDisplayName');
@@ -3360,12 +3402,18 @@ window.toggleCelebrations = function () {
 // PROFILE TAB: Handle Logout
 // ========================================
 window.handleLogout = async function () {
+    console.log('handleLogout called');
+
     if (!confirm('Are you sure you want to log out?')) {
+        console.log('User cancelled logout');
         return;
     }
 
+    console.log('User confirmed logout, attempting to sign out...');
+
     try {
         await window.fb.signOut(window.auth);
+        console.log('Sign out successful, reloading page...');
         // Redirect to login (auth state change listener will handle UI update)
         window.location.reload();
     } catch (error) {
@@ -3373,5 +3421,19 @@ window.handleLogout = async function () {
         alert('Failed to log out. Please try again.');
     }
 };
+
+// Close dropdowns when clicking outside
+document.addEventListener('click', (event) => {
+    // Don't close if clicking on a dropdown or menu button
+    if (!event.target.closest('.dropdown')) {
+        document.querySelectorAll('.dropdown-content.show').forEach(dropdown => {
+            dropdown.classList.remove('show');
+            const card = dropdown.closest('.habit-card');
+            if (card) card.classList.remove('menu-open');
+            const button = dropdown.previousElementSibling;
+            if (button) button.setAttribute('aria-expanded', 'false');
+        });
+    }
+});
 
 init();
